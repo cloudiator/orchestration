@@ -44,7 +44,7 @@ public abstract class ResourceModel extends Model {
   private String name;
 
   @ManyToOne(optional = false)
-  private Cloud cloud;
+  private CloudModel cloudModel;
 
   @Nullable
   @ManyToOne
@@ -54,12 +54,12 @@ public abstract class ResourceModel extends Model {
 
   }
 
-  public ResourceModel(String cloudUniqueId, String providerId, String name, Cloud cloud,
+  public ResourceModel(String cloudUniqueId, String providerId, String name, CloudModel cloudModel,
       @Nullable LocationModel locationModel) {
     this.cloudUniqueId = cloudUniqueId;
     this.providerId = providerId;
     this.name = name;
-    this.cloud = cloud;
+    this.cloudModel = cloudModel;
     this.locationModel = locationModel;
   }
 
@@ -96,11 +96,11 @@ public abstract class ResourceModel extends Model {
     this.locationModel = locationModel;
   }
 
-  public Cloud getCloud() {
-    return cloud;
+  public CloudModel getCloudModel() {
+    return cloudModel;
   }
 
-  public void setCloud(Cloud cloud) {
-    this.cloud = cloud;
+  public void setCloudModel(CloudModel cloudModel) {
+    this.cloudModel = cloudModel;
   }
 }

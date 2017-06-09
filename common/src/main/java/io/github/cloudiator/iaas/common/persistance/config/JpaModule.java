@@ -2,7 +2,7 @@ package io.github.cloudiator.iaas.common.persistance.config;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
-import io.github.cloudiator.iaas.common.persistance.entities.Cloud;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudCredential;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareModel;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer;
@@ -31,8 +31,8 @@ public class JpaModule extends AbstractModule {
   @Override
   protected void configure() {
 
-    bind(new TypeLiteral<ModelRepository<Cloud>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<Cloud>>() {
+    bind(new TypeLiteral<ModelRepository<CloudModel>>() {
+    }).to(new TypeLiteral<BaseModelRepositoryJpa<CloudModel>>() {
     });
     bind(CloudModelRepository.class).to(CloudModelRepositoryJpa.class);
 

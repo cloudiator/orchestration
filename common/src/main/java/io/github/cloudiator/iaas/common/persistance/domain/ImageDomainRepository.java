@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.ImageConverter;
-import io.github.cloudiator.iaas.common.persistance.entities.Cloud;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.ImageModel;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel;
@@ -53,12 +53,12 @@ public class ImageDomainRepository implements DomainRepository<Image> {
   @Override
   public void save(Image image) {
 
-    //get corresponding cloud
+    //get corresponding cloudModel
     final String cloudId = IdScopedByClouds.from(image.id()).cloudId();
-    final Cloud cloud = cloudModelRepository
+    final CloudModel cloudModel = cloudModelRepository
         .getByCloudId(cloudId);
-    checkState(cloud != null, String
-        .format("Can not save image %s as related cloud with id %s is missing.",
+    checkState(cloudModel != null, String
+        .format("Can not save image %s as related cloudModel with id %s is missing.",
             image, cloudId));
 
     LocationModel locationModel = null;
@@ -80,7 +80,7 @@ public class ImageDomainRepository implements DomainRepository<Image> {
         .findByCloudUniqueId(image.id());
     //todo handle update case
     if (imageModel == null) {
-      imageModel = new ImageModel(image.id(), image.providerId(), image.name(), cloud,
+      imageModel = new ImageModel(image.id(), image.providerId(), image.name(), cloudModel,
           locationModel, null, null, operatingSystemModel);
     }
     imageModelRepository.save(imageModel);
@@ -95,5 +95,11 @@ public class ImageDomainRepository implements DomainRepository<Image> {
   @Override
   public List<Image> findAll() {
     return imageModelRepository.findAll().stream().map(imageConverter).collect(Collectors.toList());
+  }
+
+  public List<Image> findAll(String user) {
+    List<ImageModel> imageModels = imageModelRepository.findByTenant(user);
+    return imageModels.stream().map(imageConverter)
+        .collect(Collectors.toList());
   }
 }

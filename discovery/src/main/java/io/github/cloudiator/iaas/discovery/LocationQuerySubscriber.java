@@ -14,7 +14,7 @@ import org.cloudiator.messaging.MessageInterface;
 /**
  * Created by daniel on 01.06.17.
  */
-public class ImageQuerySubscriber implements Runnable {
+public class LocationQuerySubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final ImageDomainRepository imageDomainRepository;
@@ -22,7 +22,7 @@ public class ImageQuerySubscriber implements Runnable {
   private final ImageMessageToImageConverter imageConverter;
 
   @Inject
-  public ImageQuerySubscriber(MessageInterface messageInterface,
+  public LocationQuerySubscriber(MessageInterface messageInterface,
       ImageDomainRepository imageDomainRepository,
       TenantModelRepository tenantModelRepository,
       ImageMessageToImageConverter imageConverter) {

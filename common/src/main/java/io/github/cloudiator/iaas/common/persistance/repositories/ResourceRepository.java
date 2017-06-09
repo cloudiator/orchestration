@@ -19,6 +19,7 @@
 package io.github.cloudiator.iaas.common.persistance.repositories;
 
 import io.github.cloudiator.iaas.common.persistance.entities.ResourceModel;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -29,5 +30,7 @@ public interface ResourceRepository<T extends ResourceModel>
 
   @Nullable
   T findByCloudUniqueId(String cloudUniqueId);
+
+  List<T> findByTenant(String tenant);
 
 }

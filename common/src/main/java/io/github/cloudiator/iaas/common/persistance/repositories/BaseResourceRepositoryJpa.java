@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import io.github.cloudiator.iaas.common.persistance.entities.ResourceModel;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -51,5 +52,16 @@ public class BaseResourceRepositoryJpa<T extends ResourceModel>
     } catch (NoResultException e) {
       return null;
     }
+  }
+
+  @Override
+  public List<T> findByTenant(String tenant) {
+    checkNotNull("tenant is null");
+    String queryString = String.format(
+        "select resource from %s resource inner join resource.cloud cloud inner join cloud.tenant ct where ct.userId=:tenant",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("tenant", tenant);
+    //noinspection unchecked
+    return (List<T>) query.getResultList();
   }
 }

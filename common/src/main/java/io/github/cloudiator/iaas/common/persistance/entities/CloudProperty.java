@@ -29,12 +29,12 @@ import javax.persistence.ManyToOne;
 
     @Column(nullable = false, name = "cloudproperty_key") private String key;
     @Column(nullable = false) private String value;
-    @ManyToOne(optional = false) private Cloud cloud;
+    @ManyToOne(optional = false) private CloudModel cloudModel;
 
-    public CloudProperty(String key, String value, Cloud cloud) {
+    public CloudProperty(String key, String value, CloudModel cloudModel) {
         this.key = key;
         this.value = value;
-        this.cloud = cloud;
+        this.cloudModel = cloudModel;
     }
 
     protected CloudProperty() {
@@ -52,7 +52,7 @@ import javax.persistence.ManyToOne;
         this.value = value;
     }
 
-    public Cloud cloud() {
-        return cloud;
+    public CloudModel cloud() {
+        return cloudModel;
     }
 }

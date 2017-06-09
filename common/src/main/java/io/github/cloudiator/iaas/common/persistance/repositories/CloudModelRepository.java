@@ -1,14 +1,16 @@
 package io.github.cloudiator.iaas.common.persistance.repositories;
 
-import io.github.cloudiator.iaas.common.persistance.entities.Cloud;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
+import java.util.List;
 
 /**
  * Created by daniel on 31.05.17.
  */
-public interface CloudModelRepository extends ModelRepository<Cloud> {
+public interface CloudModelRepository extends ModelRepository<CloudModel> {
 
-  Cloud getByCloudId(String cloudId);
+  CloudModel getByCloudId(String cloudId);
 
+  List<CloudModel> getByTenant(String userId);
 
 
 }

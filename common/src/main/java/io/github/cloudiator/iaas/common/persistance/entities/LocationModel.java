@@ -45,7 +45,7 @@ public class LocationModel extends Model {
   private String name;
 
   @ManyToOne(optional = false)
-  private Cloud cloud;
+  private CloudModel cloudModel;
 
   @ManyToOne
   @Nullable
@@ -73,13 +73,13 @@ public class LocationModel extends Model {
   }
 
   public LocationModel(String cloudUniqueId, String providerId, String name,
-      Cloud cloud, @Nullable LocationModel parent,
+      CloudModel cloudModel, @Nullable LocationModel parent,
       @Nullable GeoLocation geoLocation, @Nullable LocationScope locationScope,
       Boolean isAssignable) {
     this.cloudUniqueId = cloudUniqueId;
     this.providerId = providerId;
     this.name = name;
-    this.cloud = cloud;
+    this.cloudModel = cloudModel;
     this.parent = parent;
     this.geoLocation = geoLocation;
     this.locationScope = locationScope;
@@ -164,11 +164,11 @@ public class LocationModel extends Model {
     return builder.build();
   }
 
-  public Cloud getCloud() {
-    return cloud;
+  public CloudModel getCloudModel() {
+    return cloudModel;
   }
 
-  public void setCloud(Cloud cloud) {
-    this.cloud = cloud;
+  public void setCloudModel(CloudModel cloudModel) {
+    this.cloudModel = cloudModel;
   }
 }

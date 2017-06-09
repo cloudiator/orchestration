@@ -36,7 +36,7 @@ public class Api extends Model {
   @Column(nullable = false)
   private String internalProviderName;
   @OneToMany(mappedBy = "api")
-  private List<Cloud> clouds;
+  private List<CloudModel> cloudModels;
 
   /**
    * Empty constructor for hibernate.
@@ -60,12 +60,12 @@ public class Api extends Model {
     this.internalProviderName = internalProviderName;
   }
 
-  public List<Cloud> getClouds() {
-    return clouds;
+  public List<CloudModel> getCloudModels() {
+    return cloudModels;
   }
 
-  public void setClouds(List<Cloud> clouds) {
-    this.clouds = clouds;
+  public void setCloudModels(List<CloudModel> cloudModels) {
+    this.cloudModels = cloudModels;
   }
 
   @Override

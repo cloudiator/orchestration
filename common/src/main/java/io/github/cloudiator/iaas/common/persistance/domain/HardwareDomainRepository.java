@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.HardwareConverter;
-import io.github.cloudiator.iaas.common.persistance.entities.Cloud;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareModel;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
@@ -51,12 +51,12 @@ public class HardwareDomainRepository implements DomainRepository<HardwareFlavor
 
   @Override
   public void save(HardwareFlavor hardwareFlavor) {
-    //get corresponding cloud
+    //get corresponding cloudModel
     final String cloudId = IdScopedByClouds.from(hardwareFlavor.id()).cloudId();
-    final Cloud cloud = cloudModelRepository
+    final CloudModel cloudModel = cloudModelRepository
         .getByCloudId(cloudId);
-    checkState(cloud != null, String
-        .format("Can not save hardwareFlavor %s as related cloud with id %s is missing.",
+    checkState(cloudModel != null, String
+        .format("Can not save hardwareFlavor %s as related cloudModel with id %s is missing.",
             hardwareFlavor, cloudId));
 
     LocationModel locationModel = null;
@@ -77,11 +77,12 @@ public class HardwareDomainRepository implements DomainRepository<HardwareFlavor
     }
     hardwareOfferRepository.save(hardwareOffer);
 
-    HardwareModel hardwareModelEntity =hardwareModelRepository.findByCloudUniqueId(hardwareFlavor.id());
+    HardwareModel hardwareModelEntity = hardwareModelRepository
+        .findByCloudUniqueId(hardwareFlavor.id());
     //todo handle update case
-    if(hardwareModelEntity == null) {
+    if (hardwareModelEntity == null) {
       hardwareModelEntity = new HardwareModel(hardwareFlavor.id(), hardwareFlavor.providerId(),
-          hardwareFlavor.name(), cloud, locationModel, hardwareOffer);
+          hardwareFlavor.name(), cloudModel, locationModel, hardwareOffer);
     }
     hardwareModelRepository.save(hardwareModelEntity);
   }
@@ -96,6 +97,11 @@ public class HardwareDomainRepository implements DomainRepository<HardwareFlavor
   @Override
   public List<HardwareFlavor> findAll() {
     return hardwareModelRepository.findAll().stream().map(
+        hardwareConverter).collect(Collectors.toList());
+  }
+
+  public List<HardwareFlavor> findAll(String user) {
+    return hardwareModelRepository.findByTenant(user).stream().map(
         hardwareConverter).collect(Collectors.toList());
   }
 

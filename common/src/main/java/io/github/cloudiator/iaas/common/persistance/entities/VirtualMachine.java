@@ -69,10 +69,10 @@ public class VirtualMachine extends ResourceModel implements LoginNameSupplier {
   }
 
   public VirtualMachine(String cloudUniqueId, String providerId, String name,
-      Cloud cloud, @Nullable LocationModel locationModel, String generatedLoginUsername,
+      CloudModel cloudModel, @Nullable LocationModel locationModel, String generatedLoginUsername,
       String generatedLoginPassword, String generatedPrivateKey,
       ImageModel imageModel, HardwareModel hardwareModel) {
-    super(cloudUniqueId, providerId, name, cloud, locationModel);
+    super(cloudUniqueId, providerId, name, cloudModel, locationModel);
     this.generatedLoginUsername = generatedLoginUsername;
     this.generatedLoginPassword = generatedLoginPassword;
     this.generatedPrivateKey = generatedPrivateKey;

@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.LocationConverter;
-import io.github.cloudiator.iaas.common.persistance.entities.Cloud;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepository;
@@ -38,9 +38,9 @@ public class LocationDomainRepository implements DomainRepository<Location> {
   @Override
   public void save(Location location) {
     final String cloudId = IdScopedByClouds.from(location.id()).cloudId();
-    Cloud cloud = cloudModelRepository.getByCloudId(cloudId);
-    checkState(cloud != null, String
-        .format("Can not save location %s as related cloud with id %s is missing.",
+    CloudModel cloudModel = cloudModelRepository.getByCloudId(cloudId);
+    checkState(cloudModel != null, String
+        .format("Can not save location %s as related cloudModel with id %s is missing.",
             location, cloudId));
 
     LocationModel parent = null;
@@ -50,12 +50,12 @@ public class LocationDomainRepository implements DomainRepository<Location> {
       parent = locationModelRepository.findByCloudUniqueId(location.parent().get().id());
       checkState(parent != null);
     }
-    
+
     LocationModel locationModel = locationModelRepository.findByCloudUniqueId(location.id());
     //todo update case
     if (locationModel == null) {
       locationModel = new LocationModel(
-          location.id(), location.providerId(), location.name(), cloud, parent, null,
+          location.id(), location.providerId(), location.name(), cloudModel, parent, null,
           location.locationScope(), location.isAssignable());
     }
     locationModelRepository.save(locationModel);
@@ -72,5 +72,9 @@ public class LocationDomainRepository implements DomainRepository<Location> {
   public List<Location> findAll() {
     return locationModelRepository.findAll().stream().map(locationConverter).collect(
         Collectors.toList());
+  }
+
+  public List<Location> findAll(String user) {
+    return null;
   }
 }

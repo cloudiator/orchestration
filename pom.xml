@@ -42,7 +42,7 @@
   <version>0.3.0-SNAPSHOT</version>
 
   <name>iaas</name>
-  <description>A multi-cloud iaas orchestration engine.</description>
+  <description>A multi-cloudModel iaas orchestration engine.</description>
   <url>https://github.com/cloudiator</url>
 
   <properties>

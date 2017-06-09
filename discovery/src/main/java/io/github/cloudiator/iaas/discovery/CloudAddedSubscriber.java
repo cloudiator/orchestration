@@ -5,9 +5,11 @@ import com.google.inject.Provider;
 import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
+import io.github.cloudiator.iaas.discovery.converters.CloudMessageToCloudConverter;
 import io.github.cloudiator.iaas.discovery.converters.NewCloudMessageToCloud;
 import javax.persistence.EntityManager;
 import org.cloudiator.messages.Cloud.CloudCreatedResponse;
@@ -27,7 +29,8 @@ public class CloudAddedSubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final CloudRegistry cloudRegistry;
-  private final NewCloudMessageToCloud cloudConverter = new NewCloudMessageToCloud();
+  private final NewCloudMessageToCloud newCloudConverter = new NewCloudMessageToCloud();
+  private final CloudMessageToCloudConverter cloudConverter = new CloudMessageToCloudConverter();
   private final UnitOfWork unitOfWork;
   private final TenantModelRepository tenantModelRepository;
   private final CloudModelRepository cloudModelRepository;
@@ -58,13 +61,13 @@ public class CloudAddedSubscriber implements Runnable {
               unitOfWork.begin();
               entityManager.get().getTransaction().begin();
               try {
-                Cloud cloud = cloudConverter.apply(createCloudRequest.getCloud());
+                Cloud cloud = newCloudConverter.apply(createCloudRequest.getCloud());
                 Tenant tenant = tenantModelRepository.createOrGet(createCloudRequest.getUserId());
-                io.github.cloudiator.iaas.common.persistance.entities.Cloud cloudEntity = cloudModelRepository
+                CloudModel cloudModelEntity = cloudModelRepository
                     .getByCloudId(cloud.id());
 
-                if (cloudEntity != null) {
-                  if (!cloudEntity.getTenant().equals(tenant)) {
+                if (cloudModelEntity != null) {
+                  if (!cloudModelEntity.getTenant().equals(tenant)) {
                     //reply with error
                     messageInterface.reply(CloudCreatedResponse.class, messageId,
                         Error.newBuilder().setCode(409).setMessage(String
@@ -73,9 +76,9 @@ public class CloudAddedSubscriber implements Runnable {
                                 tenant)).build());
                   }
                 } else {
-                  cloudEntity = new io.github.cloudiator.iaas.common.persistance.entities.Cloud(
+                  cloudModelEntity = new CloudModel(
                       cloud.id(), tenant);
-                  cloudModelRepository.save(cloudEntity);
+                  cloudModelRepository.save(cloudModelEntity);
                 }
 
                 if (cloudRegistry.isRegistered(cloud)) {
@@ -85,6 +88,9 @@ public class CloudAddedSubscriber implements Runnable {
                           .build());
                 }
                 cloudRegistry.register(cloud);
+                messageInterface.reply(messageId,
+                    CloudCreatedResponse.newBuilder().setCloud(cloudConverter.applyBack(cloud))
+                        .build());
                 entityManager.get().getTransaction().commit();
               } catch (Exception e) {
                 LOGGER.error(String.format("Exception occurred during handling of message %s.",

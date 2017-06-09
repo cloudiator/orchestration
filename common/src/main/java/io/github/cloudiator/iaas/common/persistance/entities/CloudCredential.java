@@ -31,7 +31,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 /**
- * @todo somehow validate this constraint, only have one credential per cloud and frontend group (or find a better relational schema)
+ * @todo somehow validate this constraint, only have one credential per cloudModel and frontend group (or find a better relational schema)
  */
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"cloud_id", "tenant_id"})) @Entity
 public class CloudCredential extends Model {
@@ -40,7 +40,7 @@ public class CloudCredential extends Model {
 
     @Lob @Column(nullable = false) private String secret;
 
-    @ManyToOne(optional = false) private Cloud cloud;
+    @ManyToOne(optional = false) private CloudModel cloudModel;
 
     @ManyToOne(optional = false) private Tenant tenant;
 
@@ -52,16 +52,16 @@ public class CloudCredential extends Model {
     protected CloudCredential() {
     }
 
-    public CloudCredential(Cloud cloud, Tenant tenant, String user, String secret) {
+    public CloudCredential(CloudModel cloudModel, Tenant tenant, String user, String secret) {
 
-        checkNotNull(cloud);
+        checkNotNull(cloudModel);
         checkNotNull(tenant);
         checkNotNull(user);
         checkArgument(!user.isEmpty());
         checkNotNull(secret);
         checkArgument(!secret.isEmpty());
 
-        this.cloud = cloud;
+        this.cloudModel = cloudModel;
         this.tenant = tenant;
         this.user = user;
         this.secret = secret;
@@ -83,12 +83,12 @@ public class CloudCredential extends Model {
         this.secret = secret;
     }
 
-    public Cloud getCloud() {
-        return cloud;
+    public CloudModel getCloudModel() {
+        return cloudModel;
     }
 
-    public void setCloud(Cloud cloud) {
-        this.cloud = cloud;
+    public void setCloudModel(CloudModel cloudModel) {
+        this.cloudModel = cloudModel;
     }
 
     public Tenant getTenant() {

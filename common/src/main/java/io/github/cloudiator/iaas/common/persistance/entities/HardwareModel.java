@@ -35,9 +35,9 @@ public class HardwareModel extends ResourceModel {
   }
 
   public HardwareModel(String cloudUniqueId, String providerId, String name,
-      Cloud cloud, @Nullable LocationModel locationModel,
+      CloudModel cloudModel, @Nullable LocationModel locationModel,
       HardwareOffer hardwareOffer) {
-    super(cloudUniqueId, providerId, name, cloud, locationModel);
+    super(cloudUniqueId, providerId, name, cloudModel, locationModel);
     this.hardwareOffer = hardwareOffer;
   }
 

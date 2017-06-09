@@ -23,7 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class Cloud extends Model {
+public class CloudModel extends Model {
 
   @Column(unique = true, nullable = false, updatable = false)
   private String cloudId;
@@ -33,10 +33,10 @@ public class Cloud extends Model {
   /**
    * Empty constructor. Needed by hibernate.
    */
-  protected Cloud() {
+  protected CloudModel() {
   }
 
-  public Cloud(String cloudId, Tenant tenant) {
+  public CloudModel(String cloudId, Tenant tenant) {
     this.cloudId = cloudId;
     this.tenant = tenant;
   }

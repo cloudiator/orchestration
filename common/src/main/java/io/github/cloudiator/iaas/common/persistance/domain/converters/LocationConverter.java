@@ -19,6 +19,6 @@ public class LocationConverter implements OneWayConverter<LocationModel, Locatio
     }
     return LocationBuilder.newBuilder().id(locationModel.getCloudUniqueId())
         .name(locationModel.getName()).scope(locationModel.getLocationScope())
-        .assignable(locationModel.getAssignable()).parent(apply(locationModel)).build();
+        .assignable(locationModel.getAssignable()).parent(apply(locationModel.getParent())).build();
   }
 }

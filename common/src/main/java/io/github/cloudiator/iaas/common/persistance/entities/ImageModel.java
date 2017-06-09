@@ -45,10 +45,10 @@ public class ImageModel extends ResourceModel implements LoginNameSupplier {
   }
 
   public ImageModel(String cloudUniqueId, String providerId, String name,
-      Cloud cloud, @Nullable LocationModel locationModel, @Nullable String loginUsernameOverride,
+      CloudModel cloudModel, @Nullable LocationModel locationModel, @Nullable String loginUsernameOverride,
       @Nullable String loginPasswordOverride,
       OperatingSystemModel operatingSystemModel) {
-    super(cloudUniqueId, providerId, name, cloud, locationModel);
+    super(cloudUniqueId, providerId, name, cloudModel, locationModel);
     this.loginUsernameOverride = loginUsernameOverride;
     this.loginPasswordOverride = loginPasswordOverride;
     this.operatingSystemModel = operatingSystemModel;
