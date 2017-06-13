@@ -30,6 +30,7 @@ public class CloudMessageToCloudConverter implements TwoWayConverter<IaasEntitie
   @Override
   public IaasEntities.Cloud applyBack(Cloud cloud) {
     return IaasEntities.Cloud.newBuilder()
+        .setId(cloud.id())
         .setCredential(credentialConverter.applyBack(cloud.credential()))
         .setApi(apiConverter.applyBack(cloud.api()))
         .setConfiguration(configurationConverter.applyBack(cloud.configuration()))

@@ -21,8 +21,6 @@ import io.github.cloudiator.iaas.discovery.ImageDiscoveryWorker;
 import io.github.cloudiator.iaas.discovery.Init;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryListener;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryWorker;
-import org.cloudiator.messaging.MessageInterface;
-import org.cloudiator.messaging.kafka.Kafka;
 
 /**
  * Created by daniel on 31.05.17.
@@ -34,7 +32,6 @@ public class DiscoveryModule extends AbstractModule {
     final MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder().build();
     bind(CloudRegistry.class).toInstance(multiCloudService.cloudRegistry());
     bind(ComputeService.class).toInstance(multiCloudService.computeService());
-    bind(MessageInterface.class).toInstance(Kafka.messageInterface());
     bind(DiscoveryService.class).toInstance(multiCloudService.computeService().discoveryService());
     bind(ExecutionService.class).toInstance(
         new ScheduledThreadPoolExecutorExecutionService(

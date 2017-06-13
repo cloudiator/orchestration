@@ -8,6 +8,7 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
@@ -52,6 +53,11 @@ public class CloudDomainRepository implements DomainRepository<Cloud> {
 
   public List<Cloud> findByUser(String userId) {
     return cloudModelRepository.getByTenant(userId).stream()
-        .map(CloudModel::getCloudId).map(cloudRegistry::getCloud).collect(Collectors.toList());
+        .map(CloudModel::getCloudId).map(cloudRegistry::getCloud).filter(new Predicate<Cloud>() {
+          @Override
+          public boolean test(Cloud cloud) {
+            return cloud != null;
+          }
+        }).collect(Collectors.toList());
   }
 }
