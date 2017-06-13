@@ -27,7 +27,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
-import javax.tools.DocumentationTool.Location;
 
 /**
  * Created by daniel on 21.06.15.
@@ -58,12 +57,12 @@ public class LocationModelRepositoryJpa
   }
 
   @Override
-  public List<Location> findByTenant(String tenant) {
+  public List<LocationModel> findByTenant(String tenant) {
     checkNotNull(tenant, "tenant is null");
     String queryString = String.format(
-        "from %s inner join %<s.cloud as cloud inner join cloud.tenant as tenant where tenant.userId = :tenant",
+        "from %s location inner join location.cloud cloud inner join cloud.tenant tenant where tenant.userId = :tenant",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenant);
-    return (List<Location>) query.getResultList();
+    return query.getResultList();
   }
 }

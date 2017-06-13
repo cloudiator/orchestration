@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.discovery;
+package io.github.cloudiator.iaas.discovery.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
 import org.cloudiator.messages.Cloud.CloudQueryResponse;
-import org.cloudiator.messaging.MessageCallback;
 import org.cloudiator.messaging.MessageInterface;
+import org.cloudiator.messaging.Subscription;
 
 /**
  * Created by daniel on 09.06.17.
@@ -33,16 +33,17 @@ public class CloudQuerySubscriber implements Runnable {
 
   @Override
   public void run() {
-    messageInterface.subscribe(CloudQueryRequest.class, CloudQueryRequest.parser(),
-        new MessageCallback<CloudQueryRequest>() {
-          @Override
-          public void accept(String requestId, CloudQueryRequest request) {
-            List<Cloud> clouds = cloudDomainRepository.findByUser(request.getUserId());
-            CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
-                .addAllClouds(clouds.stream().map(
-                    cloudConverter::applyBack).collect(Collectors.toList())).build();
-            messageInterface.reply(requestId, cloudQueryResponse);
-          }
-        });
+    Subscription subscription = messageInterface
+        .subscribe(CloudQueryRequest.class, CloudQueryRequest.parser(),
+            (requestId, request) -> {
+
+              //todo check if user exists?
+
+              List<Cloud> clouds = cloudDomainRepository.findByUser(request.getUserId());
+              CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
+                  .addAllClouds(clouds.stream().map(
+                      cloudConverter::applyBack).collect(Collectors.toList())).build();
+              messageInterface.reply(requestId, cloudQueryResponse);
+            });
   }
 }

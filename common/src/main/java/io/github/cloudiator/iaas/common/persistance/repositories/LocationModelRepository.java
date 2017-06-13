@@ -13,6 +13,6 @@ public interface LocationModelRepository extends ModelRepository<LocationModel> 
   @Nullable
   LocationModel findByCloudUniqueId(String cloudUniqueId);
 
-  List<Location> findByTenant(String tenant);
+  List<LocationModel> findByTenant(String tenantId);
 
 }

@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.discovery;
+package io.github.cloudiator.iaas.discovery.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import io.github.cloudiator.iaas.common.persistance.domain.HardwareDomainRepository;
@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import org.cloudiator.messages.Hardware.HardwareQueryRequest;
 import org.cloudiator.messages.Hardware.HardwareQueryResponse;
 import org.cloudiator.messaging.MessageInterface;
+import org.cloudiator.messaging.Subscription;
 
 /**
  * Created by daniel on 01.06.17.
@@ -35,20 +36,21 @@ public class HardwareQuerySubscriber implements Runnable {
 
   @Override
   public void run() {
-    messageInterface.subscribe(HardwareQueryRequest.class, HardwareQueryRequest.parser(),
-        (requestId, hardwareQueryRequest) -> {
+    Subscription subscription = messageInterface
+        .subscribe(HardwareQueryRequest.class, HardwareQueryRequest.parser(),
+            (requestId, hardwareQueryRequest) -> {
 
-          //todo check if user exists?
+              //todo check if user exists?
 
-          List<HardwareFlavor> hardwareFlavors = hardwareDomainRepository
-              .findAll(hardwareQueryRequest.getUserId());
+              List<HardwareFlavor> hardwareFlavors = hardwareDomainRepository
+                  .findAll(hardwareQueryRequest.getUserId());
 
-          final HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
-              .addAllHardwareFlavors(
-                  hardwareFlavors.stream().map(hardwareConverter::applyBack)
-                      .collect(Collectors.toList())).build();
+              final HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
+                  .addAllHardwareFlavors(
+                      hardwareFlavors.stream().map(hardwareConverter::applyBack)
+                          .collect(Collectors.toList())).build();
 
-          messageInterface.reply(requestId, hardwareQueryResponse);
-        });
+              messageInterface.reply(requestId, hardwareQueryResponse);
+            });
   }
 }

@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.discovery;
+package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -9,6 +9,7 @@ import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
+import io.github.cloudiator.iaas.discovery.AbstractDiscoveryWorker;
 import io.github.cloudiator.iaas.discovery.converters.CloudMessageToCloudConverter;
 import io.github.cloudiator.iaas.discovery.converters.NewCloudMessageToCloud;
 import javax.persistence.EntityManager;
@@ -29,8 +30,8 @@ public class CloudAddedSubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final CloudRegistry cloudRegistry;
-  private final NewCloudMessageToCloud newCloudConverter = new NewCloudMessageToCloud();
-  private final CloudMessageToCloudConverter cloudConverter = new CloudMessageToCloudConverter();
+  private final NewCloudMessageToCloud newCloudConverter;
+  private final CloudMessageToCloudConverter cloudConverter;
   private final UnitOfWork unitOfWork;
   private final TenantModelRepository tenantModelRepository;
   private final CloudModelRepository cloudModelRepository;
@@ -38,12 +39,17 @@ public class CloudAddedSubscriber implements Runnable {
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
-      CloudRegistry cloudRegistry, UnitOfWork unitOfWork,
+      CloudRegistry cloudRegistry,
+      NewCloudMessageToCloud newCloudConverter,
+      CloudMessageToCloudConverter cloudConverter,
+      UnitOfWork unitOfWork,
       TenantModelRepository tenantModelRepository,
       CloudModelRepository cloudModelRepository,
       Provider<EntityManager> entityManager) {
     this.messageInterface = messageInterface;
     this.cloudRegistry = cloudRegistry;
+    this.newCloudConverter = newCloudConverter;
+    this.cloudConverter = cloudConverter;
     this.unitOfWork = unitOfWork;
     this.tenantModelRepository = tenantModelRepository;
     this.cloudModelRepository = cloudModelRepository;

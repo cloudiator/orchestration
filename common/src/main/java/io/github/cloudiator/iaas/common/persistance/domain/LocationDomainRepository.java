@@ -75,6 +75,7 @@ public class LocationDomainRepository implements DomainRepository<Location> {
   }
 
   public List<Location> findAll(String user) {
-    return null;
+    return locationModelRepository.findByTenant(user).stream().map(
+        locationConverter).collect(Collectors.toList());
   }
 }

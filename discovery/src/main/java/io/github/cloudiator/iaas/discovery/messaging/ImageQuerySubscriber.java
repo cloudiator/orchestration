@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.discovery;
+package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
@@ -10,11 +10,12 @@ import java.util.stream.Collectors;
 import org.cloudiator.messages.Image.ImageQueryRequest;
 import org.cloudiator.messages.Image.ImageQueryResponse;
 import org.cloudiator.messaging.MessageInterface;
+import org.cloudiator.messaging.Subscription;
 
 /**
  * Created by daniel on 01.06.17.
  */
-public class LocationQuerySubscriber implements Runnable {
+public class ImageQuerySubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final ImageDomainRepository imageDomainRepository;
@@ -22,7 +23,7 @@ public class LocationQuerySubscriber implements Runnable {
   private final ImageMessageToImageConverter imageConverter;
 
   @Inject
-  public LocationQuerySubscriber(MessageInterface messageInterface,
+  public ImageQuerySubscriber(MessageInterface messageInterface,
       ImageDomainRepository imageDomainRepository,
       TenantModelRepository tenantModelRepository,
       ImageMessageToImageConverter imageConverter) {
@@ -34,17 +35,18 @@ public class LocationQuerySubscriber implements Runnable {
 
   @Override
   public void run() {
-    messageInterface.subscribe(ImageQueryRequest.class, ImageQueryRequest.parser(),
-        (requestId, imageQueryRequest) -> {
+    Subscription subscription = messageInterface
+        .subscribe(ImageQueryRequest.class, ImageQueryRequest.parser(),
+            (requestId, imageQueryRequest) -> {
 
-          //todo check if user exists?
+              //todo check if user exists?
 
-          List<Image> images = imageDomainRepository.findAll(imageQueryRequest.getUserId());
-          final ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
-              .addAllImages(images.stream().map(imageConverter::applyBack).collect(
-                  Collectors.toSet())).build();
+              List<Image> images = imageDomainRepository.findAll(imageQueryRequest.getUserId());
+              final ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
+                  .addAllImages(images.stream().map(imageConverter::applyBack).collect(
+                      Collectors.toSet())).build();
 
-          messageInterface.reply(requestId, imageQueryResponse);
-        });
+              messageInterface.reply(requestId, imageQueryResponse);
+            });
   }
 }
