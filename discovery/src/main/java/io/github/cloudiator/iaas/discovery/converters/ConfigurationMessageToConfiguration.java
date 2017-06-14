@@ -32,6 +32,7 @@ class ConfigurationMessageToConfiguration
         builder.addPropertyBuilder().setKey(key).setValue(value);
       }
     });
+    builder.setNodeGroup(configuration.nodeGroup());
     return builder.build();
   }
 }
