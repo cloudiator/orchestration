@@ -6,7 +6,7 @@
     <module>common</module>
     <module>discovery</module>
     <!-- <module>installer</module> -->
-    <!--<module>orchestration</module>-->
+    <module>orchestration</module>
     <!--<module>watchdog</module>-->
   </modules>
 
