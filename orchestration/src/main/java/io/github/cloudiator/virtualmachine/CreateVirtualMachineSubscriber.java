@@ -7,6 +7,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
 
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
+import io.github.cloudiator.workflow.Exchange;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
 import org.cloudiator.messages.Cloud.CloudQueryResponse;
 import org.cloudiator.messages.General.Error;
@@ -35,6 +38,8 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 
 import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
+
+import static com.google.common.base.Preconditions.checkState;
 
 public class CreateVirtualMachineSubscriber implements Runnable {
 
@@ -90,6 +95,10 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     de.uniulm.omi.cloudiator.sword.domain.VirtualMachine vm =
         mcs.computeService().createVirtualMachine(vmt);
 
+    if (vm.publicAddresses().isEmpty()) {
+      vm = this.createPublicIP(mcs.computeService(), vm);
+    }
+
     VirtualMachine.Builder builder = VirtualMachine.newBuilder();
     addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
     addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PUBLIC_IP);
@@ -100,7 +109,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     return builder.build();
   }
 
-  private void addLoginCredential(Builder builder, 
+  private void addLoginCredential(Builder builder,
       Optional<String> username, Optional<String> password, Optional<String> privateKey) {
     builder.setLoginCredential(
         LoginCredential.newBuilder().setPassword(password.get()).setUsername(username.get())
@@ -120,7 +129,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
       InetAddress address = java.net.InetAddress.getByName(ip);
       if (address instanceof java.net.Inet4Address) {
         return IpVersion.V4;
-      } 
+      }
       if (address instanceof java.net.Inet6Address) {
         return IpVersion.v6;
       }
@@ -172,5 +181,21 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     assert otherScoped != null : "no cloud id found";
 
     return id.cloudId().equals(otherScoped.cloudId());
+  }
+
+  private final de.uniulm.omi.cloudiator.sword.domain.VirtualMachine createPublicIP(
+      ComputeService cs, de.uniulm.omi.cloudiator.sword.domain.VirtualMachine vm) {
+    checkState(cs.publicIpExtension().isPresent());
+
+    String publicIp = cs.publicIpExtension().get().addPublicIp(vm.id());
+
+    de.uniulm.omi.cloudiator.sword.domain.VirtualMachine virtualMachine = VirtualMachineBuilder
+        .of(vm).addPublicIpAddress(publicIp).build();
+
+    return virtualMachine;
+  }
+
+  private final void createKeyPair() {
+
   }
 }
