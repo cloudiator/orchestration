@@ -20,5 +20,11 @@ public class VirtualMachineAgent {
     final CreateVirtualMachineSubscriber createSubscriber =
         injector.getInstance(CreateVirtualMachineSubscriber.class);
     createSubscriber.run();
+    
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override public void run() {
+        createSubscriber.terminate();
+      }
+    });
   }
 }
