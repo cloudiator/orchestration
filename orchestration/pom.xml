@@ -18,8 +18,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.cloudiator.sword</groupId>
-            <artifactId>service</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <artifactId>multicloud</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.cloudiator.iaas</groupId>
+            <artifactId>common</artifactId>
         </dependency>
     </dependencies>
 
