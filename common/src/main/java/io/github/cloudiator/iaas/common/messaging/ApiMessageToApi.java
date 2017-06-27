@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.common.persistance.messaging.converters;
+package io.github.cloudiator.iaas.common.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.Api;
 import de.uniulm.omi.cloudiator.sword.domain.ApiBuilder;
