@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import io.github.cloudiator.iaas.common.persistance.domain.ImageDomainRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
-import io.github.cloudiator.iaas.discovery.converters.ImageMessageToImageConverter;
+import io.github.cloudiator.iaas.common.persistance.messaging.converters.ImageMessageToImageConverter;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.Image.ImageQueryRequest;

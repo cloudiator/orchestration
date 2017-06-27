@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.discovery.converters;
+package io.github.cloudiator.iaas.common.persistance.messaging.converters;
 
 import de.uniulm.omi.cloudiator.sword.domain.Configuration;
 import de.uniulm.omi.cloudiator.sword.domain.ConfigurationBuilder;

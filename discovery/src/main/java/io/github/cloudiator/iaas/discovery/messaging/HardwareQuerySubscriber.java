@@ -3,7 +3,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import io.github.cloudiator.iaas.common.persistance.domain.HardwareDomainRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
-import io.github.cloudiator.iaas.discovery.converters.HardwareMessageToHardwareConverter;
+import io.github.cloudiator.iaas.common.persistance.messaging.converters.HardwareMessageToHardwareConverter;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
