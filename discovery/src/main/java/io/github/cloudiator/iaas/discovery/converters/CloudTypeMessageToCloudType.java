@@ -14,9 +14,9 @@ public class CloudTypeMessageToCloudType implements
   public IaasEntities.CloudType applyBack(CloudType cloudType) {
     switch (cloudType) {
       case PUBLIC:
-        return IaasEntities.CloudType.PUBLIC;
+        return IaasEntities.CloudType.PUBLIC_CLOUD;
       case PRIVATE:
-        return IaasEntities.CloudType.PRIVATE;
+        return IaasEntities.CloudType.PRIVATE_CLOUD;
       default:
         throw new AssertionError(String.format("Unrecognized cloudType %s.", cloudType));
     }
@@ -25,9 +25,9 @@ public class CloudTypeMessageToCloudType implements
   @Override
   public CloudType apply(IaasEntities.CloudType cloudType) {
     switch (cloudType) {
-      case PRIVATE:
+      case PRIVATE_CLOUD:
         return CloudType.PRIVATE;
-      case PUBLIC:
+      case PUBLIC_CLOUD:
         return CloudType.PUBLIC;
       case UNRECOGNIZED:
       default:
