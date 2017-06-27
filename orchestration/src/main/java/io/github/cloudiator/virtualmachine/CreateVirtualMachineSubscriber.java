@@ -28,10 +28,11 @@ import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.ResponseException;
 import org.cloudiator.messaging.Subscription;
 import org.cloudiator.messaging.services.CloudService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplateBuilder;
-
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
@@ -43,8 +44,12 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class CreateVirtualMachineSubscriber implements Runnable {
 
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CreateVirtualMachineSubscriber.class);
+
   private final MessageInterface messagingService;
   private final CloudService cloudService;
+  private volatile Subscription subscription;
 
   private static final int ILLEGAL_CLOUD_ID = 400;
   private static final int SERVER_ERROR = 500;
@@ -58,8 +63,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
   @Override
   public void run() {
-    @SuppressWarnings("unused")
-    Subscription subscription = messagingService.subscribe(CreateVirtualMachineRequestRequest.class,
+    subscription = messagingService.subscribe(CreateVirtualMachineRequestRequest.class,
         CreateVirtualMachineRequestRequest.parser(), (requestId, createVirtualMachineRequest) -> {
           VirtualMachineRequest req = createVirtualMachineRequest.getVirtualMachineRequest();
           try {
@@ -67,6 +71,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
                 createVirtualMachineRequest.getUserId(), req.getHardware(), req.getImage(),
                 req.getLocation());
           } catch (Exception ex) {
+            LOGGER.error("exception occurred.", ex);
             CreateVirtualMachineSubscriber.this.sendErrorResponse(requestId,
                 "exception occurred: " + ex.getMessage(), SERVER_ERROR);
           }
@@ -79,8 +84,11 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     Cloud cloud = getCloudForUserWithId(userId, cloudId);
 
     if (cloud != null) {
+      LOGGER.info("starting new virtual machine.");
       VirtualMachine vm = createVirtualMachine(cloud, hardwareId, imageId, locationId);
+      LOGGER.info("virtual machine started. sending response");
       sendSuccessResponse(messageId, vm);
+      LOGGER.info("response sent.");
     } else {
       sendErrorResponse(messageId, "cloud identified " + cloudId + " not found.", ILLEGAL_CLOUD_ID);
     }
@@ -101,7 +109,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
     VirtualMachine.Builder builder = VirtualMachine.newBuilder();
     addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
-    addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PUBLIC_IP);
+    addIpAddresses(builder, vm.publicAddresses(), IpAddressType.PUBLIC_IP);
     addLoginCredential(builder, vm.loginCredential().get().username(),
         vm.loginCredential().get().password(), vm.loginCredential().get().privateKey());
     builder.setHardware(hardwareId).setImage(imageId).setLocation(locationId);
@@ -109,11 +117,21 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     return builder.build();
   }
 
-  private void addLoginCredential(Builder builder,
-      Optional<String> username, Optional<String> password, Optional<String> privateKey) {
-    builder.setLoginCredential(
-        LoginCredential.newBuilder().setPassword(password.get()).setUsername(username.get())
-            .setKeypair(KeyPair.newBuilder().setPrivateKey(privateKey.get())));
+  private void addLoginCredential(Builder builder, Optional<String> username,
+      Optional<String> password, Optional<String> privateKey) {
+
+    LoginCredential.Builder creds = LoginCredential.newBuilder();
+    if (password.isPresent()) {
+      creds.setPassword(password.get());
+    }
+    if (username.isPresent()) {
+      creds.setPassword(password.get());
+    }
+    if (privateKey.isPresent()) {
+      creds.setKeypair(KeyPair.newBuilder().setPrivateKey(privateKey.get()));
+    }
+
+    builder.setLoginCredential(creds.build());
   }
 
   private void addIpAddresses(VirtualMachine.Builder builder, Set<String> ips, IpAddressType type) {
@@ -196,6 +214,11 @@ public class CreateVirtualMachineSubscriber implements Runnable {
   }
 
   private final void createKeyPair() {
+  }
 
+  void terminate() {
+    if (subscription != null) {
+      subscription.cancel();
+    }
   }
 }
