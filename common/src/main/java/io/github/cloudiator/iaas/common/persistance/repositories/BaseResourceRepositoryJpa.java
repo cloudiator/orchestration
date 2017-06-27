@@ -58,7 +58,7 @@ public class BaseResourceRepositoryJpa<T extends ResourceModel>
   public List<T> findByTenant(String tenant) {
     checkNotNull("tenant is null");
     String queryString = String.format(
-        "select resource from %s resource inner join resource.cloud cloud inner join cloud.tenant ct where ct.userId=:tenant",
+        "select resource from %s resource inner join resource.cloudModel cloud inner join cloud.tenant ct where ct.userId=:tenant",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenant);
     //noinspection unchecked

@@ -48,10 +48,15 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
 
   @Override
   public void run() {
-
     LOGGER.debug(String.format("%s is starting new discovery run", this));
-    StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
-        .forEach(discoveryQueue::add);
+    try {
+      StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
+          .forEach(discoveryQueue::add);
+    } catch (Exception e) {
+      LOGGER.error(String.format(
+          "%s reported exception %s during discovery run. Exception was caught to allow further executions.",
+          this, e.getMessage()), e);
+    }
   }
 
   @Override
