@@ -1,9 +1,9 @@
 package io.github.cloudiator.workflow;
 
-import de.uniulm.omi.cloudiator.domain.VirtualMachineTemplate;
-import de.uniulm.omi.cloudiator.sword.api.service.ComputeService;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 
 /**
  * Created by daniel on 07.02.17.

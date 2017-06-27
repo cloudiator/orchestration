@@ -1,11 +1,11 @@
 package io.github.cloudiator.workflow;
 
-import de.uniulm.omi.cloudiator.domain.VirtualMachine;
-import de.uniulm.omi.cloudiator.sword.api.service.ComputeService;
-import de.uniulm.omi.cloudiator.domain.VirtualMachineBuilder;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 
 /**
  * Created by daniel on 07.02.17.
