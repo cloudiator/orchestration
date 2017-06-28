@@ -3,11 +3,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <modules>
-    <module>common</module>
+    <module>iaas-common</module>
     <module>discovery</module>
     <!-- <module>installer</module> -->
     <module>orchestration</module>
     <!--<module>watchdog</module>-->
+    <module>byon</module>
+    <module>noderegistry</module>
   </modules>
 
   <repositories>
@@ -59,7 +61,7 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
+	<dependency>
         <groupId>io.github.cloudiator.sword</groupId>
         <artifactId>multicloud</artifactId>
         <version>${sword.version}</version>
@@ -71,7 +73,17 @@
       </dependency>
       <dependency>
         <groupId>io.github.cloudiator.iaas</groupId>
-        <artifactId>common</artifactId>
+        <artifactId>iaas-common</artifactId>
+        <version>${project.version}</version>
+</dependency> 
+      <dependency>
+        <groupId>io.github.cloudiator.iaas</groupId>
+        <artifactId>byon</artifactId>
+        <version>${project.version}</version>
+</dependency>
+      <dependency>
+        <groupId>io.github.cloudiator.iaas</groupId>
+        <artifactId>noderegistry</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>
