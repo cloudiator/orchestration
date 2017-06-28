@@ -3,6 +3,7 @@ package io.github.cloudiator.noderegistry;
 import javax.inject.Inject;
 
 import org.cloudiator.messages.Vm.VirtualMachineEvent;
+import org.cloudiator.messages.entities.IaasEntities.LoginCredential;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
@@ -24,28 +25,36 @@ public final class NodeRegistrySubscriber implements Runnable {
     this.messagingService = messageInterface;
     this.registry = registry;
   }
-
+  
   @Override
   public void run() {
     subscription = messagingService.subscribe(VirtualMachineEvent.class,
         VirtualMachineEvent.parser(), (eventId, virtualMachineEvent) -> {
 
+          LOGGER.error("message received: " + eventId);
+          
           if (null == virtualMachineEvent.getVmStatus()) {
-            throw new IllegalArgumentException("status not set: null");
+            IllegalArgumentException ex = new IllegalArgumentException("status not set: null");
+            LOGGER.error("cannot start virtual machine.", ex);
+            throw ex;
           }
 
           try {
             switch (virtualMachineEvent.getVmStatus()) {
               case CREATED:
+                NodeRegistrySubscriber.LOGGER.info("processing CREATED event.");
                 handleCreation(virtualMachineEvent.getVirtualMachine());
                 break;
               case DELETED:
+                NodeRegistrySubscriber.LOGGER.info("processing DELETED event.");
                 handleDeletion(virtualMachineEvent.getVirtualMachine());
                 break;
               case UNDEFINED:
+                NodeRegistrySubscriber.LOGGER.error("processing UNDEFINED event.");
                 throw new IllegalArgumentException(
                     "status not set: " + virtualMachineEvent.getVmStatus());
               default:
+                NodeRegistrySubscriber.LOGGER.error("unknown event type.");
                 throw new IllegalArgumentException(
                     "status unknown: " + virtualMachineEvent.getVmStatus());
             }
