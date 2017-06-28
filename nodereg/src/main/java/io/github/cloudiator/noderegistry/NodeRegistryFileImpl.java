@@ -1,17 +1,16 @@
 package io.github.cloudiator.noderegistry;
 
-import java.io.File;
+import java.io.File; 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
-import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class NodeRegistryFileImpl implements NodeRegistry {
+final class NodeRegistryFileImpl<T> implements NodeRegistry<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeRegistrySubscriber.class);
   private final File storage;
@@ -23,36 +22,36 @@ final class NodeRegistryFileImpl implements NodeRegistry {
   }
 
   @Override
-  public synchronized void remove(String vmId) throws RegistryException {
-    HashMap<String, byte[]> map = readFromFile();
-    byte[] b = map.remove(vmId);
+  public synchronized void remove(String key) throws RegistryException {
+    HashMap<String, T> map = readFromFile();
+    T b = map.remove(key);
     if(b == null) {
-      LOGGER.debug("cannot delete vm with ID '" + vmId + "'. Id not known.");
+      LOGGER.debug("cannot delete vm with ID '" + key + "'. Id not known.");
     } else {
-      LOGGER.info("deleted vm with ID '" + vmId + "'.");
+      LOGGER.info("deleted vm with ID '" + key + "'.");
     }
     writeToFile(map);
   }
 
   @Override
-  public synchronized void put(String vmId, VirtualMachine virtualMachine)
+  public synchronized void put(String key, T t)
       throws RegistryException {
-    HashMap<String, byte[]> map = readFromFile();
-    byte[] b = map.put(vmId, virtualMachine.toByteArray());
+    HashMap<String, T> map = readFromFile();
+    T b = map.put(key, t);
     if(b != null) {
-      LOGGER.debug("created entry for vm with ID '" + vmId + "', but Id already exists.");
+      LOGGER.debug("created entry for vm with ID '" + key + "', but Id already exists.");
     } else {
-      LOGGER.info("created entry for vm with ID '" + vmId + "'.");
+      LOGGER.info("created entry for vm with ID '" + key + "'.");
     }
     writeToFile(map);
   }
 
   @SuppressWarnings("unchecked")
-  private HashMap<String, byte[]> readFromFile() throws RegistryException {
+  private HashMap<String, T> readFromFile() throws RegistryException {
     if (storage.exists()) {
       try (FileInputStream fin = new FileInputStream(storage)) {
         ObjectInputStream in = new ObjectInputStream(fin);
-        return (HashMap<String, byte[]>) in.readObject();
+        return (HashMap<String, T>) in.readObject();
       } catch (Exception ex) {
         throw new RegistryException(ex);
       }
@@ -61,7 +60,7 @@ final class NodeRegistryFileImpl implements NodeRegistry {
     }
   }
 
-  private void writeToFile(HashMap<String, byte[]> map) throws RegistryException {
+  private void writeToFile(HashMap<String, T> map) throws RegistryException {
     try (FileOutputStream fout = new FileOutputStream(storage)) {
       ObjectOutputStream out = new ObjectOutputStream(fout);
       out.writeObject(map);

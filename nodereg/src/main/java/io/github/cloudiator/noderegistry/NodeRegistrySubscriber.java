@@ -2,7 +2,8 @@ package io.github.cloudiator.noderegistry;
 
 import javax.inject.Inject;
 
-import org.cloudiator.messages.Vm.VirtualMachineEvent;
+import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.NodeOuterClass.NodeEvent;
 import org.cloudiator.messages.entities.IaasEntities.LoginCredential;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
@@ -16,47 +17,47 @@ public final class NodeRegistrySubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeRegistrySubscriber.class);
 
   private final MessageInterface messagingService;
-  private final NodeRegistry registry;
+  private final NodeRegistry<byte[]> registry;
   private volatile Subscription subscription;
 
   @Inject
   public NodeRegistrySubscriber(MessageInterface messageInterface, CloudService cloudService,
-      NodeRegistry registry) {
+      NodeRegistry<byte[]> registry) {
     this.messagingService = messageInterface;
     this.registry = registry;
   }
   
   @Override
   public void run() {
-    subscription = messagingService.subscribe(VirtualMachineEvent.class,
-        VirtualMachineEvent.parser(), (eventId, virtualMachineEvent) -> {
+    subscription = messagingService.subscribe(NodeEvent.class,
+        NodeEvent.parser(), (eventId, nodeEvent) -> {
 
           LOGGER.error("message received: " + eventId);
           
-          if (null == virtualMachineEvent.getVmStatus()) {
+          if (null == nodeEvent.getNodeStatus()) {
             IllegalArgumentException ex = new IllegalArgumentException("status not set: null");
             LOGGER.error("cannot start virtual machine.", ex);
             throw ex;
           }
 
           try {
-            switch (virtualMachineEvent.getVmStatus()) {
+            switch (nodeEvent.getNodeStatus()) {
               case CREATED:
                 NodeRegistrySubscriber.LOGGER.info("processing CREATED event.");
-                handleCreation(virtualMachineEvent.getVirtualMachine());
+                handleCreation(nodeEvent.getNode());
                 break;
               case DELETED:
                 NodeRegistrySubscriber.LOGGER.info("processing DELETED event.");
-                handleDeletion(virtualMachineEvent.getVirtualMachine());
+                handleDeletion(nodeEvent.getNode());
                 break;
-              case UNDEFINED:
+              case UNDEFINED_STATUS:
                 NodeRegistrySubscriber.LOGGER.error("processing UNDEFINED event.");
                 throw new IllegalArgumentException(
-                    "status not set: " + virtualMachineEvent.getVmStatus());
+                    "status not set: " + nodeEvent.getNode());
               default:
                 NodeRegistrySubscriber.LOGGER.error("unknown event type.");
                 throw new IllegalArgumentException(
-                    "status unknown: " + virtualMachineEvent.getVmStatus());
+                    "status unknown: " + nodeEvent.getNodeStatus());
             }
           } catch (Exception ex) {
             LOGGER.error("exception occurred when handling virtual machine event.", ex);
@@ -64,14 +65,14 @@ public final class NodeRegistrySubscriber implements Runnable {
         });
   }
 
-  synchronized void handleDeletion(VirtualMachine virtualMachine) throws RegistryException {
-    String vmId = virtualMachine.getId();
+  synchronized void handleDeletion(Node node) throws RegistryException {
+    String vmId = node.getId();
     registry.remove(vmId);
   }
 
-  synchronized void handleCreation(VirtualMachine virtualMachine) throws RegistryException {
-    String vmId = virtualMachine.getId();
-    registry.put(vmId, virtualMachine);
+  synchronized void handleCreation(Node node) throws RegistryException {
+    String vmId = node.getId();
+    registry.put(vmId, node.toByteArray());
   }
 
   void terminate() {
