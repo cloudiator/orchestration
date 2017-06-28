@@ -105,11 +105,13 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
     if (vm.publicAddresses().isEmpty()) {
       vm = this.createPublicIP(mcs.computeService(), vm);
+    } else {
+      LOGGER.info("public ip address already set.");
     }
 
     VirtualMachine.Builder builder = VirtualMachine.newBuilder();
-    addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
     addIpAddresses(builder, vm.publicAddresses(), IpAddressType.PUBLIC_IP);
+    addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
     addLoginCredential(builder, vm.loginCredential().get().username(),
         vm.loginCredential().get().password(), vm.loginCredential().get().privateKey());
     builder.setHardware(hardwareId).setImage(imageId).setLocation(locationId);
@@ -213,7 +215,10 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     return virtualMachine;
   }
 
-  private final void createKeyPair() {
+  private final void createKeyPair(Optional<String> privateKey) {
+    if(privateKey.isPresent()){
+
+    }
   }
 
   void terminate() {
