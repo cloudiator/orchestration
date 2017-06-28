@@ -1,5 +1,8 @@
 package io.github.cloudiator.virtualmachine;
 
+import de.uniulm.omi.cloudiator.sword.domain.KeyPair;
+import de.uniulm.omi.cloudiator.sword.domain.TemplateOptions;
+import de.uniulm.omi.cloudiator.sword.domain.TemplateOptionsBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -7,6 +10,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
 
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
+import io.github.cloudiator.workflow.Exchange;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
 import org.cloudiator.messages.Cloud.CloudQueryResponse;
 import org.cloudiator.messages.General.Error;
@@ -16,7 +22,6 @@ import org.cloudiator.messages.entities.IaasEntities.Cloud;
 import org.cloudiator.messages.entities.IaasEntities.IpAddress;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.cloudiator.messages.entities.IaasEntities.IpVersion;
-import org.cloudiator.messages.entities.IaasEntities.KeyPair;
 import org.cloudiator.messages.entities.IaasEntities.LoginCredential;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
@@ -36,6 +41,9 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 
 import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 public class CreateVirtualMachineSubscriber implements Runnable {
 
@@ -95,14 +103,28 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     mcs.cloudRegistry().register(new CloudMessageToCloudConverter().apply(cloud));
     VirtualMachineTemplate vmt = VirtualMachineTemplateBuilder.newBuilder().image(imageId)
         .hardwareFlavor(hardwareId).location(locationId).build();
+    final KeyPair keyPairForVM = this.createKeyPairFor(locationId, mcs.computeService());
+    if (keyPairForVM != null) {
+      vmt = VirtualMachineTemplateBuilder.of(vmt).templateOptions(
+          TemplateOptionsBuilder.newBuilder().keyPairName(keyPairForVM.name()).build()).build();
+    }
     de.uniulm.omi.cloudiator.sword.domain.VirtualMachine vm =
         mcs.computeService().createVirtualMachine(vmt);
 
+    if (vm.publicAddresses().isEmpty()) {
+      vm = this.createPublicIP(mcs.computeService(), vm);
+    } else {
+      LOGGER.info("public ip address already set.");
+    }
+
     VirtualMachine.Builder builder = VirtualMachine.newBuilder();
-    addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
     addIpAddresses(builder, vm.publicAddresses(), IpAddressType.PUBLIC_IP);
+    addIpAddresses(builder, vm.privateAddresses(), IpAddressType.PRIVATE_IP);
     addLoginCredential(builder, vm.loginCredential().get().username(),
-        vm.loginCredential().get().password(), vm.loginCredential().get().privateKey());
+        vm.loginCredential().get().password(),
+        keyPairForVM != null ? keyPairForVM.privateKey()
+            : vm.loginCredential().isPresent() ? vm.loginCredential().get().privateKey()
+                : Optional.empty());
     builder.setHardware(hardwareId).setImage(imageId).setLocation(locationId);
 
     return builder.build();
@@ -119,7 +141,8 @@ public class CreateVirtualMachineSubscriber implements Runnable {
       creds.setPassword(password.get());
     }
     if (privateKey.isPresent()) {
-      creds.setKeypair(KeyPair.newBuilder().setPrivateKey(privateKey.get()));
+      creds.setKeypair(org.cloudiator.messages.entities.IaasEntities.KeyPair.newBuilder()
+          .setPrivateKey(privateKey.get()));
     }
 
     builder.setLoginCredential(creds.build());
@@ -191,6 +214,38 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
     return id.cloudId().equals(otherScoped.cloudId());
   }
+
+  private final de.uniulm.omi.cloudiator.sword.domain.VirtualMachine createPublicIP(
+      ComputeService cs, de.uniulm.omi.cloudiator.sword.domain.VirtualMachine vm) {
+    checkState(cs.publicIpExtension().isPresent());
+
+    String publicIp = cs.publicIpExtension().get().addPublicIp(vm.id());
+
+    de.uniulm.omi.cloudiator.sword.domain.VirtualMachine virtualMachine = VirtualMachineBuilder
+        .of(vm).addPublicIpAddress(publicIp).build();
+
+    return virtualMachine;
+  }
+
+  private KeyPair createKeyPairFor(String locationId,
+      ComputeService cs) {
+
+    checkNotNull(locationId);
+    checkState(!locationId.isEmpty());
+
+    if (!cs.keyPairExtension().isPresent()) {
+      return null;
+    }
+
+    final KeyPair keyPair = cs.keyPairExtension().get()
+        .create(null, locationId);
+
+    checkState(keyPair.privateKey().isPresent(),
+        "Expected remote keypair to have a private key, but it has none.");
+
+    return keyPair;
+  }
+
 
   void terminate() {
     if (subscription != null) {
