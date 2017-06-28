@@ -1,7 +1,6 @@
 package io.github.cloudiator.virtualmachine;
 
 import de.uniulm.omi.cloudiator.sword.domain.KeyPair;
-import de.uniulm.omi.cloudiator.sword.domain.TemplateOptions;
 import de.uniulm.omi.cloudiator.sword.domain.TemplateOptionsBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -12,12 +11,13 @@ import javax.inject.Inject;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
-import io.github.cloudiator.workflow.Exchange;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
 import org.cloudiator.messages.Cloud.CloudQueryResponse;
 import org.cloudiator.messages.General.Error;
+import org.cloudiator.messages.Vm;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestRequest;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
+import org.cloudiator.messages.Vm.VirtualMachineEvent;
 import org.cloudiator.messages.entities.IaasEntities.Cloud;
 import org.cloudiator.messages.entities.IaasEntities.IpAddress;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
@@ -70,9 +70,11 @@ public class CreateVirtualMachineSubscriber implements Runnable {
         CreateVirtualMachineRequestRequest.parser(), (requestId, createVirtualMachineRequest) -> {
           VirtualMachineRequest req = createVirtualMachineRequest.getVirtualMachineRequest();
           try {
-            CreateVirtualMachineSubscriber.this.handleRequest(requestId,
+            VirtualMachine vm = CreateVirtualMachineSubscriber.this.handleRequest(requestId,
                 createVirtualMachineRequest.getUserId(), req.getHardware(), req.getImage(),
                 req.getLocation());
+            messagingService.publish(VirtualMachineEvent.newBuilder().setVirtualMachine(vm)
+                .setVmStatus(Vm.VmStatus.CREATED).build());
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
             CreateVirtualMachineSubscriber.this.sendErrorResponse(requestId,
@@ -81,8 +83,8 @@ public class CreateVirtualMachineSubscriber implements Runnable {
         });
   }
 
-  final void handleRequest(final String messageId, String userId, String hardwareId, String imageId,
-      String locationId) throws ResponseException {
+  final VirtualMachine handleRequest(final String messageId, String userId, String hardwareId,
+      String imageId, String locationId) throws ResponseException {
     String cloudId = validateIds(hardwareId, imageId, locationId);
     Cloud cloud = getCloudForUserWithId(userId, cloudId);
 
@@ -92,9 +94,11 @@ public class CreateVirtualMachineSubscriber implements Runnable {
       LOGGER.info("virtual machine started. sending response");
       sendSuccessResponse(messageId, vm);
       LOGGER.info("response sent.");
+      return vm;
     } else {
       sendErrorResponse(messageId, "cloud identified " + cloudId + " not found.", ILLEGAL_CLOUD_ID);
     }
+    return null;
   }
 
   private VirtualMachine createVirtualMachine(Cloud cloud, String hardwareId, String imageId,
@@ -105,8 +109,11 @@ public class CreateVirtualMachineSubscriber implements Runnable {
         .hardwareFlavor(hardwareId).location(locationId).build();
     final KeyPair keyPairForVM = this.createKeyPairFor(locationId, mcs.computeService());
     if (keyPairForVM != null) {
-      vmt = VirtualMachineTemplateBuilder.of(vmt).templateOptions(
-          TemplateOptionsBuilder.newBuilder().keyPairName(keyPairForVM.name()).build()).build();
+      vmt =
+          VirtualMachineTemplateBuilder.of(vmt)
+              .templateOptions(
+                  TemplateOptionsBuilder.newBuilder().keyPairName(keyPairForVM.name()).build())
+              .build();
     }
     de.uniulm.omi.cloudiator.sword.domain.VirtualMachine vm =
         mcs.computeService().createVirtualMachine(vmt);
@@ -221,14 +228,13 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
     String publicIp = cs.publicIpExtension().get().addPublicIp(vm.id());
 
-    de.uniulm.omi.cloudiator.sword.domain.VirtualMachine virtualMachine = VirtualMachineBuilder
-        .of(vm).addPublicIpAddress(publicIp).build();
+    de.uniulm.omi.cloudiator.sword.domain.VirtualMachine virtualMachine =
+        VirtualMachineBuilder.of(vm).addPublicIpAddress(publicIp).build();
 
     return virtualMachine;
   }
 
-  private KeyPair createKeyPairFor(String locationId,
-      ComputeService cs) {
+  private KeyPair createKeyPairFor(String locationId, ComputeService cs) {
 
     checkNotNull(locationId);
     checkState(!locationId.isEmpty());
@@ -237,8 +243,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
       return null;
     }
 
-    final KeyPair keyPair = cs.keyPairExtension().get()
-        .create(null, locationId);
+    final KeyPair keyPair = cs.keyPairExtension().get().create(null, locationId);
 
     checkState(keyPair.privateKey().isPresent(),
         "Expected remote keypair to have a private key, but it has none.");
