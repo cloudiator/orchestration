@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
       <groupId>io.github.cloudiator.iaas</groupId>
-      <artifactId>common</artifactId>
+      <artifactId>iaas-common</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>

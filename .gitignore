@@ -1,3 +1,5 @@
+**/kafka.properties
+**/logback.xml
 *.iml
 *.ipr
 *.iws
@@ -6,6 +8,9 @@
 .idea
 target
 /discovery/src/main/resources/kafka.properties
-.project
-.classpath
-*.checkstyle
+**/.project
+**/.classpath
+**/*.checkstyle
+**/.eclipse
+**/.settings
+**/*~
