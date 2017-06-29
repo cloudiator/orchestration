@@ -18,60 +18,89 @@
 
 package org.cloudiator.orchestration.installer.remote;
 
-import cloud.CompositeCloudPropertyProvider;
-import cloud.DefaultSwordConnectionService;
-import cloud.SwordLoggingModule;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.net.HostAndPort;
-import de.uniulm.omi.cloudiator.common.os.RemoteType;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
-import de.uniulm.omi.cloudiator.sword.core.domain.LoginCredentialBuilder;
-import de.uniulm.omi.cloudiator.sword.core.properties.PropertiesBuilder;
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.domain.RemoteType;
+import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
+import de.uniulm.omi.cloudiator.sword.domain.PropertiesBuilder;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
-import models.VirtualMachine;
-
-import java.util.Map;
+import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.entities.IaasEntities;
+import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 
 /**
  * Created by daniel on 01.09.15.
  */
 public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrategy {
 
-    private PasswordRemoteConnectionStrategy() {
+    public PasswordRemoteConnectionStrategy() {
     }
 
-    @Override public RemoteConnection connect(VirtualMachine virtualMachine)
+    @Override public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
         throws RemoteException {
 
-        checkState(virtualMachine.owner().isPresent(),
-            "Owner of virtual machine should be set before calling connect.");
+        //TODO: check if still required
+        //checkState(virtualMachine.owner().isPresent(),
+          //  "Owner of virtual machine should be set before calling connect.");
 
-        checkArgument(virtualMachine.publicIpAddress().isPresent(),
-            "Virtual machine must have a public ip address.");
 
-        if (!virtualMachine.loginPassword().isPresent()) {
+      //check public Ip(s)
+
+
+      String publicIp = null;
+      for (IaasEntities.IpAddress ipAddress:node.getIpAddressesList()
+      ) {
+        if(ipAddress.getType().equals(IpAddressType.PUBLIC_IP)){
+          publicIp = ipAddress.getIp();
+        }
+      }
+
+      checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
+
+
+      //final Optional<String> anyPublicAddress =
+        //  virtualMachine.publicAddresses().stream().findAny();
+
+      //checkArgument(anyPublicAddress.isPresent(),
+        //  "Virtual machine must have a public ip address.");
+
+      /*
+        if (!virtualMachine.loginCredential().get().password().isPresent()) {
             throw new RemoteException(String
                 .format("Virtual machine %s does not provide a login password", virtualMachine));
         }
+    */
 
-        int remotePort = virtualMachine.remotePort();
-        RemoteType remoteType =
-            virtualMachine.operatingSystem().operatingSystemFamily().operatingSystemType()
-                .remoteType();
+      checkState(node.getLoginCredential().getPassword().isEmpty(),"No password provided!");
 
-        Map<String, Object> properties =
-            new CompositeCloudPropertyProvider(virtualMachine.cloud()).properties();
 
-        return new DefaultSwordConnectionService(
-            RemoteBuilder.newBuilder().loggingModule(new SwordLoggingModule())
-                .remoteModule(new OverthereModule())
-                .properties(PropertiesBuilder.newBuilder().putProperties(properties).build())
-                .build()).getRemoteConnection(
-            HostAndPort.fromParts(virtualMachine.publicIpAddress().get().getIp(), remotePort),
-            remoteType,
-            LoginCredentialBuilder.newBuilder().password(virtualMachine.loginPassword().get())
-                .username(virtualMachine.loginName()).build());
+      int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
+      RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType().remoteType();
+
+
+
+      //TODO: check if required
+      // Map<String, Object> properties =
+      //      new CompositeCloudPropertyProvider(virtualMachine.cloud()).properties();
+
+      return RemoteBuilder.newBuilder()
+          .remoteModule(new OverthereModule())
+          .properties(PropertiesBuilder.newBuilder().build())
+          .build().getRemoteConnection( HostAndPort
+          .fromParts(publicIp, remotePort),
+          remoteType,
+          LoginCredentialBuilder.newBuilder()
+              .password(node.getLoginCredential().getPassword())
+              .username(node.getLoginCredential().getUsername())
+              .build());
+
 
     }
 
@@ -79,12 +108,6 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
         return Priority.LOW;
     }
 
-    public static class PasswordRemoteConnectionStrategyFactory
-        implements RemoteConnectionStrategyFactory {
 
-        @Override public RemoteConnectionStrategy create() {
-            return new PasswordRemoteConnectionStrategy();
-        }
-    }
 
 }

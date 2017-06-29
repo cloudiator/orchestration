@@ -18,9 +18,9 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.common.os.OperatingSystemType;
-import de.uniulm.omi.cloudiator.common.os.RemotePortProvider;
 
+import de.uniulm.omi.cloudiator.domain.OperatingSystemType;
+import de.uniulm.omi.cloudiator.domain.RemotePortProvider;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;

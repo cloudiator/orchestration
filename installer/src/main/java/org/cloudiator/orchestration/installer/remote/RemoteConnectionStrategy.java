@@ -18,19 +18,17 @@
 
 package org.cloudiator.orchestration.installer.remote;
 
-import de.uniulm.omi.cloudiator.domain.VirtualMachine;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
+import org.cloudiator.messages.NodeOuterClass.Node;
 
 /**
  * Created by daniel on 01.09.15.
  */
 public interface RemoteConnectionStrategy extends Prioritized {
 
-    RemoteConnection connect(VirtualMachine virtualMachine) throws RemoteException;
+    RemoteConnection connect(Node node, OperatingSystem operatingSystem) throws RemoteException;
 
-    interface RemoteConnectionStrategyFactory {
-        RemoteConnectionStrategy create();
-    }
 }

@@ -18,20 +18,25 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
-import models.Tenant;
-import models.VirtualMachine;
-import play.Logger;
-import play.Play;
-import util.logging.Loggers;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * todo clean up class, do better logging
  */
 public class WindowsInstaller extends AbstractInstaller {
 
-    private static final Logger.ALogger LOGGER = Loggers.of(Loggers.INSTALLATION);
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(WindowsInstaller.class);
+
+
     private final String homeDir;
     private static final String JAVA_EXE = "jre8.exe";
     private static final String SEVEN_ZIP_ARCHIVE = "7za920.zip";
@@ -40,12 +45,13 @@ public class WindowsInstaller extends AbstractInstaller {
     private static final String VISOR_BAT = "startVisor.bat";
     private static final String KAIROSDB_BAT = "startKairos.bat";
     private static final String LANCE_BAT = "startLance.bat";
-    private static final boolean KAIROS_REQUIRED = Play.application().configuration()
-        .getBoolean("colosseum.installer.windows.kairosdb.install.flag");
-    private static final String JAVA_DOWNLOAD =
-        Play.application().configuration().getString("colosseum.installer.windows.java.download");
-    private static final String SEVEN_ZIP_DOWNLOAD =
-        Play.application().configuration().getString("colosseum.installer.windows.7zip.download");
+    private static final boolean KAIROS_REQUIRED = true;
+    //Play.application().configuration()
+      //  .getBoolean("colosseum.installer.windows.kairosdb.install.flag");
+    private static final String JAVA_DOWNLOAD = "";
+        //Play.application().configuration().getString("colosseum.installer.windows.java.download");
+    private static final String SEVEN_ZIP_DOWNLOAD = "";
+        //Play.application().configuration().getString("colosseum.installer.windows.7zip.download");
     private final String user;
     private final String password;
     private final Tenant tenant;
@@ -56,13 +62,13 @@ public class WindowsInstaller extends AbstractInstaller {
         Tenant tenant) {
         super(remoteConnection, virtualMachine);
 
-        this.user = virtualMachine.loginName();
-        checkArgument(virtualMachine.loginPassword().isPresent(),
+        this.user = virtualMachine.loginCredential().get().username().get();
+        checkArgument(virtualMachine.loginCredential().get().password().isPresent(),
             "Expected login password for WindowsInstaller");
-        this.password = virtualMachine.loginPassword().get();
+        this.password = virtualMachine.loginCredential().get().password().get();
 
         this.homeDir =
-            virtualMachine.operatingSystem().operatingSystemFamily().operatingSystemType()
+            virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()
                 .homeDirFunction().apply(this.user);
         this.tenant = tenant;
 
@@ -145,12 +151,15 @@ public class WindowsInstaller extends AbstractInstaller {
         //set firewall rules
         this.remoteConnection.executeCommand(
             "powershell -command netsh advfirewall firewall add rule name = 'Visor Rest Port' dir = in action = allow protocol=TCP localport="
-                + Play.application().configuration()
-                .getString("colosseum.installer.abstract.visor.config.restPort"));
+                + "");
+                //+ Play.application().configuration()
+                //.getString("colosseum.installer.abstract.visor.config.restPort"));
         this.remoteConnection.executeCommand(
             "powershell -command netsh advfirewall firewall add rule name = 'Visor Telnet Port' dir = in action = allow protocol=TCP localport="
-                + Play.application().configuration()
-                .getString("colosseum.installer.abstract.visor.config.telnetPort"));
+
+                + "2");
+                //+ Play.application().configuration()
+                //.getString("colosseum.installer.abstract.visor.config.telnetPort"));
 
 
         //create schtaks
@@ -184,8 +193,9 @@ public class WindowsInstaller extends AbstractInstaller {
             //set firewall rule
             this.remoteConnection.executeCommand(
                 "powershell -command netsh advfirewall firewall add rule name = 'Kairos Port' dir = in action = allow protocol=TCP localport="
-                    + Play.application().configuration()
-                    .getString("colosseum.installer.abstract.visor.config.kairosPort"));
+                    //+ Play.application().configuration()
+                    //.getString("colosseum.installer.abstract.visor.config.kairosPort"));
+                +"");
 
             //create a .bat file to start kairosDB, because it is not possible to pass schtasks paramters using overthere
             String startCommand =
@@ -213,21 +223,23 @@ public class WindowsInstaller extends AbstractInstaller {
         LOGGER.error("Opening Firewall ports for Lance...");
         this.remoteConnection.executeCommand(
             "powershell -command netsh advfirewall firewall add rule name = 'Lance RMI' dir = in action = allow protocol=TCP localport="
-                + Play.application().configuration()
-                .getString("colosseum.installer.abstract.lance.rmiPort"));
+                + "");
+                //+ Play.application().configuration()
+                //.getString("colosseum.installer.abstract.lance.rmiPort"));
         this.remoteConnection.executeCommand(
             "powershell -command netsh advfirewall firewall add rule name = 'Lance Server' dir = in action = allow protocol=TCP localport="
-                + Play.application().configuration()
-                .getString("colosseum.installer.abstract.lance.serverPort"));
+                + "");
+                //+ Play.application().configuration()
+                //.getString("colosseum.installer.abstract.lance.serverPort"));
 
         //create a .bat file to start Lance, because it is not possible to pass schtasks paramters using overthere
         String startCommand =
-            " java " + " -Dhost.ip.public=" + this.virtualMachine.publicIpAddress().get().getIp()
-                + " -Dhost.ip.private=" + this.virtualMachine.privateIpAddress(true).get().getIp()
-                + " -Djava.rmi.server.hostname=" + this.virtualMachine.publicIpAddress().get()
-                .getIp() + " -Dhost.vm.id=" + this.virtualMachine.getUuid()
-                + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getUuid() + " -Dhost.vm.cloud.id="
-                + this.virtualMachine.cloud().getUuid() + " -jar " + this.homeDir + "\\"
+            " java " + " -Dhost.ip.public=" + this.virtualMachine.publicAddresses().stream().findAny().get()
+                + " -Dhost.ip.private=" + this.virtualMachine.privateAddresses().stream().findAny().get()
+                + " -Djava.rmi.server.hostname=" + this.virtualMachine.publicAddresses().stream().findAny().get()
+                + " -Dhost.vm.id=" + this.virtualMachine.id()
+                + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getId() + " -Dhost.vm.cloud.id="
+                + this.virtualMachine.id() + " -jar " + this.homeDir + "\\"
                 + WindowsInstaller.LANCE_JAR;
         this.remoteConnection
             .writeFile(this.homeDir + "\\" + WindowsInstaller.LANCE_BAT, startCommand, false);

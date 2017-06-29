@@ -1,6 +1,7 @@
 package org.cloudiator.orchestration.installer.tools;
 
-import de.uniulm.omi.cloudiator.domain.VirtualMachine;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 
 /**
  * Created by daniel on 08.02.17.

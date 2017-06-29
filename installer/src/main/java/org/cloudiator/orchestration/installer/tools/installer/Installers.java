@@ -18,10 +18,11 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import components.installer.api.InstallApi;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import models.Tenant;
-import models.VirtualMachine;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import io.github.cloudiator.iaas.common.persistance.entities.Tenant; //TODO: should be cloudiator.domain class?
+import org.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 
 /**
  * Created by daniel on 05.08.15.
@@ -34,15 +35,18 @@ public class Installers {
 
     public static InstallApi of(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
         Tenant tenant) {
-        switch (virtualMachine.operatingSystem().operatingSystemFamily().operatingSystemType()) {
+
+        switch (virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()) {
+            /*
             case LINUX:
                 return new UnixInstaller(remoteConnection, virtualMachine, tenant);
             case WINDOWS:
                 return new WindowsInstaller(remoteConnection, virtualMachine, tenant);
+                */
             default:
                 throw new UnsupportedOperationException(String
                     .format("OperatingSystemType %s is not supported by the installation logic",
-                        virtualMachine.operatingSystem().operatingSystemFamily()
+                        virtualMachine.image().get().operatingSystem().operatingSystemFamily()
                             .operatingSystemType()));
         }
     }

@@ -18,7 +18,8 @@
 
 package org.cloudiator.orchestration.installer.tools.installer.api;
 
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
+
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 
 /**
  * Created by Daniel Seybold on 19.05.2015.

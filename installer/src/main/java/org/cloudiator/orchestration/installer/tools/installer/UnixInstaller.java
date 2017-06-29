@@ -18,13 +18,13 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
-import models.Tenant;
-import models.VirtualMachine;
-import play.Logger;
-import play.Play;
-import util.logging.Loggers;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 
 /**
@@ -32,32 +32,39 @@ import util.logging.Loggers;
  */
 public class UnixInstaller extends AbstractInstaller {
 
-    private static final Logger.ALogger LOGGER = Loggers.of(Loggers.INSTALLATION);
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(UnixInstaller.class);
+
+
     private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
     protected final String homeDir;
     private final String JAVA_BINARY;
     private static final String JAVA_ARCHIVE = "jre8.tar.gz";
-    private static final String JAVA_DOWNLOAD =
-        Play.application().configuration().getString("colosseum.installer.linux.java.download");
-    private static final String DOCKER_RETRY_DOWNLOAD = Play.application().configuration()
-        .getString("colosseum.installer.linux.lance.docker_retry.download");
-    private static final String DOCKER_FIX_MTU_DOWNLOAD = Play.application().configuration()
-        .getString("colosseum.installer.linux.lance.docker.mtu.download");
+    private static final String JAVA_DOWNLOAD = "";
+        //Play.application().configuration().getString("colosseum.installer.linux.java.download");
+    private static final String DOCKER_RETRY_DOWNLOAD = "";
+            //Play.application().configuration()
+        //.getString("colosseum.installer.linux.lance.docker_retry.download");
+    private static final String DOCKER_FIX_MTU_DOWNLOAD = "";
+    //Play.application().configuration()
+      //  .getString("colosseum.installer.linux.lance.docker.mtu.download");
     private static final String DOCKER_RETRY_INSTALL = "docker_retry.sh";
-    private static final boolean KAIROS_REQUIRED = Play.application().configuration()
-        .getBoolean("colosseum.installer.linux.kairosdb.install.flag");
-    private static final boolean DOCKER_REQUIRED = Play.application().configuration()
-        .getBoolean("colosseum.installer.linux.lance.docker.install.flag");
+    private static final boolean KAIROS_REQUIRED = false;
+    //Play.application().configuration()
+      //  .getBoolean("colosseum.installer.linux.kairosdb.install.flag");
+    private static final boolean DOCKER_REQUIRED = false;
+    //Play.application().configuration()
+      //  .getBoolean("colosseum.installer.linux.lance.docker.install.flag");
     private final Tenant tenant;
 
     public UnixInstaller(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
         Tenant tenant) {
         super(remoteConnection, virtualMachine);
-        String user = virtualMachine.loginName();
+        String user = virtualMachine.loginCredential().get().username().get();
         this.tenant = tenant;
         //TODO: maybe use a common installation directory, e.g. /opt/cloudiator
         this.homeDir =
-            virtualMachine.operatingSystem().operatingSystemFamily().operatingSystemType()
+            virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()
                 .homeDirFunction().apply(user);
         this.JAVA_BINARY = this.homeDir + "/" + UnixInstaller.JAVA_DIR + "/bin/java";
     }
@@ -166,12 +173,12 @@ public class UnixInstaller extends AbstractInstaller {
 
         //start Lance
         this.remoteConnection.executeCommand(
-            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + this.virtualMachine
-                .publicIpAddress().get().getIp() + " -Dhost.ip.private=" + this.virtualMachine
-                .privateIpAddress(true).get().getIp() + " -Djava.rmi.server.hostname="
-                + this.virtualMachine.publicIpAddress().get().getIp() + " -Dhost.vm.id="
-                + this.virtualMachine.getUuid() + " -Dhost.vm.cloud.tenant.id=" + this.tenant
-                .getUuid() + " -Dhost.vm.cloud.id=" + this.virtualMachine.cloud().getUuid()
+            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + this.virtualMachine.publicAddresses().stream().findAny().get()
+                 + " -Dhost.ip.private=" +
+                this.virtualMachine.privateAddresses().stream().findAny().get() + " -Djava.rmi.server.hostname="
+                + this.virtualMachine.publicAddresses().stream().findAny().get() + " -Dhost.vm.id="
+                + this.virtualMachine.id() + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getId() + " -Dhost.vm.cloud.id="
+                //TODO: how to get cloud id of VM? How about node cloud relation? + this.virtualMachine.cloud().getUuid()
                 + " -jar " + UnixInstaller.LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1");
 
         LOGGER.debug(

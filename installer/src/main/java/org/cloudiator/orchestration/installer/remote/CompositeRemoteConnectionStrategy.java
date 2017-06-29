@@ -21,25 +21,25 @@ package org.cloudiator.orchestration.installer.remote;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteException;
-import models.VirtualMachine;
-import play.Logger;
-import util.logging.Loggers;
-
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.cloudiator.messages.NodeOuterClass.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by daniel on 02.09.15.
  */
 public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrategy {
 
-    private final static Logger.ALogger LOGGER = Loggers.of(Loggers.CLOUD_REMOTE);
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(CompositeRemoteConnectionStrategy.class);
 
     private final Set<RemoteConnectionStrategy> strategySet;
 
-    private CompositeRemoteConnectionStrategy(Set<RemoteConnectionStrategy> strategySet) {
+    public CompositeRemoteConnectionStrategy(Set<RemoteConnectionStrategy> strategySet) {
         if (strategySet.isEmpty()) {
             LOGGER.warn(String.format(
                 "%s is initializing with an empty strategy set. This is likely to cause errors.",
@@ -48,16 +48,16 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
         LOGGER.debug(String
             .format("%s is loading available strategy set. Contains %s strategies.", this,
                 strategySet.size()));
-        if (Logger.isTraceEnabled()) {
-            strategySet.forEach(remoteConnectionStrategy -> Logger
-                .trace(String.format("%s is loading strategy %s", this, remoteConnectionStrategy)));
-        }
+
+            strategySet.forEach(remoteConnectionStrategy -> LOGGER
+                .debug(String.format("%s is loading strategy %s", this, remoteConnectionStrategy)));
+
 
         // wrap in immutable sorted set to ensure comparability.
         this.strategySet = ImmutableSet.copyOf(Sets.newTreeSet(strategySet));
     }
 
-    @Override public RemoteConnection connect(VirtualMachine virtualMachine)
+    @Override public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
         throws RemoteException {
 
         Exception lastException = null;
@@ -65,12 +65,12 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
             try {
                 LOGGER.info(String
                     .format("%s is using strategy %s to connect to virtual machine %s", this,
-                        remoteConnectionStrategy, virtualMachine));
-                return remoteConnectionStrategy.connect(virtualMachine);
+                        remoteConnectionStrategy, node));
+                return remoteConnectionStrategy.connect(node, operatingSystem);
             } catch (Exception e) {
                 LOGGER.info(String
                     .format("%s failed connecting to virtual machine %s using strategy %s", this,
-                        virtualMachine, remoteConnectionStrategy), e);
+                        node, remoteConnectionStrategy), e);
                 lastException = e;
             }
         }
@@ -87,22 +87,6 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
         return Priority.MEDIUM;
     }
 
-    public static class RemoteConnectionStrategiesFactory
-        implements RemoteConnectionStrategyFactory {
-
-        private final Set<RemoteConnectionStrategyFactory> remoteConnectionStrategyFactories;
-
-        public RemoteConnectionStrategiesFactory(
-            Set<RemoteConnectionStrategyFactory> remoteConnectionStrategyFactories) {
-            this.remoteConnectionStrategyFactories = remoteConnectionStrategyFactories;
-        }
-
-        @Override public RemoteConnectionStrategy create() {
-            Set<RemoteConnectionStrategy> strategies = remoteConnectionStrategyFactories.stream()
-                .map(RemoteConnectionStrategyFactory::create).collect(Collectors.toSet());
-            return new CompositeRemoteConnectionStrategy(strategies);
-        }
-    }
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this).add("strategies", strategySet).toString();

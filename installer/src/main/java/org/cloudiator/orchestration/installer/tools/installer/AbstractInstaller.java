@@ -18,23 +18,30 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import components.installer.api.InstallApi;
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-import models.VirtualMachine;
-import play.Logger;
-import play.Play;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * todo clean up class, do better logging
  */
 abstract class AbstractInstaller implements InstallApi {
+
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(AbstractInstaller.class);
+
 
     protected final RemoteConnection remoteConnection;
     protected final VirtualMachine virtualMachine;
@@ -42,25 +49,29 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected final List<String> sourcesList = new ArrayList<>();
 
+    //TODO: refactor, replace usage of Play config file
     //parallel download threads
-    private static final int NUMBER_OF_DOWNLOAD_THREADS =
-        Play.application().configuration().getInt("colosseum.installer.download.threads");
+    private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
+        //Play.application().configuration().getInt("colosseum.installer.download.threads");
 
     //KairosDB
     protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
     protected static final String KAIRROSDB_DIR = "kairosdb";
-    protected static final String KAIROSDB_DOWNLOAD = Play.application().configuration()
-        .getString("colosseum.installer.abstract.kairosdb.download");
+    protected static final String KAIROSDB_DOWNLOAD = "";
+    //Play.application().configuration()
+      //  .getString("colosseum.installer.abstract.kairosdb.download");
 
     //Visor
     protected static final String VISOR_JAR = "visor.jar";
-    protected static final String VISOR_DOWNLOAD =
-        Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
+    protected static final String VISOR_DOWNLOAD = "";
+        //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
 
     //Lance
     protected static final String LANCE_JAR = "lance.jar";
-    protected static final String LANCE_DOWNLOAD =
-        Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
+    protected static final String LANCE_DOWNLOAD = "";
+        //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
+
+
 
     //Java
     protected static final String JAVA_DIR = "jre8";
@@ -68,12 +79,13 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected static final String VISOR_PROPERTIES = "default.properties";
 
+
     public AbstractInstaller(RemoteConnection remoteConnection, VirtualMachine virtualMachine) {
 
         checkNotNull(remoteConnection);
         checkNotNull(virtualMachine);
-        checkArgument(virtualMachine.publicIpAddress().isPresent(),
-            "VirtualMachine has no public ip.");
+        //checkArgument(virtualMachine.publicIpAddress().isPresent(),
+          //  "VirtualMachine has no public ip.");
 
         this.remoteConnection = remoteConnection;
         this.virtualMachine = virtualMachine;
@@ -82,7 +94,7 @@ abstract class AbstractInstaller implements InstallApi {
 
     @Override public void downloadSources() {
 
-        Logger.debug("Start downloading sources...");
+        LOGGER.debug("Start downloading sources...");
         ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_DOWNLOAD_THREADS);
 
         List<Callable<Integer>> tasks = new ArrayList<>();
@@ -101,12 +113,12 @@ abstract class AbstractInstaller implements InstallApi {
                     throw new RuntimeException("Downloading of one or more sources failed!");
                 }
             }
-            Logger.debug("All sources downloaded successfully!");
+            LOGGER.debug("All sources downloaded successfully!");
             executorService.shutdown();
         } catch (InterruptedException e) {
-            Logger.error("Installer: Interrupted Exception while downloading sources!", e);
+            LOGGER.error("Installer: Interrupted Exception while downloading sources!", e);
         } catch (ExecutionException e) {
-            Logger.error("Installer: Execution Exception while downloading sources!", e);
+            LOGGER.error("Installer: Execution Exception while downloading sources!", e);
         }
 
     }
@@ -127,6 +139,7 @@ abstract class AbstractInstaller implements InstallApi {
         String homeDomainIp = inetAddress.getHostAddress();
         */
 
+        /*TODO: refactor for new code base
         checkState(virtualMachine.providerId().isPresent());
 
 
@@ -150,10 +163,14 @@ abstract class AbstractInstaller implements InstallApi {
             .getString("colosseum.installer.abstract.visor.config.chukwaUrl") + "\n" +
             "chukwaVmId = " + virtualMachine.providerId().get();
 
+            */
+
+        return null;
+
     }
 
     @Override public void close() {
-        Logger.info("Installation of all tools finished, closing remote connection!");
+        LOGGER.info("Installation of all tools finished, closing remote connection!");
         this.remoteConnection.close();
     }
 }

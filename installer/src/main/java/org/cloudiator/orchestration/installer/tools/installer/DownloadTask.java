@@ -18,8 +18,7 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.sword.api.remote.RemoteConnection;
-
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import java.util.concurrent.Callable;
 
 /**
