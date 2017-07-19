@@ -17,8 +17,8 @@ public class EnvironmentImpl implements Environment {
     private final String privateIp;
 
     EnvironmentImpl(String homeDir, OperatingSystem os, String publicIp, String privateIp) {
-        checkNotNull(homeDir, "homeDir is null.");
-        checkArgument(!homeDir.isEmpty(), "homeDir is empty.");
+        checkNotNull(homeDir, "CLOUDIATOR_DIR is null.");
+        checkArgument(!homeDir.isEmpty(), "CLOUDIATOR_DIR is empty.");
         this.homeDir = homeDir;
         checkNotNull(os, "os is null.");
         this.os = os;
@@ -47,7 +47,7 @@ public class EnvironmentImpl implements Environment {
     }
 
     @Override public String toString() {
-        return MoreObjects.toStringHelper(this).add("homeDir", homeDir).add("os", os)
+        return MoreObjects.toStringHelper(this).add("CLOUDIATOR_DIR", homeDir).add("os", os)
             .add("publicIp", publicIp).add("privateIp", privateIp).toString();
     }
 }
