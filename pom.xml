@@ -6,7 +6,7 @@
     <module>iaas-common</module>
     <module>discovery</module>
     <!--<module>installer</module>-->
-    <module>orchestration</module>
+    <module>iaas-vm</module>
     <!--<module>watchdog</module>-->
     <module>byon</module>
     <module>noderegistry</module>
