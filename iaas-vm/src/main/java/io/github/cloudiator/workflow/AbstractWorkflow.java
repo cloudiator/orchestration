@@ -9,6 +9,7 @@ public abstract class AbstractWorkflow implements Activity {
 
   @Override
   public final Exchange execute(Exchange input) {
+    configure();
     return workflowBuilder.build().execute(input);
   }
 

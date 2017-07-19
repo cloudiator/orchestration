@@ -32,6 +32,6 @@ public class AssignPublicIp implements Activity {
     checkState(computeService.publicIpExtension().isPresent(),
         String.format(NO_PUBLIC_IP, virtualMachine, computeService));
     return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addPublicIpAddress(
-        computeService.publicIpExtension().get().addPublicIp(virtualMachine.id())));
+        computeService.publicIpExtension().get().addPublicIp(virtualMachine.id())).build());
   }
 }

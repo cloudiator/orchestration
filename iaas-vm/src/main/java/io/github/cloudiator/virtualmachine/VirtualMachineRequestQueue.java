@@ -11,9 +11,9 @@ import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 /**
  * Created by daniel on 29.06.17.
  */
-public class VirtualMachineRequestQueue {
+class VirtualMachineRequestQueue {
 
-  private static class VirtualMachineRequestItem {
+  static class VirtualMachineRequestItem {
 
     private final String requestId;
     private final VirtualMachineRequest virtualMachineRequest;

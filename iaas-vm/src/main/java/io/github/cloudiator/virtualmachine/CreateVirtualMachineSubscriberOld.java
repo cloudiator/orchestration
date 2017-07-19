@@ -1,26 +1,35 @@
 package io.github.cloudiator.virtualmachine;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import de.uniulm.omi.cloudiator.sword.domain.KeyPair;
 import de.uniulm.omi.cloudiator.sword.domain.TemplateOptionsBuilder;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplateBuilder;
+import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
+import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
+import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
-
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
-import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
 import org.cloudiator.messages.Cloud.CloudQueryResponse;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Vm.CreateVirtualMachineRequestRequest;
-import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
+import org.cloudiator.messages.NodeOuterClass.Node;
 import org.cloudiator.messages.NodeOuterClass.NodeEvent;
 import org.cloudiator.messages.NodeOuterClass.NodeProperties;
 import org.cloudiator.messages.NodeOuterClass.NodeStatus;
 import org.cloudiator.messages.NodeOuterClass.NodeType;
-import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
+import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messages.entities.CommonEntities.OperatingSystem;
 import org.cloudiator.messages.entities.IaasEntities.Cloud;
 import org.cloudiator.messages.entities.IaasEntities.IpAddress;
@@ -36,18 +45,6 @@ import org.cloudiator.messaging.Subscription;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplateBuilder;
-import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
-import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
-
-import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 public class CreateVirtualMachineSubscriberOld implements Runnable {
 
@@ -70,8 +67,8 @@ public class CreateVirtualMachineSubscriberOld implements Runnable {
 
   @Override
   public void run() {
-    subscription = messagingService.subscribe(CreateVirtualMachineRequestRequest.class,
-        CreateVirtualMachineRequestRequest.parser(), (requestId, createVirtualMachineRequest) -> {
+    subscription = messagingService.subscribe(CreateVirtualMachineRequestMessage.class,
+        CreateVirtualMachineRequestMessage.parser(), (requestId, createVirtualMachineRequest) -> {
           VirtualMachineRequest req = createVirtualMachineRequest.getVirtualMachineRequest();
           try {
             DataHolder holder = new DataHolder();
@@ -94,12 +91,12 @@ public class CreateVirtualMachineSubscriberOld implements Runnable {
         .setNode(Node.newBuilder().
             addAllIpAddresses(holder.vm.getIpAddressesList())
             .setLoginCredential(holder.vm.getLoginCredential()).
-            setNodeProperties(props).
-            setNodeType(NodeType.VM).
-            setId(holder.vm.getId()).
-            build()).
-        setNodeStatus(NodeStatus.CREATED).
-        build());
+                setNodeProperties(props).
+                setNodeType(NodeType.VM).
+                setId(holder.vm.getId()).
+                build()).
+            setNodeStatus(NodeStatus.CREATED).
+            build());
   }
 
   final VirtualMachine handleRequest(final String messageId, String userId, String hardwareId,
@@ -150,10 +147,10 @@ public class CreateVirtualMachineSubscriberOld implements Runnable {
     de.uniulm.omi.cloudiator.domain.OperatingSystem os =
         vm.image().isPresent() ? vm.image().get().operatingSystem() : null;
     if (os != null) {
-      holder.os = OperatingSystem.newBuilder()
-          .setOperatingSystemVersion(os.operatingSystemVersion().toString())
-          .setOperatingSystemFamily(os.operatingSystemFamily().toString())
-          .setOperatingSystemArchitecture(os.operatingSystemArchitecture().toString()).build();
+      //holder.os = OperatingSystem.newBuilder()
+      //    .setOperatingSystemVersion(os.operatingSystemVersion().toString())
+      //    .setOperatingSystemFamily(os.operatingSystemFamily().toString())
+      //    .setOperatingSystemArchitecture(os.operatingSystemArchitecture().toString()).build();
     }
   }
 
@@ -306,6 +303,7 @@ public class CreateVirtualMachineSubscriberOld implements Runnable {
   }
 
   private static class DataHolder {
+
     int cores;
     long ram;
     float diskSize;
