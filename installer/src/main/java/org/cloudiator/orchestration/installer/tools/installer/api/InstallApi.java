@@ -60,6 +60,11 @@ public interface InstallApi extends AutoCloseable {
      * Download and install all necessary software for cloudiator (java, visor, lifecycle agent)
      */
     void installAll() throws RemoteException;
+    
+    /**
+     * Download and install snap telemetry
+     */
+    void installSnap() throws RemoteException;
 
     @Override void close() throws RemoteException;
 }
