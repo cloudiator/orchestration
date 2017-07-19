@@ -32,6 +32,7 @@ import java.util.concurrent.Future;
 import org.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.cloudiator.messages.NodeOuterClass.Node;
 
 /**
  * todo clean up class, do better logging
@@ -78,12 +79,18 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected static final String VISOR_PROPERTIES = "default.properties";
 
+  protected final String userId;
+  protected final Node node;
 
-    public AbstractInstaller(RemoteConnection remoteConnection) {
+
+    public AbstractInstaller(RemoteConnection remoteConnection, Node node, String userId) {
 
         checkNotNull(remoteConnection);
 
         this.remoteConnection = remoteConnection;
+
+        this.userId = userId;
+        this.node = node;
 
     }
 

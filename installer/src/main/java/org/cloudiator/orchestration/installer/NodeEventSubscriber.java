@@ -77,7 +77,7 @@ public class NodeEventSubscriber implements Runnable {
 
     //if(operatingSystem.operatingSystemFamily().operatingSystemType().equals(OperatingSystemType.WINDOWS))
 
-    
+
 
     OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());
 
@@ -96,9 +96,9 @@ public class NodeEventSubscriber implements Runnable {
 
   }
 
-  public void installTools(RemoteConnection remoteConnection){
+  public void installTools(RemoteConnection remoteConnection, Node node, String userId){
 
-    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection);
+    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node, userId);
 
   }
 
