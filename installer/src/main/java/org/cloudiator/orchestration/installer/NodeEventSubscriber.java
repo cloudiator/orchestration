@@ -99,6 +99,15 @@ public class NodeEventSubscriber implements Runnable {
 
     UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node, userId);
 
+    try {
+
+      LOGGER.debug("Remote connection established, starting to isntall clouiator tools...");
+      unixInstaller.installAll();
+
+    } catch (RemoteException e) {
+      LOGGER.error("Error while installing sources" , e);
+    }
+
   }
 
 

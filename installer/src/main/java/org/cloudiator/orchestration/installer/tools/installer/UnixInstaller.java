@@ -183,7 +183,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     @Override public void installSnap() throws RemoteException {
 
-        LOGGER.debug(String.format("Installing and starting Snap on vm %s", virtualMachine));
+        LOGGER.debug(String.format("Installing and starting Snap on node %s", node.getId()));
 
         //download snap
         this.remoteConnection.executeCommand("curl -s " + SNAP_DOWNLOAD + " | sudo bash > snap_preinstall.out" );
@@ -202,7 +202,7 @@ public class UnixInstaller extends AbstractInstaller {
         }
 
         LOGGER.debug(
-            String.format("Snap installed and started successfully on vm %s", virtualMachine));
+            String.format("Snap installed and started successfully on node %s", node.getId()));
     }
 
     @Override public void installAll() throws RemoteException {
