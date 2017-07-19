@@ -2,6 +2,7 @@ package org.cloudiator.orchestration.installer;
 
 import com.google.common.collect.Sets;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
 import javax.inject.Inject;
@@ -16,6 +17,7 @@ import org.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionSt
 import org.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
 import org.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
 import org.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
+import org.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,13 +77,15 @@ public class NodeEventSubscriber implements Runnable {
 
     //if(operatingSystem.operatingSystemFamily().operatingSystemType().equals(OperatingSystemType.WINDOWS))
 
+
+
     OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());
 
     RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(Sets.newHashSet(
         new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
 
     try {
-      remoteConnectionStrategy.connect(node, operatingSystem);
+      RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node, operatingSystem);
 
       LOGGER.debug("Established remote connection! Let's DD this node!");
 
@@ -89,6 +93,12 @@ public class NodeEventSubscriber implements Runnable {
       LOGGER.error("Unable to establish remote connection!", e);
     }
 
+
+  }
+
+  public void installTools(RemoteConnection remoteConnection, Node node, String userId){
+
+    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node, userId);
 
   }
 

@@ -4,8 +4,6 @@ import javax.inject.Inject;
 
 import org.cloudiator.messages.NodeOuterClass.Node;
 import org.cloudiator.messages.NodeOuterClass.NodeEvent;
-import org.cloudiator.messages.entities.IaasEntities.LoginCredential;
-import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.cloudiator.messaging.services.CloudService;

@@ -271,6 +271,12 @@ public class WindowsInstaller extends AbstractInstaller {
         this.installKairosDb();
 
         this.installVisor();
+        this.installSnap();
+    }
+
+    @Override
+    public void installSnap() throws RemoteException {
+        //TODO
     }
 
     private void waitForSchtaskCreation() {
