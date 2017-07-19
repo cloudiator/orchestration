@@ -21,6 +21,7 @@ package org.cloudiator.orchestration.installer.tools.installer;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,15 +169,14 @@ public class UnixInstaller extends AbstractInstaller {
         LOGGER.debug(String.format("Installing and starting Lance on node %s", node.getId()));
 
 
-        node.getIpAddressesList()
+
         //start Lance
         this.remoteConnection.executeCommand(
-            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + this.node.getIpAddressesList().stream().findAny().publicAddresses().stream().findAny().get()
+            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
                  + " -Dhost.ip.private=" +
-                this.virtualMachine.privateAddresses().stream().findAny().get() + " -Djava.rmi.server.hostname="
-                + this.virtualMachine.publicAddresses().stream().findAny().get() + " -Dhost.vm.id="
-                + this.virtualMachine.id() + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getId() + " -Dhost.vm.cloud.id="
-                //TODO: how to get cloud id of VM? How about node cloud relation? + this.virtualMachine.cloud().getUuid()
+                     node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get() + " -Djava.rmi.server.hostname="
+                + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get() + " -Dhost.vm.id="
+                + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.userId + " -Dhost.vm.cloud.id="
                 + " -jar " + UnixInstaller.LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1");
 
         LOGGER.debug(

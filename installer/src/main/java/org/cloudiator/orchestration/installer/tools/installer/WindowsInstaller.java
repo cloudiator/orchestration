@@ -18,12 +18,11 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,7 @@ public class WindowsInstaller extends AbstractInstaller {
         LoggerFactory.getLogger(WindowsInstaller.class);
 
 
-    private final String homeDir;
+    private final String homeDir = "";
     private static final String JAVA_EXE = "jre8.exe";
     private static final String SEVEN_ZIP_ARCHIVE = "7za920.zip";
     private static final String SEVEN_ZIP_DIR = "7zip";
@@ -52,16 +51,20 @@ public class WindowsInstaller extends AbstractInstaller {
         //Play.application().configuration().getString("colosseum.installer.windows.java.download");
     private static final String SEVEN_ZIP_DOWNLOAD = "";
         //Play.application().configuration().getString("colosseum.installer.windows.7zip.download");
+
+    /*
     private final String user;
     private final String password;
     private final Tenant tenant;
+    */
 
 
 
-    public WindowsInstaller(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
+    public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId,
         Tenant tenant) {
-        super(remoteConnection, virtualMachine);
+        super(remoteConnection, node, userId);
 
+        /*
         this.user = virtualMachine.loginCredential().get().username().get();
         checkArgument(virtualMachine.loginCredential().get().password().isPresent(),
             "Expected login password for WindowsInstaller");
@@ -71,6 +74,7 @@ public class WindowsInstaller extends AbstractInstaller {
             virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()
                 .homeDirFunction().apply(this.user);
         this.tenant = tenant;
+        */
 
     }
 
@@ -161,7 +165,7 @@ public class WindowsInstaller extends AbstractInstaller {
                 //+ Play.application().configuration()
                 //.getString("colosseum.installer.abstract.visor.config.telnetPort"));
 
-
+        /*
         //create schtaks
         this.remoteConnection.executeCommand(
             "schtasks.exe " + "/create " + "/st 00:00  " + "/sc ONCE " + "/ru " + this.user + " "
@@ -170,7 +174,7 @@ public class WindowsInstaller extends AbstractInstaller {
         this.waitForSchtaskCreation();
         //run schtask
         this.remoteConnection.executeCommand("schtasks.exe /run /tn " + visorJobId);
-
+        */
         LOGGER.debug("Visor started successfully!");
 
     }
@@ -204,6 +208,7 @@ public class WindowsInstaller extends AbstractInstaller {
                 .writeFile(this.homeDir + "\\" + WindowsInstaller.KAIROSDB_BAT, startCommand,
                     false);
 
+            /*
             //start kairosdb in backround
             String kairosJobId = "kairosDB";
             this.remoteConnection.executeCommand(
@@ -213,6 +218,7 @@ public class WindowsInstaller extends AbstractInstaller {
             this.waitForSchtaskCreation();
             this.remoteConnection.executeCommand("schtasks.exe /run /tn " + kairosJobId);
             LOGGER.debug("KairosDB successfully started!");
+            */
         }
 
     }
@@ -234,16 +240,17 @@ public class WindowsInstaller extends AbstractInstaller {
 
         //create a .bat file to start Lance, because it is not possible to pass schtasks paramters using overthere
         String startCommand =
-            " java " + " -Dhost.ip.public=" + this.virtualMachine.publicAddresses().stream().findAny().get()
-                + " -Dhost.ip.private=" + this.virtualMachine.privateAddresses().stream().findAny().get()
-                + " -Djava.rmi.server.hostname=" + this.virtualMachine.publicAddresses().stream().findAny().get()
-                + " -Dhost.vm.id=" + this.virtualMachine.id()
-                + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getId() + " -Dhost.vm.cloud.id="
-                + this.virtualMachine.id() + " -jar " + this.homeDir + "\\"
+            " java " + " -Dhost.ip.public=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
+                + " -Dhost.ip.private=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get()
+                + " -Djava.rmi.server.hostname=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
+                + " -Dhost.vm.id=" + node.getId()
+                + " -Dhost.vm.cloud.tenant.id=" + this.userId + " -Dhost.vm.cloud.id="
+                + node.getId() + " -jar " + this.homeDir + "\\"
                 + WindowsInstaller.LANCE_JAR;
         this.remoteConnection
             .writeFile(this.homeDir + "\\" + WindowsInstaller.LANCE_BAT, startCommand, false);
 
+        /*
         //start lance in backround
         String lanceJobId = "lance";
         this.remoteConnection.executeCommand(
@@ -253,6 +260,7 @@ public class WindowsInstaller extends AbstractInstaller {
         this.waitForSchtaskCreation();
         this.remoteConnection.executeCommand("schtasks.exe /run /tn " + lanceJobId);
         LOGGER.debug("Lance successfully started!");
+        */
 
     }
 

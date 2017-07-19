@@ -21,6 +21,7 @@ import org.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Created by Daniel Seybold on 28.06.2017.
  */
@@ -30,7 +31,6 @@ public class NodeEventSubscriber implements Runnable {
       LoggerFactory.getLogger(NodeEventSubscriber.class);
 
   private final MessageInterface messagingService;
-  private final CloudService cloudService;
   private volatile Subscription subscription;
 
 
@@ -41,7 +41,6 @@ public class NodeEventSubscriber implements Runnable {
   public NodeEventSubscriber(MessageInterface messageInterface,
       CloudService cloudService) {
     this.messagingService = messageInterface;
-    this.cloudService = cloudService;
   }
 
   @Override
