@@ -18,7 +18,6 @@
 
 package org.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
@@ -37,8 +36,8 @@ public class UnixInstaller extends AbstractInstaller {
 
 
     private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
-    protected final String homeDir;
-    private final String JAVA_BINARY;
+    private static final String CLOUDIATOR_DIR =  "/opt/cloudiator/";
+    private final String JAVA_BINARY = CLOUDIATOR_DIR + "/" + UnixInstaller.JAVA_DIR + "/bin/java";
     private static final String JAVA_ARCHIVE = "jre8.tar.gz";
     private static final String JAVA_DOWNLOAD = "";
         //Play.application().configuration().getString("colosseum.installer.linux.java.download");
@@ -57,16 +56,13 @@ public class UnixInstaller extends AbstractInstaller {
       //  .getBoolean("colosseum.installer.linux.lance.docker.install.flag");
     private final Tenant tenant;
 
-    public UnixInstaller(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
-        Tenant tenant) {
-        super(remoteConnection, virtualMachine);
-        String user = virtualMachine.loginCredential().get().username().get();
+    private static final String toolPath = "/opt/cloudiator/";
+
+    public UnixInstaller(RemoteConnection remoteConnection, Tenant tenant) {
+        super(remoteConnection);
+
         this.tenant = tenant;
-        //TODO: maybe use a common installation directory, e.g. /opt/cloudiator
-        this.homeDir =
-            virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()
-                .homeDirFunction().apply(user);
-        this.JAVA_BINARY = this.homeDir + "/" + UnixInstaller.JAVA_DIR + "/bin/java";
+
     }
 
     @Override public void initSources() {
@@ -102,7 +98,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     @Override public void installJava() throws RemoteException {
 
-        LOGGER.debug(String.format("Starting Java installation on vm %s", virtualMachine));
+        LOGGER.debug(String.format("Starting Java installation on vm %s", this.remoteConnection.));
         //create directory
         this.remoteConnection.executeCommand("mkdir " + UnixInstaller.JAVA_DIR);
         //extract java
@@ -118,7 +114,7 @@ public class UnixInstaller extends AbstractInstaller {
 
         LOGGER.debug(String.format("Setting up Visor on vm %s", virtualMachine));
         //create properties file
-        this.remoteConnection.writeFile(this.homeDir + "/" + UnixInstaller.VISOR_PROPERTIES,
+        this.remoteConnection.writeFile(this.CLOUDIATOR_DIR + "/" + UnixInstaller.VISOR_PROPERTIES,
             this.buildDefaultVisorConfig(), false);
 
         //start visor
@@ -141,7 +137,7 @@ public class UnixInstaller extends AbstractInstaller {
                     + " --strip-components=1");
 
             this.remoteConnection.executeCommand(
-                " sudo su -c \"(export PATH=\"" + this.homeDir + "/jre8/bin/:\"$PATH;nohup "
+                " sudo su -c \"(export PATH=\"" + this.CLOUDIATOR_DIR + "/jre8/bin/:\"$PATH;nohup "
                     + UnixInstaller.KAIRROSDB_DIR + "/bin/kairosdb.sh start)\"");
 
             LOGGER.debug(String.format("KairosDB started successfully on vm %s", virtualMachine));

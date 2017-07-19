@@ -21,7 +21,6 @@ package org.cloudiator.orchestration.installer.tools.installer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,7 @@ abstract class AbstractInstaller implements InstallApi {
 
 
     protected final RemoteConnection remoteConnection;
-    protected final VirtualMachine virtualMachine;
+
 
 
     protected final List<String> sourcesList = new ArrayList<>();
@@ -80,15 +79,11 @@ abstract class AbstractInstaller implements InstallApi {
     protected static final String VISOR_PROPERTIES = "default.properties";
 
 
-    public AbstractInstaller(RemoteConnection remoteConnection, VirtualMachine virtualMachine) {
+    public AbstractInstaller(RemoteConnection remoteConnection) {
 
         checkNotNull(remoteConnection);
-        checkNotNull(virtualMachine);
-        //checkArgument(virtualMachine.publicIpAddress().isPresent(),
-          //  "VirtualMachine has no public ip.");
 
         this.remoteConnection = remoteConnection;
-        this.virtualMachine = virtualMachine;
 
     }
 
