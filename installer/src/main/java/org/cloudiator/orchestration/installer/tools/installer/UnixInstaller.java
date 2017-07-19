@@ -55,14 +55,12 @@ public class UnixInstaller extends AbstractInstaller {
     private static final boolean DOCKER_REQUIRED = false;
     //Play.application().configuration()
       //  .getBoolean("colosseum.installer.linux.lance.docker.install.flag");
-
+    private static final String SNAP_DOWNLOAD = "https://packagecloud.io/install/repositories/intelsdi-x/snap/script.deb.sh";
 
     private static final String toolPath = "/opt/cloudiator/";
 
     public UnixInstaller(RemoteConnection remoteConnection, Node node, String userId) {
         super(remoteConnection, node, userId);
-
-
 
     }
 
@@ -183,6 +181,30 @@ public class UnixInstaller extends AbstractInstaller {
             String.format("Lance installed and started successfully on node %s", node.getId()));
     }
 
+    @Override public void installSnap() throws RemoteException {
+
+        LOGGER.debug(String.format("Installing and starting Snap on vm %s", virtualMachine));
+
+        //download snap
+        this.remoteConnection.executeCommand("curl -s " + SNAP_DOWNLOAD + " | sudo bash > snap_preinstall.out" );
+
+        //install snap
+        this.remoteConnection.executeCommand(
+            "sudo apt-get install -y snap-telemetry > snap_install.out");
+
+        //start snap service
+        if(node.getNodeProperties().getOperationSystem().getOperatingSystemVersion().startsWith("15.10") ||
+            node.getNodeProperties().getOperationSystem().getOperatingSystemVersion().startsWith("16") ||
+        node.getNodeProperties().getOperationSystem().getOperatingSystemVersion().startsWith("17")){
+            this.remoteConnection.executeCommand("systemctl snap-telemetry start");
+        } else { // assume its 14.10 or earlier
+            this.remoteConnection.executeCommand("service start snap-telemetry");
+        }
+
+        LOGGER.debug(
+            String.format("Snap installed and started successfully on vm %s", virtualMachine));
+    }
+
     @Override public void installAll() throws RemoteException {
 
         LOGGER.debug(
@@ -198,6 +220,8 @@ public class UnixInstaller extends AbstractInstaller {
         this.installKairosDb();
 
         this.installVisor();
+        
+        this.installSnap();
     }
 }
 
