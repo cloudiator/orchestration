@@ -220,6 +220,8 @@ public class UnixInstaller extends AbstractInstaller {
         this.installKairosDb();
 
         this.installVisor();
+
+        this.installSnap();
         
         this.installSnap();
     }
