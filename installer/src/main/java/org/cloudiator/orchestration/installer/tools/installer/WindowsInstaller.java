@@ -62,7 +62,7 @@ public class WindowsInstaller extends AbstractInstaller {
 
     public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId,
         Tenant tenant) {
-        super(remoteConnection, node, userId);
+        super(remoteConnection, node);
 
         /*
         this.user = virtualMachine.loginCredential().get().username().get();
@@ -244,7 +244,7 @@ public class WindowsInstaller extends AbstractInstaller {
                 + " -Dhost.ip.private=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get()
                 + " -Djava.rmi.server.hostname=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
                 + " -Dhost.vm.id=" + node.getId()
-                + " -Dhost.vm.cloud.tenant.id=" + this.userId + " -Dhost.vm.cloud.id="
+                + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
                 + node.getId() + " -jar " + this.homeDir + "\\"
                 + WindowsInstaller.LANCE_JAR;
         this.remoteConnection

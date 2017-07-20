@@ -59,8 +59,8 @@ public class UnixInstaller extends AbstractInstaller {
 
     private static final String toolPath = "/opt/cloudiator/";
 
-    public UnixInstaller(RemoteConnection remoteConnection, Node node, String userId) {
-        super(remoteConnection, node, userId);
+    public UnixInstaller(RemoteConnection remoteConnection, Node node) {
+        super(remoteConnection, node);
 
     }
 
@@ -174,7 +174,7 @@ public class UnixInstaller extends AbstractInstaller {
                  + " -Dhost.ip.private=" +
                      node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get() + " -Djava.rmi.server.hostname="
                 + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get() + " -Dhost.vm.id="
-                + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.userId + " -Dhost.vm.cloud.id="
+                + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
                 + " -jar " + UnixInstaller.LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1");
 
         LOGGER.debug(

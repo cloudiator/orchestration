@@ -79,17 +79,16 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected static final String VISOR_PROPERTIES = "default.properties";
 
-  protected final String userId;
   protected final Node node;
 
 
-    public AbstractInstaller(RemoteConnection remoteConnection, Node node, String userId) {
+    public AbstractInstaller(RemoteConnection remoteConnection, Node node) {
 
         checkNotNull(remoteConnection);
 
         this.remoteConnection = remoteConnection;
 
-        this.userId = userId;
+
         this.node = node;
 
     }
