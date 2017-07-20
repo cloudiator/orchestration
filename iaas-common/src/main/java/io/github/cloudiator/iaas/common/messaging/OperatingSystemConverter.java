@@ -24,7 +24,8 @@ public class OperatingSystemConverter implements
             osArchConverter.applyBack(operatingSystem.operatingSystemArchitecture()))
         .setOperatingSystemFamily(
             osFamilyConverter.applyBack(operatingSystem.operatingSystemFamily()))
-        .setOperatingSystemVersion(operatingSystem.operatingSystemFamily().name()).build();
+        .setOperatingSystemVersion(String.valueOf(OperatingSystemVersions.unknown().version()))
+        .build();
   }
 
   @Override
@@ -32,8 +33,7 @@ public class OperatingSystemConverter implements
     return OperatingSystemBuilder.newBuilder().architecture(
         osArchConverter.apply(operatingSystem.getOperatingSystemArchitecture()))
         .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily())).version(
-            OperatingSystemVersions.of(Integer.valueOf(operatingSystem.getOperatingSystemVersion()),
-                operatingSystem.getOperatingSystemVersion())).build();
+            OperatingSystemVersions.unknown()).build();
   }
 
   private class OperatingSystemFamilyConverter implements
