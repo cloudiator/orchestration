@@ -39,7 +39,7 @@ public class UnixInstaller extends AbstractInstaller {
     private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
     private static final String TOOL_PATH = "/opt/cloudiator/";
 
-    private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + "/" + JAVA_DIR + "/bin/java";
+    private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + JAVA_DIR + "/bin/java";
     private static final String JAVA_ARCHIVE = "jre8.tar.gz";
     private static final String JAVA_DOWNLOAD = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=106240";
         //Play.application().configuration().getString("colosseum.installer.linux.java.download");
@@ -116,10 +116,10 @@ public class UnixInstaller extends AbstractInstaller {
 
         LOGGER.debug(String.format("Starting Java installation on node %s", node.getId()));
         //create directory
-        this.remoteConnection.executeCommand("sudo mkdir " + JAVA_DIR);
+        this.remoteConnection.executeCommand("sudo mkdir " + TOOL_PATH +  JAVA_DIR);
         //extract java
         this.remoteConnection.executeCommand(
-            "sudo tar zxvf " + UnixInstaller.JAVA_ARCHIVE + " -C " + UnixInstaller.TOOL_PATH + JAVA_DIR
+            "sudo tar zxvf " + TOOL_PATH +  UnixInstaller.JAVA_ARCHIVE + " -C " + UnixInstaller.TOOL_PATH + JAVA_DIR
                 + " --strip-components=1");
         // do not set symbolic link or PATH as there might be other Java versions on the VM
 
@@ -130,13 +130,20 @@ public class UnixInstaller extends AbstractInstaller {
 
         LOGGER.debug(String.format("Setting up Visor on node %s", node.getId()));
         //create properties file
-        this.remoteConnection.writeFile( UnixInstaller.TOOL_PATH + VISOR_PROPERTIES,
+        this.remoteConnection.writeFile( "/tmp/" + VISOR_PROPERTIES,
             this.buildDefaultVisorConfig(), false);
 
+        //move to tool path
+      this.remoteConnection.executeCommand("sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
+
+
         //start visor
-        this.remoteConnection.executeCommand(
-            "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + VISOR_JAR
-                + " -conf " + VISOR_PROPERTIES + " &> /dev/null &'");
+
+      String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
+          + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
+
+      LOGGER.debug("Visor start command: " + startCommand);
+        this.remoteConnection.executeCommand(startCommand);
         LOGGER.debug(String.format("Visor started successfully on node %s", node.getId()));
     }
 
@@ -167,15 +174,15 @@ public class UnixInstaller extends AbstractInstaller {
                 String.format("Installing and starting Lance: Docker on node %s", node.getId()));
 
             this.remoteConnection
-                .executeCommand("sudo chmod +x " + UnixInstaller.DOCKER_RETRY_INSTALL);
+                .executeCommand("sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL);
             // Install docker via the retry script:
             this.remoteConnection.executeCommand(
-                "sudo nohup ./" + UnixInstaller.DOCKER_RETRY_INSTALL
+                "sudo nohup ./" + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL
                     + " > docker_retry_install.out 2>&1");
             this.remoteConnection
-                .executeCommand("sudo chmod +x " + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
+                .executeCommand("sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
             this.remoteConnection.executeCommand(
-                "sudo nohup ./" + UnixInstaller.DOCKER_FIX_MTU_INSTALL
+                "sudo nohup ./" + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL
                     + " > docker_mtu_fix.out 2>&1");
             this.remoteConnection.executeCommand(
                 "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
@@ -186,13 +193,16 @@ public class UnixInstaller extends AbstractInstaller {
 
 
         //start Lance
-        this.remoteConnection.executeCommand(
-            "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
-                 + " -Dhost.ip.private=" +
-                     node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get() + " -Djava.rmi.server.hostname="
-                + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get() + " -Dhost.vm.id="
-                + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
-                + " -jar " + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1");
+      String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get().getIp()
+          + " -Dhost.ip.private=" +
+          node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get().getIp() + " -Djava.rmi.server.hostname="
+          + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get().getIp() + " -Dhost.vm.id="
+          + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
+          + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
+
+      LOGGER.debug("Lance start command: " + startCommand);
+
+        this.remoteConnection.executeCommand(startCommand);
 
         LOGGER.debug(
             String.format("Lance installed and started successfully on node %s", node.getId()));

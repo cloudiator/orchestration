@@ -1,5 +1,7 @@
 package io.github.cloudiator.orchestration.installer;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.Sets;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
@@ -61,6 +63,8 @@ public class NodeEventSubscriber implements Runnable {
   }
 
   final void handleRequest(String requestId, Node node){
+
+    checkState(!node.getUserId().isEmpty(),"No userId set for node: " + node.getId() + " !");
 
 
     OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());

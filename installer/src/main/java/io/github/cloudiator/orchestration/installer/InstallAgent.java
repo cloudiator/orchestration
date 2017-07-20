@@ -2,6 +2,9 @@ package io.github.cloudiator.orchestration.installer;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
+import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
+import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
 import org.slf4j.Logger;
@@ -18,6 +21,9 @@ public class InstallAgent {
   private static Injector injector =
       Guice.createInjector(new KafkaMessagingModule(), new MessageServiceModule());
 
+  private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
+      new LoggingScheduledThreadPoolExecutor(5));
+
 
   /**
    * starts the virtual machine agent.
@@ -31,6 +37,8 @@ public class InstallAgent {
     final NodeEventSubscriber nodeEventSubscriber =
         injector.getInstance(NodeEventSubscriber.class);
     nodeEventSubscriber.run();
+
+    //EXECUTION_SERVICE.execute(injector.getInstance(InstallNodeEventQueueWorker.class));
 
   }
 

@@ -1,10 +1,12 @@
 package io.github.cloudiator.orchestration.installer;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
+import io.github.cloudiator.orchestration.installer.InstallNodeEventQueue.NodeEventItem;
 import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
@@ -23,8 +25,30 @@ public class InstallNodeEventQueueWorker implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(InstallNodeEventQueueWorker.class);
 
+  private final InstallNodeEventQueue installNodeEventQueue;
+
+  @Inject
+  InstallNodeEventQueueWorker(InstallNodeEventQueue installNodeEventQueue){
+    this.installNodeEventQueue = installNodeEventQueue;
+  }
+
   @Override
   public void run() {
+
+    while (!Thread.currentThread().isInterrupted()) {
+
+      try {
+        NodeEventItem nodeEventItem = this.installNodeEventQueue.take();
+
+        this.handleRequest(nodeEventItem.requestId(), nodeEventItem.node());
+
+
+      } catch (InterruptedException e) {
+        LOGGER.error("Error while fetich items from local NodeEventItem queue", e);
+      }
+
+
+    }
 
     /*
     subscription = messagingService.subscribe(NodeEvent.class,

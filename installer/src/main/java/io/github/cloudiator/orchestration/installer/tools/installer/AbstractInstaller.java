@@ -22,6 +22,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -29,10 +30,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
+import org.cloudiator.messages.NodeOuterClass.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.cloudiator.messages.NodeOuterClass.Node;
 
 /**
  * todo clean up class, do better logging
@@ -126,24 +126,19 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected String buildDefaultVisorConfig() {
 
-        //KairosServer depends if visor should connect to vm local kairos or to honme domain kairos
-        //get home domain ip
-        //TODO: get public ip if running Cloudiator on a VM in e.g. Openstack
+
+        String config = "executionThreads = " + 20 + "\n"
+            + "reportingInterval = " + 10 + "\n"
+            + "telnetPort = " + 9001 + "\n"
+            + "restHost = " + "http://0.0.0.0" + "\n" +
+            "restPort = " + 31415 + "\n" +
+            "kairosServer = " + "localhost" +  "\n" +
+            "kairosPort = " + 8080 + "\n" +
+            "reportingModule = " + "de.uniulm.omi.cloudiator.visor.reporting.kairos.KairosReportingModule" + "\n"
+            + "chukwaUrl = " + "http://localhost:8080/chukwa" + "\n" +
+            "chukwaVmId = " + "dummyNodeId";
+
         /*
-        InetAddress inetAddress = null;
-        try {
-            inetAddress=InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            Logger.error(e.getMessage());
-            e.printStackTrace();
-        }
-        String homeDomainIp = inetAddress.getHostAddress();
-        */
-
-        /*TODO: refactor for new code base
-        checkState(virtualMachine.providerId().isPresent());
-
-
         return "executionThreads = " + Play.application().configuration()
             .getString("colosseum.installer.abstract.visor.config.executionThreads") +
             "\n" + "reportingInterval = " + Play.application().configuration()
@@ -163,10 +158,10 @@ abstract class AbstractInstaller implements InstallApi {
             "\n" + "chukwaUrl = " + Play.application().configuration()
             .getString("colosseum.installer.abstract.visor.config.chukwaUrl") + "\n" +
             "chukwaVmId = " + virtualMachine.providerId().get();
-
             */
 
-        return null;
+
+        return config;
 
     }
 
