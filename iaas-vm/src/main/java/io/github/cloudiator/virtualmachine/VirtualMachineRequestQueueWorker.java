@@ -10,7 +10,6 @@ import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
 import io.github.cloudiator.virtualmachine.VirtualMachineRequestQueue.VirtualMachineRequestItem;
 import io.github.cloudiator.workflow.Exchange;
 import io.github.cloudiator.workflow.VirtualMachineWorkflow;
-import java.util.Optional;
 import javax.inject.Inject;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
@@ -23,13 +22,16 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
   private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestQueueWorker.class);
+  private final NodePublisher nodePublisher;
 
   @Inject
   public VirtualMachineRequestQueueWorker(
       VirtualMachineRequestQueue virtualMachineRequestQueue,
-      CloudService cloudService) {
+      CloudService cloudService,
+      NodePublisher nodePublisher) {
     this.virtualMachineRequestQueue = virtualMachineRequestQueue;
     this.cloudService = cloudService;
+    this.nodePublisher = nodePublisher;
   }
 
   @Override
@@ -54,7 +56,13 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
             multiCloudService.computeService());
         Exchange result = virtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
 
-        Optional<VirtualMachine> virtualMachine = result.getData(VirtualMachine.class);
+        VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
+
+        nodePublisher
+            .publish(virtualMachineTemplate.imageId(), virtualMachineTemplate.hardwareFlavorId(),
+                virtualMachineTemplate.locationId(), virtualMachine,
+                virtualMachineRequestItem.userId());
+
 
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

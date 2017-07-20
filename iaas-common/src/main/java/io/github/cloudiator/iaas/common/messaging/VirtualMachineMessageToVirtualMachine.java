@@ -7,9 +7,10 @@ import org.cloudiator.messages.entities.IaasEntities;
 /**
  * Created by Daniel Seybold on 28.06.2017.
  */
-public class VirtualMachineMessageToVirtualMachine implements TwoWayConverter<IaasEntities.VirtualMachine, VirtualMachine> {
+public class VirtualMachineMessageToVirtualMachine implements
+    TwoWayConverter<IaasEntities.VirtualMachine, VirtualMachine> {
 
-  private LoginCredentialMessageToLoginCredential loginCredentialMessageToLoginCredential = new LoginCredentialMessageToLoginCredential();
+  private LoginCredentialMessageToLoginCredentialConverter loginCredentialMessageToLoginCredential = new LoginCredentialMessageToLoginCredentialConverter();
   private ImageMessageToImageConverter imageMessageToImageConverter = new ImageMessageToImageConverter();
 
 

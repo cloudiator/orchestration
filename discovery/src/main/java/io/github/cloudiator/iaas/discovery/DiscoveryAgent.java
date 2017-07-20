@@ -9,6 +9,7 @@ import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 
 /**
@@ -25,11 +26,18 @@ public class DiscoveryAgent {
 
     final CloudAddedSubscriber instance = injector.getInstance(CloudAddedSubscriber.class);
     instance.run();
+
     ImageQuerySubscriber imageQuerySubscriber = injector.getInstance(ImageQuerySubscriber.class);
     imageQuerySubscriber.run();
+
     HardwareQuerySubscriber hardwareQuerySubscriber = injector
         .getInstance(HardwareQuerySubscriber.class);
     hardwareQuerySubscriber.run();
+
+    LocationQuerySubscriber locationQuerySubscriber = injector
+        .getInstance(LocationQuerySubscriber.class);
+    locationQuerySubscriber.run();
+
     final CloudQuerySubscriber cloudQuerySubscriber = injector
         .getInstance(CloudQuerySubscriber.class);
     cloudQuerySubscriber.run();

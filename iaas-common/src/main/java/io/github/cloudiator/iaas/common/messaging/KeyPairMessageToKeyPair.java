@@ -13,7 +13,8 @@ public class KeyPairMessageToKeyPair implements TwoWayConverter<IaasEntities.Key
   @Override
   public IaasEntities.KeyPair applyBack(KeyPair keyPair) {
 
-    IaasEntities.KeyPair.newBuilder().setPrivateKey(keyPair.privateKey().get()).setPublicKey(keyPair.publicKey()).build();
+    IaasEntities.KeyPair.newBuilder().setPrivateKey(keyPair.privateKey().get())
+        .setPublicKey(keyPair.publicKey()).build();
 
     return null;
   }
@@ -21,7 +22,8 @@ public class KeyPairMessageToKeyPair implements TwoWayConverter<IaasEntities.Key
   @Override
   public KeyPair apply(IaasEntities.KeyPair keyPair) {
 
-    return KeyPairBuilder.newBuilder().privateKey(keyPair.getPrivateKey()).publicKey(keyPair.getPublicKey()).build();
+    return KeyPairBuilder.newBuilder().privateKey(keyPair.getPrivateKey())
+        .publicKey(keyPair.getPublicKey()).build();
 
   }
 }

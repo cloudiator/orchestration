@@ -60,9 +60,10 @@ public class LocationModelRepositoryJpa
   public List<LocationModel> findByTenant(String tenant) {
     checkNotNull(tenant, "tenant is null");
     String queryString = String.format(
-        "from %s location inner join location.cloud cloud inner join cloud.tenant tenant where tenant.userId = :tenant",
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenant);
-    return query.getResultList();
+    //noinspection unchecked
+    return (List<LocationModel>) query.getResultList();
   }
 }
