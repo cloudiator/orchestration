@@ -40,12 +40,12 @@ public class UnixInstaller extends AbstractInstaller {
     private static final String CLOUDIATOR_DIR =  "/opt/cloudiator/";
     private final String JAVA_BINARY = CLOUDIATOR_DIR + "/" + UnixInstaller.JAVA_DIR + "/bin/java";
     private static final String JAVA_ARCHIVE = "jre8.tar.gz";
-    private static final String JAVA_DOWNLOAD = "";
+    private static final String JAVA_DOWNLOAD = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=106240";
         //Play.application().configuration().getString("colosseum.installer.linux.java.download");
-    private static final String DOCKER_RETRY_DOWNLOAD = "";
+    private static final String DOCKER_RETRY_DOWNLOAD = "https://raw.githubusercontent.com/cloudiator/lance/master/install/docker_retry_fix_version.sh";
             //Play.application().configuration()
         //.getString("colosseum.installer.linux.lance.docker_retry.download");
-    private static final String DOCKER_FIX_MTU_DOWNLOAD = "";
+    private static final String DOCKER_FIX_MTU_DOWNLOAD = "https://raw.githubusercontent.com/cloudiator/colosseum/master/resources/fix_mtu.sh";
     //Play.application().configuration()
       //  .getString("colosseum.installer.linux.lance.docker.mtu.download");
     private static final String DOCKER_RETRY_INSTALL = "docker_retry.sh";
