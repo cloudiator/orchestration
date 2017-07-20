@@ -21,6 +21,7 @@ package org.cloudiator.orchestration.installer.tools.installer;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,12 +40,12 @@ public class UnixInstaller extends AbstractInstaller {
     private static final String CLOUDIATOR_DIR =  "/opt/cloudiator/";
     private final String JAVA_BINARY = CLOUDIATOR_DIR + "/" + UnixInstaller.JAVA_DIR + "/bin/java";
     private static final String JAVA_ARCHIVE = "jre8.tar.gz";
-    private static final String JAVA_DOWNLOAD = "";
+    private static final String JAVA_DOWNLOAD = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=106240";
         //Play.application().configuration().getString("colosseum.installer.linux.java.download");
-    private static final String DOCKER_RETRY_DOWNLOAD = "";
+    private static final String DOCKER_RETRY_DOWNLOAD = "https://raw.githubusercontent.com/cloudiator/lance/master/install/docker_retry_fix_version.sh";
             //Play.application().configuration()
         //.getString("colosseum.installer.linux.lance.docker_retry.download");
-    private static final String DOCKER_FIX_MTU_DOWNLOAD = "";
+    private static final String DOCKER_FIX_MTU_DOWNLOAD = "https://raw.githubusercontent.com/cloudiator/colosseum/master/resources/fix_mtu.sh";
     //Play.application().configuration()
       //  .getString("colosseum.installer.linux.lance.docker.mtu.download");
     private static final String DOCKER_RETRY_INSTALL = "docker_retry.sh";
@@ -58,8 +59,8 @@ public class UnixInstaller extends AbstractInstaller {
 
     private static final String toolPath = "/opt/cloudiator/";
 
-    public UnixInstaller(RemoteConnection remoteConnection, Node node, String userId) {
-        super(remoteConnection, node, userId);
+    public UnixInstaller(RemoteConnection remoteConnection, Node node) {
+        super(remoteConnection, node);
 
     }
 
@@ -166,15 +167,14 @@ public class UnixInstaller extends AbstractInstaller {
         LOGGER.debug(String.format("Installing and starting Lance on node %s", node.getId()));
 
 
-        node.getIpAddressesList()
+
         //start Lance
         this.remoteConnection.executeCommand(
-            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + this.node.getIpAddressesList().stream().findAny().publicAddresses().stream().findAny().get()
+            "nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
                  + " -Dhost.ip.private=" +
-                this.virtualMachine.privateAddresses().stream().findAny().get() + " -Djava.rmi.server.hostname="
-                + this.virtualMachine.publicAddresses().stream().findAny().get() + " -Dhost.vm.id="
-                + this.virtualMachine.id() + " -Dhost.vm.cloud.tenant.id=" + this.tenant.getId() + " -Dhost.vm.cloud.id="
-                //TODO: how to get cloud id of VM? How about node cloud relation? + this.virtualMachine.cloud().getUuid()
+                     node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get() + " -Djava.rmi.server.hostname="
+                + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get() + " -Dhost.vm.id="
+                + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
                 + " -jar " + UnixInstaller.LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1");
 
         LOGGER.debug(
@@ -183,7 +183,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     @Override public void installSnap() throws RemoteException {
 
-        LOGGER.debug(String.format("Installing and starting Snap on vm %s", virtualMachine));
+        LOGGER.debug(String.format("Installing and starting Snap on node %s", node.getId()));
 
         //download snap
         this.remoteConnection.executeCommand("curl -s " + SNAP_DOWNLOAD + " | sudo bash > snap_preinstall.out" );
@@ -202,7 +202,7 @@ public class UnixInstaller extends AbstractInstaller {
         }
 
         LOGGER.debug(
-            String.format("Snap installed and started successfully on vm %s", virtualMachine));
+            String.format("Snap installed and started successfully on node %s", node.getId()));
     }
 
     @Override public void installAll() throws RemoteException {
@@ -220,6 +220,8 @@ public class UnixInstaller extends AbstractInstaller {
         this.installKairosDb();
 
         this.installVisor();
+
+        this.installSnap();
         
         this.installSnap();
     }

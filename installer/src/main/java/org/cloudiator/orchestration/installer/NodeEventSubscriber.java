@@ -12,7 +12,6 @@ import org.cloudiator.messages.NodeOuterClass.NodeEvent;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
-import org.cloudiator.messaging.services.CloudService;
 import org.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
 import org.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
 import org.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
@@ -20,6 +19,7 @@ import org.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
 import org.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by Daniel Seybold on 28.06.2017.
@@ -30,18 +30,15 @@ public class NodeEventSubscriber implements Runnable {
       LoggerFactory.getLogger(NodeEventSubscriber.class);
 
   private final MessageInterface messagingService;
-  private final CloudService cloudService;
   private volatile Subscription subscription;
 
 
-  private static final int ILLEGAL_CLOUD_ID = 400;
+
   private static final int SERVER_ERROR = 500;
 
   @Inject
-  public NodeEventSubscriber(MessageInterface messageInterface,
-      CloudService cloudService) {
+  public NodeEventSubscriber(MessageInterface messageInterface) {
     this.messagingService = messageInterface;
-    this.cloudService = cloudService;
   }
 
   @Override
@@ -65,19 +62,6 @@ public class NodeEventSubscriber implements Runnable {
 
   final void handleRequest(String requestId, Node node){
 
-    /*
-    RemoteConnectionStrategy remoteConnectionStrategy = CompositeRemoteConnectionStrategy.RemoteConnectionStrategiesFactory(
-        Sets.newHashSet(injector.getInstance(
-            KeyPairRemoteConnectionStrategy.KeyPairRemoteConnectionStrategyFactory.class),
-            injector.getInstance(
-                PasswordRemoteConnectionStrategy.PasswordRemoteConnectionStrategyFactory.class)));;
-
-    */
-
-
-    //if(operatingSystem.operatingSystemFamily().operatingSystemType().equals(OperatingSystemType.WINDOWS))
-
-
 
     OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());
 
@@ -86,6 +70,8 @@ public class NodeEventSubscriber implements Runnable {
 
     try {
       RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node, operatingSystem);
+
+      installTools(remoteConnection, node);
 
       LOGGER.debug("Established remote connection! Let's DD this node!");
 
@@ -96,9 +82,18 @@ public class NodeEventSubscriber implements Runnable {
 
   }
 
-  public void installTools(RemoteConnection remoteConnection, Node node, String userId){
+  public void installTools(RemoteConnection remoteConnection, Node node){
 
-    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node, userId);
+    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node);
+
+    try {
+
+      LOGGER.debug("Remote connection established, starting to isntall clouiator tools...");
+      unixInstaller.installAll();
+
+    } catch (RemoteException e) {
+      LOGGER.error("Error while installing sources" , e);
+    }
 
   }
 

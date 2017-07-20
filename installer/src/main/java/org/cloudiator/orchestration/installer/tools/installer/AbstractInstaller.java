@@ -57,18 +57,18 @@ abstract class AbstractInstaller implements InstallApi {
     //KairosDB
     protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
     protected static final String KAIRROSDB_DIR = "kairosdb";
-    protected static final String KAIROSDB_DOWNLOAD = "";
+    protected static final String KAIROSDB_DOWNLOAD = "https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz";
     //Play.application().configuration()
       //  .getString("colosseum.installer.abstract.kairosdb.download");
 
     //Visor
     protected static final String VISOR_JAR = "visor.jar";
-    protected static final String VISOR_DOWNLOAD = "";
+    protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.ja";
         //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
 
     //Lance
     protected static final String LANCE_JAR = "lance.jar";
-    protected static final String LANCE_DOWNLOAD = "";
+    protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
         //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
 
 
@@ -79,17 +79,16 @@ abstract class AbstractInstaller implements InstallApi {
 
     protected static final String VISOR_PROPERTIES = "default.properties";
 
-  protected final String userId;
   protected final Node node;
 
 
-    public AbstractInstaller(RemoteConnection remoteConnection, Node node, String userId) {
+    public AbstractInstaller(RemoteConnection remoteConnection, Node node) {
 
         checkNotNull(remoteConnection);
 
         this.remoteConnection = remoteConnection;
 
-        this.userId = userId;
+
         this.node = node;
 
     }
