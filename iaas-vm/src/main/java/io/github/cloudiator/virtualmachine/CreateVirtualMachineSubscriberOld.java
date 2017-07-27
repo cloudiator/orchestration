@@ -193,8 +193,8 @@ public class CreateVirtualMachineSubscriberOld implements Runnable {
       creds.setPassword(password.get());
     }
     if (privateKey.isPresent()) {
-      creds.setKeypair(org.cloudiator.messages.entities.IaasEntities.KeyPair.newBuilder()
-          .setPrivateKey(privateKey.get()));
+      //creds.setKeypair(org.cloudiator.messages.entities.IaasEntities.KeyPair.newBuilder()
+      //    .setPrivateKey(privateKey.get()));
     }
 
     builder.setLoginCredential(creds.build());

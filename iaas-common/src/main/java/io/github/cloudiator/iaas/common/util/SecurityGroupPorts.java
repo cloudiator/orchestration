@@ -31,41 +31,40 @@ import java.util.stream.Collectors;
  */
 public class SecurityGroupPorts {
 
-    private SecurityGroupPorts() {
-        throw new AssertionError("static only");
+  private SecurityGroupPorts() {
+    throw new AssertionError("static only");
+  }
+
+  private static String toolPorts = "8080," + //kairos
+      "31415," +  //visor
+      "1099," +  //lance rmi registry
+      "33033"; // lance rmi
+
+  public static Set<Integer> inBoundPorts() {
+    Set<Integer> inboundPorts = new HashSet<>();
+    inboundPorts.addAll(remotePorts());
+    inboundPorts.addAll(toolPorts());
+    return inboundPorts;
+  }
+
+  private static Set<Integer> remotePorts() {
+    return Arrays.stream(OperatingSystemType.values()).filter(operatingSystemType -> {
+      try {
+        operatingSystemType.remotePort();
+      } catch (RemotePortProvider.UnknownRemotePortException ignored) {
+        return false;
+      }
+      return true;
+    }).map(OperatingSystemType::remotePort).collect(Collectors.toSet());
+  }
+
+  private static Set<Integer> toolPorts() {
+    Set<Integer> intPorts = new HashSet<>();
+    for (String port : toolPorts.split(",")) {
+      intPorts.add(Integer.valueOf(port));
     }
-
-    private static String toolPorts = "8080," + //kairos
-        "31415," +  //visor
-        "1099," +  //lance rmi registry
-        "33033"; // lance rmi
-
-    public static Set<Integer> inBoundPorts() {
-        Set<Integer> inboundPorts = new HashSet<>();
-        inboundPorts.addAll(remotePorts());
-        inboundPorts.addAll(toolPorts());
-        return inboundPorts;
-    }
-
-    private static Set<Integer> remotePorts() {
-        return Arrays.stream(OperatingSystemType.values()).filter(operatingSystemType -> {
-            try {
-                operatingSystemType.remotePort();
-            } catch (RemotePortProvider.UnknownRemotePortException ignored) {
-                return false;
-            }
-            return true;
-        }).map(OperatingSystemType::remotePort).collect(Collectors.toSet());
-    }
-
-    private static Set<Integer> toolPorts() {
-        Set<Integer> intPorts = new HashSet<>();
-        for (String port : toolPorts.split(",")) {
-            intPorts.add(Integer.valueOf(port));
-        }
-        return intPorts;
-    }
-
+    return intPorts;
+  }
 
 
 }
