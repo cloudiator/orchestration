@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.cloudiator.orchestration.installer.tools.installer;
+package io.github.cloudiator.iaas.common.util;
 
 
 import de.uniulm.omi.cloudiator.domain.OperatingSystemType;

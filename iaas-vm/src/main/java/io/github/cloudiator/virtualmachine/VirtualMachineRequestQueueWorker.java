@@ -11,6 +11,9 @@ import io.github.cloudiator.virtualmachine.VirtualMachineRequestQueue.VirtualMac
 import io.github.cloudiator.workflow.Exchange;
 import io.github.cloudiator.workflow.VirtualMachineWorkflow;
 import javax.inject.Inject;
+import org.cloudiator.messages.General.Error;
+import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
+import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,23 +26,33 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestQueueWorker.class);
   private final NodePublisher nodePublisher;
+  private final MessageInterface messageInterface;
 
   @Inject
   public VirtualMachineRequestQueueWorker(
       VirtualMachineRequestQueue virtualMachineRequestQueue,
       CloudService cloudService,
-      NodePublisher nodePublisher) {
+      NodePublisher nodePublisher, MessageInterface messageInterface) {
     this.virtualMachineRequestQueue = virtualMachineRequestQueue;
     this.cloudService = cloudService;
     this.nodePublisher = nodePublisher;
+    this.messageInterface = messageInterface;
   }
 
   @Override
   public void run() {
 
     while (!Thread.currentThread().isInterrupted()) {
+
+      VirtualMachineRequestItem virtualMachineRequestItem = null;
       try {
-        VirtualMachineRequestItem virtualMachineRequestItem = virtualMachineRequestQueue.take();
+        virtualMachineRequestItem = virtualMachineRequestQueue.take();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+
+      try {
+
         VirtualMachineTemplate virtualMachineTemplate = virtualMachineRequestToTemplateConverter
             .apply(virtualMachineRequestItem.virtualMachineRequest());
 
@@ -63,10 +76,10 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
                 virtualMachineTemplate.locationId(), virtualMachine,
                 virtualMachineRequestItem.userId());
 
-
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
       } catch (Exception e) {
+        messageInterface
+            .reply(VirtualMachineCreatedResponse.class, virtualMachineRequestItem.requestId(),
+                Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
         LOGGER.error("Error during execution of virtual machine creation", e);
       }
 

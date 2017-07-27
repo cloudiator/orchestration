@@ -1,5 +1,7 @@
 package io.github.cloudiator.virtualmachine;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.github.cloudiator.iaas.common.messaging.IpAddressMessageToIpAddress;
@@ -32,6 +34,7 @@ public class NodePublisher {
   private final LocationService locationService;
   private final IpAddressMessageToIpAddress ipAddressMessageToIpAddress = new IpAddressMessageToIpAddress();
   private final LoginCredentialMessageToLoginCredentialConverter loginCredentialConverter = new LoginCredentialMessageToLoginCredentialConverter();
+  private final static String RESOURCE_RETRIEVAL_ERROR = "Could not retrieve detailed information for %s: %s";
 
   @Inject
   public NodePublisher(MessageInterface messageInterface,
@@ -71,13 +74,19 @@ public class NodePublisher {
     Image image = getImage(imageId, userId);
     Location location = getLocation(locationId, userId);
 
+    checkState(hardware != null, String.format(RESOURCE_RETRIEVAL_ERROR, "Hardware", hardware));
+    checkState(image != null, String.format(RESOURCE_RETRIEVAL_ERROR, "Image", image));
+    checkState(location != null, String.format(RESOURCE_RETRIEVAL_ERROR, "Location", location));
+
     NodeProperties props = NodeProperties.newBuilder()
         .setDisk(hardware.getDisk())
         .setMemory(hardware.getRam()).setNumberOfCores(hardware.getCores())
-        .setOperationSystem(image.getOperationSystem()).build();
+        .setOperationSystem(image.getOperationSystem())
+        .setLocation(location)
+        .build();
     messageInterface.publish(NodeEvent.newBuilder()
-        .setNode(Node.newBuilder().
-            addAllIpAddresses(virtualMachine.privateAddresses().stream()
+        .setNode(Node.newBuilder().setUserId(userId)
+            .addAllIpAddresses(virtualMachine.privateAddresses().stream()
                 .map(s -> ipAddressMessageToIpAddress.applyBack(s,
                     IpAddressType.PRIVATE_IP))
                 .collect(

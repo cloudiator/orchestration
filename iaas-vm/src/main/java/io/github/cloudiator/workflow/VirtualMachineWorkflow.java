@@ -18,7 +18,8 @@ public class VirtualMachineWorkflow extends AbstractWorkflow {
 
   @Override
   protected void configure() {
-    builder().addActivity(new StartVirtualMachineActivity(computeService))
+    builder().addActivity(new AssignSecurityGroups())
+        .addActivity(new StartVirtualMachineActivity(computeService))
         .addActivity(new AssignPublicIp(computeService)).build();
   }
 }
