@@ -18,7 +18,7 @@
 
 package io.github.cloudiator.iaas.common.persistance.entities;
 
-import javax.persistence.Column;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 

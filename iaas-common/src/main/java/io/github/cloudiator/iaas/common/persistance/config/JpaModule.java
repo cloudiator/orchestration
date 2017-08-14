@@ -2,6 +2,8 @@ package io.github.cloudiator.iaas.common.persistance.config;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
+import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudCredential;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareModel;
@@ -10,7 +12,6 @@ import io.github.cloudiator.iaas.common.persistance.entities.ImageModel;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
-import io.github.cloudiator.iaas.common.persistance.repositories.BaseModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.BaseResourceRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepositoryJpa;
@@ -18,7 +19,6 @@ import io.github.cloudiator.iaas.common.persistance.repositories.HardwareOfferRe
 import io.github.cloudiator.iaas.common.persistance.repositories.HardwareOfferRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepositoryJpa;
-import io.github.cloudiator.iaas.common.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.ResourceRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepositoryJpa;

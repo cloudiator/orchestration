@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import java.util.List;
 import javax.annotation.Nullable;

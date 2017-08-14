@@ -61,7 +61,7 @@
 
   <dependencyManagement>
     <dependencies>
-	<dependency>
+      <dependency>
         <groupId>io.github.cloudiator.sword</groupId>
         <artifactId>multicloud</artifactId>
         <version>${sword.version}</version>
@@ -75,12 +75,12 @@
         <groupId>io.github.cloudiator.iaas</groupId>
         <artifactId>iaas-common</artifactId>
         <version>${project.version}</version>
-</dependency> 
+      </dependency>
       <dependency>
         <groupId>io.github.cloudiator.iaas</groupId>
         <artifactId>byon</artifactId>
         <version>${project.version}</version>
-</dependency>
+      </dependency>
       <dependency>
         <groupId>io.github.cloudiator.iaas</groupId>
         <artifactId>noderegistry</artifactId>

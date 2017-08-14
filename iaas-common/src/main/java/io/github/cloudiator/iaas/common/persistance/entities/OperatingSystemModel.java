@@ -25,7 +25,7 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemVersions;
-import javax.annotation.Nullable;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;

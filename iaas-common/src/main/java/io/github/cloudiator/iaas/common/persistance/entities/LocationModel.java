@@ -20,7 +20,7 @@ package io.github.cloudiator.iaas.common.persistance.entities;
 
 import com.google.common.collect.ImmutableSet;
 import de.uniulm.omi.cloudiator.domain.LocationScope;
-import java.util.List;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.Column;

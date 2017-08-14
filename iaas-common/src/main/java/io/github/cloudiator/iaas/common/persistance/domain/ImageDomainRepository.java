@@ -3,6 +3,7 @@ package io.github.cloudiator.iaas.common.persistance.domain;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.ImageConverter;
@@ -12,7 +13,6 @@ import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepository;
-import io.github.cloudiator.iaas.common.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.ResourceRepository;
 import java.util.List;
 import java.util.stream.Collectors;

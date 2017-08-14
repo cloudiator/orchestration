@@ -1,9 +1,9 @@
 package io.github.cloudiator.iaas.common.persistance.repositories;
 
+import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import java.util.List;
 import javax.annotation.Nullable;
-import javax.tools.DocumentationTool.Location;
 
 /**
  * Created by daniel on 01.06.17.

@@ -19,7 +19,7 @@
 package io.github.cloudiator.iaas.common.persistance.entities;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.HashMap;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;

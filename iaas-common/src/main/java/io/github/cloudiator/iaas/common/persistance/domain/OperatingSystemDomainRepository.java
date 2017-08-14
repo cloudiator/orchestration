@@ -1,8 +1,8 @@
 package io.github.cloudiator.iaas.common.persistance.domain;
 
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel;
-import io.github.cloudiator.iaas.common.persistance.repositories.ModelRepository;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;

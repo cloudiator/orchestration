@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;

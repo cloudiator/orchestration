@@ -3,6 +3,7 @@ package io.github.cloudiator.iaas.common.persistance.repositories;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;

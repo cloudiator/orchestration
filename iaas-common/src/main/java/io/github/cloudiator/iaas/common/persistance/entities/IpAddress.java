@@ -21,7 +21,7 @@ package io.github.cloudiator.iaas.common.persistance.entities;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.persistence.Column;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
