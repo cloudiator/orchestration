@@ -22,7 +22,7 @@ public class DiscoveryListenerWorker implements Runnable {
     this.discoveryListeners = discoveryListeners;
   }
 
-  private Set<DiscoveryListener> interrestedIn(Discovery discovery) {
+  private Set<DiscoveryListener> interestedIn(Discovery discovery) {
     return discoveryListeners.stream().filter(
         discoveryListener -> discoveryListener.interestedIn().isAssignableFrom(discovery.getType()))
         .collect(Collectors.toSet());
@@ -33,7 +33,7 @@ public class DiscoveryListenerWorker implements Runnable {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         Discovery discovery = discoveryQueue.take();
-        interrestedIn(discovery).forEach(
+        interestedIn(discovery).forEach(
             discoveryListener -> discoveryListener.handle(discovery.discovery()));
       } catch (InterruptedException e) {
         LOGGER.warn(String.format("%s got interrupted.", this), e);

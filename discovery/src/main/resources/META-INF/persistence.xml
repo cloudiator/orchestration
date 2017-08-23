@@ -7,6 +7,10 @@
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
 
+    <class>io.github.cloudiator.iaas.common.persistance.entities.ApiModel</class>
+    <class>io.github.cloudiator.iaas.common.persistance.entities.CloudConfigurationModel</class>
+    <class>io.github.cloudiator.iaas.common.persistance.entities.PropertyModel</class>
+    <class>io.github.cloudiator.iaas.common.persistance.entities.CloudCredentialModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.CloudModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.Tenant</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.LocationModel</class>

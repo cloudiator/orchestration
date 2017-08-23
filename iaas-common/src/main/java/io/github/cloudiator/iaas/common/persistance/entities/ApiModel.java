@@ -22,54 +22,37 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import de.uniulm.omi.cloudiator.persistance.entities.Model;import java.util.List;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
 /**
  * Created by daniel on 31.10.14.
  */
 @Entity
-public class Api extends Model {
+public class ApiModel extends Model {
 
-  @Column(nullable = false)
-  private String internalProviderName;
-  @OneToMany(mappedBy = "api")
-  private List<CloudModel> cloudModels;
+  @Column(nullable = false, updatable = false)
+  private String providerName;
 
   /**
    * Empty constructor for hibernate.
    */
-  protected Api() {
+  protected ApiModel() {
   }
 
-  public Api(String internalProviderName) {
-    checkNotNull(internalProviderName);
-    checkArgument(!internalProviderName.isEmpty());
-    this.internalProviderName = internalProviderName;
+  public ApiModel(String providerName) {
+    checkNotNull(providerName);
+    checkArgument(!providerName.isEmpty());
+    this.providerName = providerName;
   }
 
-  public String getInternalProviderName() {
-    return internalProviderName;
-  }
-
-  public void setInternalProviderName(String internalProviderName) {
-    checkNotNull(internalProviderName);
-    checkArgument(!internalProviderName.isEmpty());
-    this.internalProviderName = internalProviderName;
-  }
-
-  public List<CloudModel> getCloudModels() {
-    return cloudModels;
-  }
-
-  public void setCloudModels(List<CloudModel> cloudModels) {
-    this.cloudModels = cloudModels;
+  public String getProviderName() {
+    return providerName;
   }
 
   @Override
   protected ToStringHelper stringHelper() {
-    return super.stringHelper().add("internalProviderName", internalProviderName);
+    return super.stringHelper().add("providerName", providerName);
   }
 }

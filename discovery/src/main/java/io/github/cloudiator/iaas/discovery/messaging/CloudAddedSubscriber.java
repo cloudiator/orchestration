@@ -4,14 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
-import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
-import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
-import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
-import io.github.cloudiator.iaas.discovery.AbstractDiscoveryWorker;
 import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.iaas.common.messaging.NewCloudMessageToCloud;
+import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
+import io.github.cloudiator.iaas.discovery.AbstractDiscoveryWorker;
 import javax.persistence.EntityManager;
 import org.cloudiator.messages.Cloud.CloudCreatedResponse;
 import org.cloudiator.messages.Cloud.CreateCloudRequest;
@@ -29,31 +25,25 @@ public class CloudAddedSubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDiscoveryWorker.class);
 
   private final MessageInterface messageInterface;
-  private final CloudRegistry cloudRegistry;
+  private final CloudDomainRepository cloudDomainRepository;
+  private final UnitOfWork unitOfWork;
+  private final Provider<EntityManager> entityManager;
   private final NewCloudMessageToCloud newCloudConverter;
   private final CloudMessageToCloudConverter cloudConverter;
-  private final UnitOfWork unitOfWork;
-  private final TenantModelRepository tenantModelRepository;
-  private final CloudModelRepository cloudModelRepository;
-  private final Provider<EntityManager> entityManager;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
-      CloudRegistry cloudRegistry,
-      NewCloudMessageToCloud newCloudConverter,
-      CloudMessageToCloudConverter cloudConverter,
+      CloudDomainRepository cloudDomainRepository,
       UnitOfWork unitOfWork,
-      TenantModelRepository tenantModelRepository,
-      CloudModelRepository cloudModelRepository,
-      Provider<EntityManager> entityManager) {
+      Provider<EntityManager> entityManager,
+      NewCloudMessageToCloud newCloudConverter,
+      CloudMessageToCloudConverter cloudConverter) {
     this.messageInterface = messageInterface;
-    this.cloudRegistry = cloudRegistry;
+    this.cloudDomainRepository = cloudDomainRepository;
+    this.unitOfWork = unitOfWork;
+    this.entityManager = entityManager;
     this.newCloudConverter = newCloudConverter;
     this.cloudConverter = cloudConverter;
-    this.unitOfWork = unitOfWork;
-    this.tenantModelRepository = tenantModelRepository;
-    this.cloudModelRepository = cloudModelRepository;
-    this.entityManager = entityManager;
   }
 
   @Override
@@ -63,40 +53,31 @@ public class CloudAddedSubscriber implements Runnable {
         .subscribe(CreateCloudRequest.class, CreateCloudRequest.parser(),
             (messageId, createCloudRequest) -> {
 
-              //create the tenant if it does not already exist
+              //start the transaction
               unitOfWork.begin();
               entityManager.get().getTransaction().begin();
+
               try {
-                Cloud cloud = newCloudConverter.apply(createCloudRequest.getCloud());
-                Tenant tenant = tenantModelRepository.createOrGet(createCloudRequest.getUserId());
-                CloudModel cloudModelEntity = cloudModelRepository
-                    .getByCloudId(cloud.id());
 
-                if (cloudModelEntity != null) {
-                  if (!cloudModelEntity.getTenant().equals(tenant)) {
-                    //reply with error
-                    messageInterface.reply(CloudCreatedResponse.class, messageId,
-                        Error.newBuilder().setCode(409).setMessage(String
-                            .format("The cloud %s is already registered with another tenant %s.",
-                                cloud,
-                                tenant)).build());
-                  }
-                } else {
-                  cloudModelEntity = new CloudModel(
-                      cloud.id(), tenant);
-                  cloudModelRepository.save(cloudModelEntity);
-                }
+                //create the cloud object from the message
+                Cloud cloudToBeCreated = newCloudConverter.apply(createCloudRequest.getCloud());
 
-                if (cloudRegistry.isRegistered(cloud)) {
+                //check if the cloud already exists
+                if (cloudDomainRepository.findById(cloudToBeCreated.id()) != null) {
+                  //reply with error
                   messageInterface.reply(CloudCreatedResponse.class, messageId,
-                      Error.newBuilder().setCode(409)
-                          .setMessage(String.format("The cloud %s already exists.", cloud))
-                          .build());
+                      Error.newBuilder().setCode(409).setMessage(String
+                          .format("The cloud %s is already registered",
+                              cloudToBeCreated)).build());
                 }
-                cloudRegistry.register(cloud);
+
+                //create the cloud
+                cloudDomainRepository.add(cloudToBeCreated, createCloudRequest.getUserId());
+
+                //repy
                 messageInterface.reply(messageId,
-                    CloudCreatedResponse.newBuilder().setCloud(cloudConverter.applyBack(cloud))
-                        .build());
+                    CloudCreatedResponse.newBuilder()
+                        .setCloud(cloudConverter.applyBack(cloudToBeCreated)).build());
                 entityManager.get().getTransaction().commit();
               } catch (Exception e) {
                 LOGGER.error(String.format("Exception occurred during handling of message %s.",

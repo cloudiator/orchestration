@@ -4,15 +4,16 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
-import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
-import io.github.cloudiator.iaas.common.persistance.entities.CloudCredential;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareModel;
-import io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer;
 import io.github.cloudiator.iaas.common.persistance.entities.ImageModel;
-import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import io.github.cloudiator.iaas.common.persistance.repositories.ApiModelRepository;
+import io.github.cloudiator.iaas.common.persistance.repositories.ApiModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.BaseResourceRepositoryJpa;
+import io.github.cloudiator.iaas.common.persistance.repositories.CloudConfigurationModelRepository;
+import io.github.cloudiator.iaas.common.persistance.repositories.CloudConfigurationModelRepositoryJpa;
+import io.github.cloudiator.iaas.common.persistance.repositories.CloudCredentialModelRepository;
+import io.github.cloudiator.iaas.common.persistance.repositories.CloudCredentialModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.HardwareOfferRepository;
@@ -31,18 +32,14 @@ public class JpaModule extends AbstractModule {
   @Override
   protected void configure() {
 
-    bind(new TypeLiteral<ModelRepository<CloudModel>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<CloudModel>>() {
-    });
+    bind(ApiModelRepository.class).to(ApiModelRepositoryJpa.class);
+
     bind(CloudModelRepository.class).to(CloudModelRepositoryJpa.class);
 
-    bind(new TypeLiteral<ModelRepository<CloudCredential>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<CloudCredential>>() {
-    });
+    bind(CloudConfigurationModelRepository.class).to(CloudConfigurationModelRepositoryJpa.class);
 
-    bind(new TypeLiteral<ModelRepository<Tenant>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<Tenant>>() {
-    });
+    bind(CloudCredentialModelRepository.class).to(CloudCredentialModelRepositoryJpa.class);
+
     bind(TenantModelRepository.class).to(TenantModelRepositoryJpa.class);
 
     bind(new TypeLiteral<ModelRepository<HardwareModel>>() {
@@ -51,12 +48,7 @@ public class JpaModule extends AbstractModule {
     bind(new TypeLiteral<ResourceRepository<HardwareModel>>() {
     }).to(new TypeLiteral<BaseResourceRepositoryJpa<HardwareModel>>() {
     });
-    bind(new TypeLiteral<ModelRepository<ImageModel>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<ImageModel>>() {
-    });
-    bind(new TypeLiteral<ResourceRepository<ImageModel>>() {
-    }).to(new TypeLiteral<BaseResourceRepositoryJpa<ImageModel>>() {
-    });
+
     bind(new TypeLiteral<ModelRepository<ImageModel>>() {
     }).to(new TypeLiteral<BaseModelRepositoryJpa<ImageModel>>() {
     });
@@ -64,18 +56,12 @@ public class JpaModule extends AbstractModule {
     }).to(new TypeLiteral<BaseResourceRepositoryJpa<ImageModel>>() {
     });
 
-    bind(new TypeLiteral<ModelRepository<LocationModel>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<LocationModel>>() {
-    });
     bind(LocationModelRepository.class).to(LocationModelRepositoryJpa.class);
 
     bind(new TypeLiteral<ModelRepository<OperatingSystemModel>>() {
     }).to(new TypeLiteral<BaseModelRepositoryJpa<OperatingSystemModel>>() {
     });
 
-    bind(new TypeLiteral<ModelRepository<HardwareOffer>>() {
-    }).to(new TypeLiteral<BaseModelRepositoryJpa<HardwareOffer>>() {
-    });
     bind(HardwareOfferRepository.class).to(HardwareOfferRepositoryJpa.class);
 
 

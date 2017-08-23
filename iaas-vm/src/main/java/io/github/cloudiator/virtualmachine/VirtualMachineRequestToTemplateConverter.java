@@ -17,11 +17,9 @@ public class VirtualMachineRequestToTemplateConverter implements
       return null;
     }
 
-    VirtualMachineTemplate virtualMachineTemplate = VirtualMachineTemplateBuilder.newBuilder()
+    return VirtualMachineTemplateBuilder.newBuilder()
         .hardwareFlavor(virtualMachineRequest.getHardware())
         .image(virtualMachineRequest.getImage()).location(virtualMachineRequest.getLocation())
         .name("test").build();
-
-    return virtualMachineTemplate;
   }
 }

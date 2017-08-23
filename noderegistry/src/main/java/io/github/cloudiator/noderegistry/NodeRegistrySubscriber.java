@@ -48,7 +48,7 @@ public final class NodeRegistrySubscriber implements Runnable {
                 NodeRegistrySubscriber.LOGGER.info("processing DELETED event.");
                 handleDeletion(nodeEvent.getNode());
                 break;
-              case UNDEFINED_STATUS:
+              case UNKNOWN_STATUS:
                 NodeRegistrySubscriber.LOGGER.error("processing UNDEFINED event.");
                 throw new IllegalArgumentException(
                     "status not set: " + nodeEvent.getNode());

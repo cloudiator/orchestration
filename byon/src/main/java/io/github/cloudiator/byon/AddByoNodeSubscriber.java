@@ -86,11 +86,11 @@ public class AddByoNodeSubscriber implements Runnable {
     String result = "";
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      digestLocation(md, data.getProperties().getLocation());
+      //digestLocation(md, data.getProperties().getLocation());
       byte[] digest = md.digest();
       BigInteger bigInt = new BigInteger(1,digest);
       result = bigInt.toString(16);
-    } catch(UnsupportedEncodingException | NoSuchAlgorithmException ex) {
+    } catch(NoSuchAlgorithmException ex) {
       LOGGER.error("cannot digest location, using random integer ", ex);
       result = UUID.randomUUID().toString();
     }

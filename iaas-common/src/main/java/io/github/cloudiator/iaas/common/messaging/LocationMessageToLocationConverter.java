@@ -15,6 +15,7 @@ public class LocationMessageToLocationConverter implements
     TwoWayConverter<IaasEntities.Location, Location> {
 
   private final LocationScopeMessageToLocationScopeConverter locationScopeConverter = new LocationScopeMessageToLocationScopeConverter();
+  private final GeoLocationMessageToGeoLocationConverter geoLocationConverter = new GeoLocationMessageToGeoLocationConverter();
 
   @Override
   public IaasEntities.Location applyBack(Location location) {
@@ -30,6 +31,10 @@ public class LocationMessageToLocationConverter implements
       builder.setParent(applyBack(location.parent().get()));
     }
 
+    if (location.geoLocation().isPresent()) {
+      builder.setGeoLocation(geoLocationConverter.applyBack(location.geoLocation().get()));
+    }
+
     return builder.build();
   }
 
@@ -40,7 +45,8 @@ public class LocationMessageToLocationConverter implements
     }
     return LocationBuilder.newBuilder().id(location.getId()).name(location.getName())
         .parent(apply(location)).assignable(location.getIsAssignable())
-        .scope(locationScopeConverter.apply(location.getLocationScope())).build();
+        .scope(locationScopeConverter.apply(location.getLocationScope()))
+        .geoLocation(geoLocationConverter.apply(location.getGeoLocation())).build();
   }
 
   private static class LocationScopeMessageToLocationScopeConverter implements

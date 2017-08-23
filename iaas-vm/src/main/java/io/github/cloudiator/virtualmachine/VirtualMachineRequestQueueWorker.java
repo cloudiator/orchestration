@@ -72,8 +72,7 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
         VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
 
         nodePublisher
-            .publish(virtualMachineTemplate.imageId(), virtualMachineTemplate.hardwareFlavorId(),
-                virtualMachineTemplate.locationId(), virtualMachine,
+            .publish(virtualMachine,
                 virtualMachineRequestItem.userId());
 
       } catch (Exception e) {

@@ -1,34 +1,87 @@
 package io.github.cloudiator.iaas.common.messaging;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import org.cloudiator.messages.entities.IaasEntities.IpAddress;
-import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
-import org.cloudiator.messages.entities.IaasEntities.IpVersion;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpVersion;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddresses;
+import de.uniulm.omi.cloudiator.util.TwoWayConverter;
+import org.cloudiator.messages.entities.IaasEntities;
 
-public class IpAddressMessageToIpAddress {
+public class IpAddressMessageToIpAddress implements
+    TwoWayConverter<IaasEntities.IpAddress, IpAddress> {
 
-  public IpAddress applyBack(String s, IpAddressType ipAddressType) {
-    return IpAddress.newBuilder().setIp(s).setVersion(getIpVersion(s)).setType(ipAddressType)
-        .build();
+  private final IpAddressTypeMessageToIpAddressType typeConverter = new IpAddressTypeMessageToIpAddressType();
+  private final IpAddressVersionMessageToIpAddressVersion versionConverter = new IpAddressVersionMessageToIpAddressVersion();
+
+  @Override
+  public IaasEntities.IpAddress applyBack(IpAddress ipAddress) {
+    return IaasEntities.IpAddress.newBuilder().setIp(ipAddress.ip())
+        .setVersion(versionConverter.applyBack(ipAddress.version()))
+        .setType(typeConverter.applyBack(ipAddress.type())).build();
   }
 
-  public String apply(IpAddress ipAddress) {
-    return ipAddress.getIp();
+  @Override
+  public IpAddress apply(IaasEntities.IpAddress ipAddress) {
+    return IpAddresses.of(ipAddress.getIp(), typeConverter.apply(ipAddress.getType()),
+        versionConverter.apply(ipAddress.getVersion()));
   }
 
-  private IpVersion getIpVersion(String ip) {
-    try {
-      InetAddress address = java.net.InetAddress.getByName(ip);
-      if (address instanceof java.net.Inet4Address) {
-        return IpVersion.V4;
+  private static class IpAddressTypeMessageToIpAddressType implements
+      TwoWayConverter<IaasEntities.IpAddressType, IpAddressType> {
+
+    @Override
+    public IaasEntities.IpAddressType applyBack(IpAddressType ipAddressType) {
+      switch (ipAddressType) {
+        case PUBLIC:
+          return IaasEntities.IpAddressType.PUBLIC_IP;
+        case PRIVATE:
+          return IaasEntities.IpAddressType.PRIVATE_IP;
+        default:
+          throw new AssertionError(String.format("IpAddressType %s is not known.", ipAddressType));
       }
-      if (address instanceof java.net.Inet6Address) {
-        return IpVersion.v6;
+    }
+
+    @Override
+    public IpAddressType apply(IaasEntities.IpAddressType ipAddressType) {
+      switch (ipAddressType) {
+        case PRIVATE_IP:
+          return IpAddressType.PRIVATE;
+        case PUBLIC_IP:
+          return IpAddressType.PUBLIC;
+        case UNRECOGNIZED:
+        default:
+          throw new AssertionError(String.format("IpAddressType %s is not known.", ipAddressType));
       }
-      throw new IllegalArgumentException(ip);
-    } catch (UnknownHostException uhe) {
-      throw new IllegalArgumentException(ip, uhe);
     }
   }
+
+  private static class IpAddressVersionMessageToIpAddressVersion implements
+      TwoWayConverter<IaasEntities.IpVersion, IpVersion> {
+
+    @Override
+    public IaasEntities.IpVersion applyBack(IpVersion ipVersion) {
+      switch (ipVersion) {
+        case V4:
+          return IaasEntities.IpVersion.V4;
+        case V6:
+          return IaasEntities.IpVersion.V6;
+        default:
+          throw new AssertionError(String.format("IpVersion %s is not known.", ipVersion));
+      }
+    }
+
+    @Override
+    public IpVersion apply(IaasEntities.IpVersion ipVersion) {
+      switch (ipVersion) {
+        case V4:
+          return IpVersion.V4;
+        case V6:
+          return IpVersion.V6;
+        case UNRECOGNIZED:
+        default:
+          throw new AssertionError(String.format("IpVersion %s is not known.", ipVersion));
+      }
+    }
+  }
+
 }

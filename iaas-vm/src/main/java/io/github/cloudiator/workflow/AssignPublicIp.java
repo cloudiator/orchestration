@@ -25,13 +25,13 @@ public class AssignPublicIp implements Activity {
     final VirtualMachine virtualMachine = input.getData(VirtualMachine.class).orElseThrow(
         () -> new IllegalStateException("Expected a virtual machine to be provided."));
 
-    if (!virtualMachine.publicAddresses().isEmpty()) {
+    if (!virtualMachine.publicIpAddresses().isEmpty()) {
       return input;
     }
 
     checkState(computeService.publicIpExtension().isPresent(),
         String.format(NO_PUBLIC_IP, virtualMachine, computeService));
-    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addPublicIpAddress(
+    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addIpString(
         computeService.publicIpExtension().get().addPublicIp(virtualMachine.id())).build());
   }
 }
