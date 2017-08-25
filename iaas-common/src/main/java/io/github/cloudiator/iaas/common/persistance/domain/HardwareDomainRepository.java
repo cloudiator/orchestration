@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Created by daniel on 02.06.17.
  */
-public class HardwareDomainRepository implements DomainRepository<HardwareFlavor> {
+public class HardwareDomainRepository {
 
   private final ResourceRepository<HardwareModel> hardwareModelRepository;
   private final HardwareConverter hardwareConverter = new HardwareConverter();
@@ -44,12 +44,20 @@ public class HardwareDomainRepository implements DomainRepository<HardwareFlavor
   }
 
 
-  @Override
   public HardwareFlavor findById(String id) {
     return hardwareConverter.apply(hardwareModelRepository.findByCloudUniqueId(id));
   }
 
-  @Override
+  public HardwareFlavor findByTenantAndId(String userId, String hardwareId) {
+    return hardwareConverter
+        .apply(hardwareModelRepository.findByCloudUniqueIdAndTenant(userId, hardwareId));
+  }
+
+  public List<HardwareFlavor> findByTenantAndCloud(String tenantId, String cloudId) {
+    return hardwareModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
+        .map(hardwareConverter).collect(Collectors.toList());
+  }
+
   public void save(HardwareFlavor hardwareFlavor) {
     //get corresponding cloudModel
     final String cloudId = IdScopedByClouds.from(hardwareFlavor.id()).cloudId();
@@ -87,14 +95,12 @@ public class HardwareDomainRepository implements DomainRepository<HardwareFlavor
     hardwareModelRepository.save(hardwareModelEntity);
   }
 
-  @Override
   public void delete(HardwareFlavor hardwareFlavor) {
     final HardwareModel byCloudUniqueId = this.hardwareModelRepository
         .findByCloudUniqueId(hardwareFlavor.id());
     this.hardwareModelRepository.delete(byCloudUniqueId);
   }
 
-  @Override
   public List<HardwareFlavor> findAll() {
     return hardwareModelRepository.findAll().stream().map(
         hardwareConverter).collect(Collectors.toList());

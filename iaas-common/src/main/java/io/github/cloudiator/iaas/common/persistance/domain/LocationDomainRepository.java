@@ -3,6 +3,7 @@ package io.github.cloudiator.iaas.common.persistance.domain;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.LocationConverter;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Created by daniel on 02.06.17.
  */
-public class LocationDomainRepository implements DomainRepository<Location> {
+public class LocationDomainRepository {
 
   private final LocationModelRepository locationModelRepository;
   private final LocationConverter locationConverter = new LocationConverter();
@@ -30,12 +31,20 @@ public class LocationDomainRepository implements DomainRepository<Location> {
     this.cloudModelRepository = cloudModelRepository;
   }
 
-  @Override
   public Location findById(String id) {
     return locationConverter.apply(locationModelRepository.findByCloudUniqueId(id));
   }
 
-  @Override
+  public Location findByTenantAndId(String userId, String locationId) {
+    return locationConverter
+        .apply(locationModelRepository.findByCloudUniqueIdAndTenant(userId, locationId));
+  }
+
+  public List<Location> findByTenantAndCloud(String tenantId, String cloudId) {
+    return locationModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
+        .map(locationConverter).collect(Collectors.toList());
+  }
+
   public void save(Location location) {
     final String cloudId = IdScopedByClouds.from(location.id()).cloudId();
     CloudModel cloudModel = cloudModelRepository.getByCloudId(cloudId);
@@ -61,14 +70,12 @@ public class LocationDomainRepository implements DomainRepository<Location> {
     locationModelRepository.save(locationModel);
   }
 
-  @Override
   public void delete(Location location) {
     final LocationModel byCloudUniqueId = locationModelRepository
         .findByCloudUniqueId(location.id());
     locationModelRepository.delete(byCloudUniqueId);
   }
 
-  @Override
   public List<Location> findAll() {
     return locationModelRepository.findAll().stream().map(locationConverter).collect(
         Collectors.toList());

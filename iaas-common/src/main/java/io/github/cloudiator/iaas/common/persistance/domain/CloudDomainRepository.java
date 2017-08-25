@@ -115,4 +115,8 @@ public class CloudDomainRepository {
     return cloudModelRepository.getByTenant(userId).stream().map(cloudConverter)
         .collect(Collectors.toList());
   }
+
+  public Cloud findByUserAndId(String user, String cloudId) {
+    return cloudConverter.apply(cloudModelRepository.getByTenantAndId(user, cloudId));
+  }
 }

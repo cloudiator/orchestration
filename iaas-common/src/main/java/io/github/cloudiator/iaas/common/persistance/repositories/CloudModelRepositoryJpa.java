@@ -8,6 +8,7 @@ import com.google.inject.TypeLiteral;
 import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -25,6 +26,7 @@ public class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> 
   }
 
   @Override
+  @Nullable
   public CloudModel getByCloudId(String cloudId) {
     checkNotNull(cloudId, "cloudId is null");
     String queryString = String
@@ -46,5 +48,19 @@ public class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> 
         type.getName());
     Query query = em().createQuery(queryString).setParameter("userId", userId);
     return query.getResultList();
+  }
+
+  @Override
+  @Nullable
+  public CloudModel getByTenantAndId(String userId, String cloudId) {
+    checkNotNull(userId, "userId is null");
+    checkNotNull(cloudId, "cloudId is null");
+    String queryString = String.format(
+        "select cloud from %s cloud inner join cloud.tenant tenant where tenant.userId = :userId and cloud.cloudId = :cloudId",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("userId", userId)
+        .setParameter("cloudId", cloudId);
+    @SuppressWarnings("unchecked") List<CloudModel> clouds = query.getResultList();
+    return clouds.stream().findFirst().orElse(null);
   }
 }

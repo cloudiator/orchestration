@@ -57,11 +57,42 @@ public class BaseResourceRepositoryJpa<T extends ResourceModel>
 
   @Override
   public List<T> findByTenant(String tenant) {
-    checkNotNull("tenant is null");
+    checkNotNull(tenant, "tenant is null");
     String queryString = String.format(
         "select resource from %s resource inner join resource.cloudModel cloud inner join cloud.tenant ct where ct.userId=:tenant",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenant);
+    //noinspection unchecked
+    return (List<T>) query.getResultList();
+  }
+
+  @Override
+  public T findByCloudUniqueIdAndTenant(String tenant, String cloudUniqueId) {
+    checkNotNull(tenant, "tenant is null");
+    checkNotNull(cloudUniqueId, "id is null");
+    String queryString = String.format(
+        "select resource from %s resource inner join resource.cloudModel cloud inner join cloud.tenant ct where ct.userId=:tenant and resource.cloudUniqueId = :id",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("tenant", tenant)
+        .setParameter("id", cloudUniqueId);
+    //noinspection unchecked
+    try {
+      //noinspection unchecked
+      return (T) query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @Override
+  public List<T> findByTenantAndCloud(String tenant, String cloudId) {
+    checkNotNull(tenant, "tenant is null");
+    checkNotNull(cloudId, "cloudId is null");
+    String queryString = String.format(
+        "select resource from %s resource inner join resource.cloudModel cloud inner join cloud.tenant ct where ct.userId=:tenant and cloud.cloudId = :cloudId",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("tenant", tenant)
+        .setParameter("cloudId", cloudId);
     //noinspection unchecked
     return (List<T>) query.getResultList();
   }

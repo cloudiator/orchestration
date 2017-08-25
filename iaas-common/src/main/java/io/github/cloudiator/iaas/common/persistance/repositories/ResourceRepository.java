@@ -34,4 +34,7 @@ public interface ResourceRepository<T extends ResourceModel>
 
   List<T> findByTenant(String tenant);
 
+  T findByCloudUniqueIdAndTenant(String tenant, String cloudUniqueId);
+
+  List<T> findByTenantAndCloud(String tenant, String cloudId);
 }

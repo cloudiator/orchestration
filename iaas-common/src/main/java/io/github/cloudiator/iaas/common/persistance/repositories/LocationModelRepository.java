@@ -15,4 +15,7 @@ public interface LocationModelRepository extends ModelRepository<LocationModel> 
 
   List<LocationModel> findByTenant(String tenantId);
 
+  LocationModel findByCloudUniqueIdAndTenant(String userId, String locationId);
+
+  List<LocationModel> findByTenantAndCloud(String tenantId, String cloudId);
 }

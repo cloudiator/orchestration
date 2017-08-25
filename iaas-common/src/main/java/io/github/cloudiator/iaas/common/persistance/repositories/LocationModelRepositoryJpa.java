@@ -67,4 +67,34 @@ public class LocationModelRepositoryJpa
     //noinspection unchecked
     return (List<LocationModel>) query.getResultList();
   }
+
+  @Override
+  public LocationModel findByCloudUniqueIdAndTenant(String userId, String locationId) {
+    checkNotNull(userId, "userId is null");
+    checkNotNull(locationId, "locationId is null");
+    String queryString = String.format(
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant and location.cloudUniqueId = :id",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("tenant", userId)
+        .setParameter("id", locationId);
+    try {
+      //noinspection unchecked
+      return (LocationModel) query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public List<LocationModel> findByTenantAndCloud(String tenantId, String cloudId) {
+    checkNotNull(tenantId, "tenant is null");
+    checkNotNull(cloudId, "cloudId is null");
+    String queryString = String.format(
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant and cloud.cloudId = :cloudId",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("tenant", tenantId)
+        .setParameter("cloudId", cloudId);
+    //noinspection unchecked
+    return (List<LocationModel>) query.getResultList();
+  }
 }

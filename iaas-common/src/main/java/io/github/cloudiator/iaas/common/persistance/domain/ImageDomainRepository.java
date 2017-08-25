@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Created by daniel on 02.06.17.
  */
-public class ImageDomainRepository implements DomainRepository<Image> {
+public class ImageDomainRepository {
 
   private final ResourceRepository<ImageModel> imageModelRepository;
   private final ImageConverter imageConverter;
@@ -45,12 +45,20 @@ public class ImageDomainRepository implements DomainRepository<Image> {
     this.operatingSystemModelModelRepository = operatingSystemModelModelRepository;
   }
 
-  @Override
   public Image findById(String id) {
     return imageConverter.apply(imageModelRepository.findByCloudUniqueId(id));
   }
 
-  @Override
+  public Image findByTenantAndId(String userId, String imageId) {
+    return imageConverter
+        .apply(imageModelRepository.findByCloudUniqueIdAndTenant(userId, imageId));
+  }
+
+  public List<Image> findByTenantAndCloud(String tenantId, String cloudId) {
+    return imageModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
+        .map(imageConverter).collect(Collectors.toList());
+  }
+
   public void save(Image image) {
 
     //get corresponding cloudModel
@@ -86,13 +94,11 @@ public class ImageDomainRepository implements DomainRepository<Image> {
     imageModelRepository.save(imageModel);
   }
 
-  @Override
   public void delete(Image image) {
     final ImageModel byCloudUniqueId = imageModelRepository.findByCloudUniqueId(image.id());
     imageModelRepository.delete(byCloudUniqueId);
   }
 
-  @Override
   public List<Image> findAll() {
     return imageModelRepository.findAll().stream().map(imageConverter).collect(Collectors.toList());
   }
