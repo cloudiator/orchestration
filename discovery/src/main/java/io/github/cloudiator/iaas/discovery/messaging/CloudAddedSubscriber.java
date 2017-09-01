@@ -69,16 +69,17 @@ public class CloudAddedSubscriber implements Runnable {
                       Error.newBuilder().setCode(409).setMessage(String
                           .format("The cloud %s is already registered",
                               cloudToBeCreated)).build());
+                } else {
+
+                  //create the cloud
+                  cloudDomainRepository.add(cloudToBeCreated, createCloudRequest.getUserId());
+
+                  //repy
+                  messageInterface.reply(messageId,
+                      CloudCreatedResponse.newBuilder()
+                          .setCloud(cloudConverter.applyBack(cloudToBeCreated)).build());
+                  entityManager.get().getTransaction().commit();
                 }
-
-                //create the cloud
-                cloudDomainRepository.add(cloudToBeCreated, createCloudRequest.getUserId());
-
-                //repy
-                messageInterface.reply(messageId,
-                    CloudCreatedResponse.newBuilder()
-                        .setCloud(cloudConverter.applyBack(cloudToBeCreated)).build());
-                entityManager.get().getTransaction().commit();
               } catch (Exception e) {
                 LOGGER.error(String.format("Exception occurred during handling of message %s.",
                     createCloudRequest), e);

@@ -2,8 +2,8 @@ package io.github.cloudiator.noderegistry;
 
 import javax.inject.Inject;
 
-import org.cloudiator.messages.NodeOuterClass.Node;
-import org.cloudiator.messages.NodeOuterClass.NodeEvent;
+import org.cloudiator.messages.NodeEntities.Node;
+import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.cloudiator.messaging.services.CloudService;

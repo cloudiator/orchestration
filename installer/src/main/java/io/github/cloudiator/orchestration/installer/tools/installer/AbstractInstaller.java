@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ abstract class AbstractInstaller implements InstallApi {
     private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
         //Play.application().configuration().getInt("colosseum.installer.download.threads");
 
-    //KairosDB
+    //KairosDBom
     protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
     protected static final String KAIRROSDB_DIR = "kairosdb";
     protected static final String KAIROSDB_DOWNLOAD = "https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz";

@@ -7,16 +7,16 @@ import io.github.cloudiator.iaas.common.domain.NodeProperties;
 import io.github.cloudiator.iaas.common.domain.NodePropertiesBuilder;
 import io.github.cloudiator.iaas.common.domain.NodeType;
 import java.util.stream.Collectors;
-import org.cloudiator.messages.NodeOuterClass;
-import org.cloudiator.messages.NodeOuterClass.NodeProperties.Builder;
+import org.cloudiator.messages.NodeEntities;
+import org.cloudiator.messages.NodeEntities.NodeProperties.Builder;
 
-public class NodeToNodeMessage implements TwoWayConverter<Node, NodeOuterClass.Node> {
+public class NodeToNodeMessage implements TwoWayConverter<Node, NodeEntities.Node> {
 
   private final IpAddressMessageToIpAddress ipAddressConverter = new IpAddressMessageToIpAddress();
   private final NodeTypeToNodeTypeMessage nodeTypeConverter = new NodeTypeToNodeTypeMessage();
 
   @Override
-  public Node applyBack(NodeOuterClass.Node node) {
+  public Node applyBack(NodeEntities.Node node) {
 
     return NodeBuilder.newBuilder().ipAddresses(node.getIpAddressesList().stream().map(
         ipAddressConverter).collect(
@@ -24,19 +24,19 @@ public class NodeToNodeMessage implements TwoWayConverter<Node, NodeOuterClass.N
   }
 
   @Override
-  public NodeOuterClass.Node apply(Node node) {
+  public NodeEntities.Node apply(Node node) {
     return null;
   }
 
   private static class NodePropertiesMessageToNodePropertiesConverter implements
-      TwoWayConverter<NodeOuterClass.NodeProperties, NodeProperties> {
+      TwoWayConverter<NodeEntities.NodeProperties, NodeProperties> {
 
     private final GeoLocationMessageToGeoLocationConverter geoLocationConverter = new GeoLocationMessageToGeoLocationConverter();
     private final OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
 
     @Override
-    public NodeOuterClass.NodeProperties applyBack(NodeProperties nodeProperties) {
-      final Builder builder = NodeOuterClass.NodeProperties.newBuilder()
+    public NodeEntities.NodeProperties applyBack(NodeProperties nodeProperties) {
+      final Builder builder = NodeEntities.NodeProperties.newBuilder()
           .setNumberOfCores(nodeProperties.numberOfCores()).setMemory(nodeProperties.memory());
 
       if (nodeProperties.geoLocation().isPresent()) {
@@ -57,7 +57,7 @@ public class NodeToNodeMessage implements TwoWayConverter<Node, NodeOuterClass.N
     }
 
     @Override
-    public NodeProperties apply(NodeOuterClass.NodeProperties nodeProperties) {
+    public NodeProperties apply(NodeEntities.NodeProperties nodeProperties) {
       return NodePropertiesBuilder.newBuilder().numberOfCores(nodeProperties.getNumberOfCores())
           .disk(nodeProperties.getDisk())
           .geoLocation(geoLocationConverter.apply(nodeProperties.getGeoLocation()))
@@ -67,10 +67,10 @@ public class NodeToNodeMessage implements TwoWayConverter<Node, NodeOuterClass.N
   }
 
   private static class NodeTypeToNodeTypeMessage implements
-      TwoWayConverter<NodeType, NodeOuterClass.NodeType> {
+      TwoWayConverter<NodeType, NodeEntities.NodeType> {
 
     @Override
-    public NodeType applyBack(NodeOuterClass.NodeType nodeType) {
+    public NodeType applyBack(NodeEntities.NodeType nodeType) {
       switch (nodeType) {
         case VM:
           return NodeType.VM;
@@ -87,16 +87,16 @@ public class NodeToNodeMessage implements TwoWayConverter<Node, NodeOuterClass.N
     }
 
     @Override
-    public NodeOuterClass.NodeType apply(NodeType nodeType) {
+    public NodeEntities.NodeType apply(NodeType nodeType) {
       switch (nodeType) {
         case VM:
-          return NodeOuterClass.NodeType.VM;
+          return NodeEntities.NodeType.VM;
         case BYON:
-          return NodeOuterClass.NodeType.BYON;
+          return NodeEntities.NodeType.BYON;
         case UNKOWN:
-          return NodeOuterClass.NodeType.UNKNOWN_TYPE;
+          return NodeEntities.NodeType.UNKNOWN_TYPE;
         case CONTAINER:
-          return NodeOuterClass.NodeType.CONTAINER;
+          return NodeEntities.NodeType.CONTAINER;
         default:
           throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
       }

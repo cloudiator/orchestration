@@ -32,7 +32,7 @@ import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
 import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
-import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;

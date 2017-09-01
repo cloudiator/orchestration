@@ -5,8 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.cloudiator.messages.NodeOuterClass.Node;
-import org.cloudiator.messages.NodeOuterClass.NodeEvent;
+import org.cloudiator.messages.NodeEntities.Node;
+import org.cloudiator.messages.Node.NodeEvent;
 
 /**
  * Created by Daniel Seybold on 20.07.2017.

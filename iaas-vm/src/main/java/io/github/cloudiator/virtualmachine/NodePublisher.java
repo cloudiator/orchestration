@@ -4,7 +4,7 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.iaas.common.domain.Node;
 import io.github.cloudiator.iaas.common.messaging.NodeToNodeMessage;
 import javax.inject.Inject;
-import org.cloudiator.messages.NodeOuterClass.NodeEvent;
+import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.ResponseException;
 

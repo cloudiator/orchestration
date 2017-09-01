@@ -25,7 +25,7 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import java.util.Set;
-import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

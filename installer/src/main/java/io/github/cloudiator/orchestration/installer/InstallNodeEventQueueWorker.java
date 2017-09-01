@@ -12,7 +12,7 @@ import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnecti
 import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
-import org.cloudiator.messages.NodeOuterClass.Node;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
