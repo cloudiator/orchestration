@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

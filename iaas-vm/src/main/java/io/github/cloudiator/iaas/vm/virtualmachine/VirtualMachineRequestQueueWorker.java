@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
@@ -7,9 +7,9 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
-import io.github.cloudiator.virtualmachine.VirtualMachineRequestQueue.VirtualMachineRequestItem;
-import io.github.cloudiator.workflow.Exchange;
-import io.github.cloudiator.workflow.VirtualMachineWorkflow;
+import io.github.cloudiator.iaas.vm.virtualmachine.VirtualMachineRequestQueue.VirtualMachineRequestItem;
+import io.github.cloudiator.iaas.vm.workflow.Exchange;
+import io.github.cloudiator.iaas.vm.workflow.VirtualMachineWorkflow;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;

@@ -11,6 +11,8 @@ import javax.annotation.Nullable;
  */
 public class ImageConverter implements OneWayConverter<ImageModel, Image> {
 
+  private final LocationConverter locationConverter = new LocationConverter();
+
   @Nullable
   @Override
   public Image apply(@Nullable ImageModel imageModel) {
@@ -18,6 +20,7 @@ public class ImageConverter implements OneWayConverter<ImageModel, Image> {
       return null;
     }
     return ImageBuilder.newBuilder().os(imageModel.operatingSystem())
+        .location(locationConverter.apply(imageModel.getLocationModel()))
         .providerId(imageModel.getProviderId()).id(imageModel.getCloudUniqueId())
         .name(imageModel.getName()).build();
   }

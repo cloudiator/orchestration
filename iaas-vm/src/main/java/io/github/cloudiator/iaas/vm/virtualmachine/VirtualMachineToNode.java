@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;

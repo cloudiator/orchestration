@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;

@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

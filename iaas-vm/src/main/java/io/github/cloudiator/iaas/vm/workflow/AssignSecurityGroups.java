@@ -1,4 +1,4 @@
-package io.github.cloudiator.workflow;
+package io.github.cloudiator.iaas.vm.workflow;
 
 import de.uniulm.omi.cloudiator.sword.domain.TemplateOptions;
 import de.uniulm.omi.cloudiator.sword.domain.TemplateOptionsBuilder;

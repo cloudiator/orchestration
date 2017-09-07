@@ -23,6 +23,7 @@ public class LocationMessageToLocationConverter implements
       return null;
     }
     Builder builder = IaasEntities.Location.newBuilder().setId(location.id())
+        .setProviderId(location.providerId())
         .setName(location.name())
         .setLocationScope(locationScopeConverter.applyBack(location.locationScope()))
         .setIsAssignable(location.isAssignable());
@@ -43,7 +44,8 @@ public class LocationMessageToLocationConverter implements
     if (location == null) {
       return null;
     }
-    return LocationBuilder.newBuilder().id(location.getId()).name(location.getName())
+    return LocationBuilder.newBuilder().id(location.getId()).providerId(location.getProviderId())
+        .name(location.getName())
         .parent(apply(location)).assignable(location.getIsAssignable())
         .scope(locationScopeConverter.apply(location.getLocationScope()))
         .geoLocation(geoLocationConverter.apply(location.getGeoLocation())).build();

@@ -1,4 +1,4 @@
-package io.github.cloudiator.workflow;
+package io.github.cloudiator.iaas.vm.workflow;
 
 import java.util.Optional;
 import javax.annotation.Nullable;

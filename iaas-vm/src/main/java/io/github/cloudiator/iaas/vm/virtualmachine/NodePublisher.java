@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.iaas.common.domain.Node;

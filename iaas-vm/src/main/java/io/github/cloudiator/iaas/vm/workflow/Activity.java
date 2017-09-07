@@ -1,4 +1,4 @@
-package io.github.cloudiator.workflow;
+package io.github.cloudiator.iaas.vm.workflow;
 
 /**
  * Created by daniel on 03.02.17.

@@ -10,6 +10,7 @@
     <!--<module>watchdog</module>-->
     <module>byon</module>
     <module>noderegistry</module>
+    <module>node-agent</module>
   </modules>
 
   <repositories>

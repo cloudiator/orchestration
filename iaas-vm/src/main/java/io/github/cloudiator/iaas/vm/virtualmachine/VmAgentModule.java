@@ -1,4 +1,4 @@
-package io.github.cloudiator.virtualmachine;
+package io.github.cloudiator.iaas.vm.virtualmachine;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
