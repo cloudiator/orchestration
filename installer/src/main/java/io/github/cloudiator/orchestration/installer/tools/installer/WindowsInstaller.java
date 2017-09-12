@@ -306,7 +306,7 @@ public class WindowsInstaller extends AbstractInstaller {
   }
 
   @Override
-  public boolean checkIfToolIsRunning() throws RemoteException {
+  public boolean checkIfToolIsRunning(String toolBinary) throws RemoteException {
     return false;
   }
 

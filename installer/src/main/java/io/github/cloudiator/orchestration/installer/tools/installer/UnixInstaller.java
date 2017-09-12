@@ -39,6 +39,11 @@ public class UnixInstaller extends AbstractInstaller {
   private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
   private static final String TOOL_PATH = "/opt/cloudiator/";
 
+  /**
+   * shell command to check if the source file of a tool exists
+   */
+  private static final String CHECK_IF_SOURCE_EXIST_COMMAND = "[ -f \"$\" ] || { exit 99 ;}";
+
   private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + JAVA_DIR + "/bin/java";
   private static final String JAVA_ARCHIVE = "jre8.tar.gz";
   private static final String JAVA_DOWNLOAD = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=106240";
@@ -208,28 +213,38 @@ public class UnixInstaller extends AbstractInstaller {
           "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
 
     }
-    LOGGER.debug(String.format("Installing and starting Lance on node %s", node.getId()));
 
-    //start Lance
-    String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
-            .getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-            .findAny().get().getIp()
-            + " -Dhost.ip.private=" +
-            node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP)
-                .findAny().get().getIp() + " -Djava.rmi.server.hostname="
-            + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-            .findAny().get().getIp() + " -Dhost.vm.id="
-            + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId()
-            + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
-            + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
+    if(this.checkIfToolIsRunning(LANCE_JAR)){
 
-    LOGGER.debug("Lance start command: " + startCommand);
+      LOGGER.debug("Lance already running on node %s, skipping starting Lance", node.getId());
 
-    this.remoteConnection.executeCommand(startCommand);
+    }else{
+      LOGGER.debug(String.format("Starting Lance on node %s", node.getId()));
+      //start Lance
+      String startCommand =
+          "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
+              .getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
+              .findAny().get().getIp()
+              + " -Dhost.ip.private=" +
+              node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP)
+                  .findAny().get().getIp() + " -Djava.rmi.server.hostname="
+              + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
+              .findAny().get().getIp() + " -Dhost.vm.id="
+              + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId()
+              + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
+              + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
 
-    LOGGER.debug(
-        String.format("Lance installed and started successfully on node %s", node.getId()));
+      LOGGER.debug("Lance start command: " + startCommand);
+
+      this.remoteConnection.executeCommand(startCommand);
+
+      LOGGER.debug(
+          String.format("Lance installed and started successfully on node %s", node.getId()));
+    }
+
+
+
+
   }
 
   @Override
@@ -261,16 +276,15 @@ public class UnixInstaller extends AbstractInstaller {
         String.format("Snap installed and started successfully on node %s", node.getId()));
   }
 
-
-  private String getCheckIfSourceExistCommand() {
-
-    //replace $ with the path to check
-    String command = "[ -f \"$\" ] || { exit 99 ;}";
-    return command;
-  }
-
   @Override
-  public boolean checkIfToolIsRunning() throws RemoteException {
+  public boolean checkIfToolIsRunning(String toolBinary) throws RemoteException {
+
+    String command = " [ `pgrep " + toolBinary + "` ] && exit 0  || exit 99";
+
+    int exitCode = this.remoteConnection.executeCommand(command).getExitStatus();
+
+    if(exitCode==0)return true;
+
     return false;
   }
 
@@ -284,7 +298,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     this.initToolDirectory();
 
-    this.downloadSources(this.getCheckIfSourceExistCommand());
+    this.downloadSources(CHECK_IF_SOURCE_EXIST_COMMAND);
 
     this.installJava();
 

@@ -26,55 +26,54 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
  */
 public interface InstallApi extends AutoCloseable {
 
-    /**
-     * Place all download commands in the download queue
-     */
-    void initSources();
+  /**
+   * Place all download commands in the download queue
+   */
+  void initSources();
 
-    /**
-     * download all sources in parallel
-     */
-    void downloadSources(String checkIfExistsCommand);
+  /**
+   * download all sources in parallel
+   */
+  void downloadSources(String checkIfExistsCommand);
 
-    /**
-     * extract Java archive, set Java environement
-     */
-    void installJava() throws RemoteException;
+  /**
+   * extract Java archive, set Java environement
+   */
+  void installJava() throws RemoteException;
 
-    /**
-     * create the visor configuration file and start visor
-     */
-    void installVisor() throws RemoteException;
+  /**
+   * create the visor configuration file and start visor
+   */
+  void installVisor() throws RemoteException;
 
-    /**
-     * extract and start kairosDB
-     */
-    void installKairosDb() throws RemoteException;
+  /**
+   * extract and start kairosDB
+   */
+  void installKairosDb() throws RemoteException;
 
-    /**
-     * download, setup and start Lance (LifecycleAgent - Unix:Docker, Windows: not yet decided)
-     */
-    void installLance() throws RemoteException;
+  /**
+   * download, setup and start Lance (LifecycleAgent - Unix:Docker, Windows: not yet decided)
+   */
+  void installLance() throws RemoteException;
 
-    /**
-     * Download and install all necessary software for cloudiator (java, visor, lifecycle agent)
-     */
-    void installAll() throws RemoteException;
-    
-    /**
-     * Download and install snap telemetry
-     */
-    void installSnap() throws RemoteException;
+  /**
+   * Download and install all necessary software for cloudiator (java, visor, lifecycle agent)
+   */
+  void installAll() throws RemoteException;
 
-
-    /**
-     * checks if the provided tools is already running
-     * @return
-     * @throws RemoteException
-     */
-    boolean checkIfToolIsRunning() throws RemoteException;
+  /**
+   * Download and install snap telemetry
+   */
+  void installSnap() throws RemoteException;
 
 
-    @Override void close() throws RemoteException;
+  /**
+   * checks if the provided tools is already running
+   */
+  boolean checkIfToolIsRunning(String toolBinary) throws RemoteException;
+
+
+  @Override
+  void close() throws RemoteException;
 }
 

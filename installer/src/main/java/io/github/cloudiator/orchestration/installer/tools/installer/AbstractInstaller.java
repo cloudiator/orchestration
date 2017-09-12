@@ -64,12 +64,12 @@ abstract class AbstractInstaller implements InstallApi {
 
   //Visor
   protected static final String VISOR_JAR = "visor.jar";
-  protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.jar";
+  protected static final String VISOR_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/visor/visor-service/0.2.0-SNAPSHOT/visor-service-0.2.0-20170127.192822-38.jar";
   //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
 
   //Lance
   protected static final String LANCE_JAR = "lance.jar";
-  protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
+  protected static final String LANCE_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/lance/server/0.2.0-SNAPSHOT/server-0.2.0-20170720.150729-50-jar-with-dependencies.jar";
   //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
 
 
