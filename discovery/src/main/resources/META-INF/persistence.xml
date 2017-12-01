@@ -21,15 +21,7 @@
     <class>io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel</class>
 
     <properties>
-
-      <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
-
-      <property name="javax.persistence.jdbc.driver" value="org.mariadb.jdbc.Driver"/>
-      <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/iaas"/>
-      <property name="javax.persistence.jdbc.user" value="iaas"/>
-      <property name="javax.persistence.jdbc.password" value="iaas"/>
-
     </properties>
   </persistence-unit>
 

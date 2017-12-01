@@ -3,7 +3,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.CloudMessageToCloudConverter;
 import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;

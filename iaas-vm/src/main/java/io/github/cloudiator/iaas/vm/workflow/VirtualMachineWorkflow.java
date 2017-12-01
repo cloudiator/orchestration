@@ -10,7 +10,6 @@ public class VirtualMachineWorkflow extends AbstractWorkflow {
 
   private final ComputeService computeService;
 
-  @Inject
   public VirtualMachineWorkflow(
       ComputeService computeService) {
     this.computeService = computeService;

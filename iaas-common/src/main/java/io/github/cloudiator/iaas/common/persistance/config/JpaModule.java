@@ -2,6 +2,8 @@ package io.github.cloudiator.iaas.common.persistance.config;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import com.google.inject.persist.jpa.JpaPersistModule;
+import de.uniulm.omi.cloudiator.persistance.JpaContext;
 import de.uniulm.omi.cloudiator.persistance.repositories.BaseModelRepositoryJpa;
 import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
 import io.github.cloudiator.iaas.common.persistance.entities.HardwareModel;
@@ -23,14 +25,26 @@ import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRe
 import io.github.cloudiator.iaas.common.persistance.repositories.ResourceRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.TenantModelRepositoryJpa;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by daniel on 31.05.17.
  */
 public class JpaModule extends AbstractModule {
 
+  private final String jpaUnit;
+  private final JpaContext jpaContext;
+
+  public JpaModule(String jpaUnit, JpaContext jpaContext) {
+    this.jpaUnit = jpaUnit;
+    this.jpaContext = jpaContext;
+  }
+
   @Override
   protected void configure() {
+
+    install(buildPersistModule());
 
     bind(ApiModelRepository.class).to(ApiModelRepositoryJpa.class);
 
@@ -64,6 +78,17 @@ public class JpaModule extends AbstractModule {
 
     bind(HardwareOfferRepository.class).to(HardwareOfferRepositoryJpa.class);
 
+  }
 
+  private JpaPersistModule buildPersistModule() {
+    final JpaPersistModule jpaPersistModule = new JpaPersistModule(jpaUnit);
+    Map<String, String> config = new HashMap<>();
+    config.put("hibernate.dialect", jpaContext.dialect());
+    config.put("javax.persistence.jdbc.driver", jpaContext.driver());
+    config.put("javax.persistence.jdbc.url", jpaContext.url());
+    config.put("javax.persistence.jdbc.user", jpaContext.user());
+    config.put("javax.persistence.jdbc.password", jpaContext.password());
+    jpaPersistModule.properties(config);
+    return jpaPersistModule;
   }
 }

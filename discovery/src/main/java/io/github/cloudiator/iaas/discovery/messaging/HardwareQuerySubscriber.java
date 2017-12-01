@@ -1,7 +1,7 @@
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import io.github.cloudiator.iaas.common.messaging.HardwareMessageToHardwareConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.HardwareMessageToHardwareConverter;
 import io.github.cloudiator.iaas.common.persistance.domain.HardwareDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -54,7 +54,7 @@ public class HardwareQuerySubscriber implements Runnable {
       return;
     }
     if (!request.getHardwareId().isEmpty()) {
-      replyForUserIdAndHardwareId(requestId, request.getUserId(), request.getCloudId());
+      replyForUserIdAndHardwareId(requestId, request.getUserId(), request.getHardwareId());
       return;
     }
     if (!request.getCloudId().isEmpty()) {

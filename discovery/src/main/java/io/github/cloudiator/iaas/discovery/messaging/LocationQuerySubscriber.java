@@ -2,7 +2,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import io.github.cloudiator.iaas.common.messaging.LocationMessageToLocationConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.LocationMessageToLocationConverter;
 import io.github.cloudiator.iaas.common.persistance.domain.LocationDomainRepository;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.General.Error;
@@ -53,7 +53,7 @@ public class LocationQuerySubscriber implements Runnable {
       return;
     }
     if (!request.getLocationId().isEmpty()) {
-      replyForUserIdAndLocationId(requestId, request.getUserId(), request.getCloudId());
+      replyForUserIdAndLocationId(requestId, request.getUserId(), request.getLocationId());
       return;
     }
     if (!request.getCloudId().isEmpty()) {

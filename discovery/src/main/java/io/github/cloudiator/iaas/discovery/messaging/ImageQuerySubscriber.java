@@ -2,7 +2,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
-import io.github.cloudiator.iaas.common.messaging.ImageMessageToImageConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.ImageMessageToImageConverter;
 import io.github.cloudiator.iaas.common.persistance.domain.ImageDomainRepository;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.General.Error;
@@ -55,7 +55,7 @@ public class ImageQuerySubscriber implements Runnable {
       return;
     }
     if (!request.getImageId().isEmpty()) {
-      replyForUserIdAndImageId(requestId, request.getUserId(), request.getCloudId());
+      replyForUserIdAndImageId(requestId, request.getUserId(), request.getImageId());
       return;
     }
     if (!request.getCloudId().isEmpty()) {

@@ -2,7 +2,8 @@ package io.github.cloudiator.iaas.discovery;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.jpa.JpaPersistModule;
+import de.uniulm.omi.cloudiator.persistance.JpaContext;
+import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.iaas.common.persistance.config.JpaModule;
 import io.github.cloudiator.iaas.discovery.config.DiscoveryModule;
 import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
@@ -10,6 +11,7 @@ import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
+import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 
 /**
@@ -18,9 +20,9 @@ import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 public class DiscoveryAgent {
 
   private static Injector injector = Guice
-      .createInjector(new DiscoveryModule(), new JpaModule(),
-          new JpaPersistModule("defaultPersistenceUnit"), new KafkaMessagingModule());
-
+      .createInjector(new DiscoveryModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
+              Configuration.conf().getConfig("jpa"))),
+          new KafkaMessagingModule(new KafkaContext(Configuration.conf().getConfig("kafka"))));
 
   public static void main(String[] args) {
 

@@ -1,7 +1,7 @@
 package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
-import io.github.cloudiator.iaas.common.messaging.NodeRequestConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.NodeRequestConverter;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messaging.MessageInterface;
 
