@@ -4,25 +4,26 @@ import de.uniulm.omi.cloudiator.domain.Requirement;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import io.github.cloudiator.iaas.common.domain.NodeRequest;
 import io.github.cloudiator.iaas.common.domain.NodeRequestImpl;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.cloudiator.messages.NodeEntities;
 
-public class NodeRequestConverter implements
-    OneWayConverter<NodeEntities.NodeRequest, NodeRequest> {
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Collectors;
 
-  private final RequirementConverter requirementConverter = new RequirementConverter();
+public class NodeRequestConverter
+    implements OneWayConverter<NodeEntities.NodeRequirements, NodeRequest> {
 
-  @Nullable
-  @Override
-  public NodeRequest apply(@Nullable NodeEntities.NodeRequest nodeRequest) {
+    private final RequirementConverter requirementConverter = new RequirementConverter();
 
-    if (nodeRequest == null) {
-      return null;
+    @Nullable @Override
+    public NodeRequest apply(@Nullable NodeEntities.NodeRequirements nodeRequest) {
+
+        if (nodeRequest == null) {
+            return null;
+        }
+        List<Requirement> requirementList =
+            nodeRequest.getRequirementsList().stream().map(requirementConverter)
+                .collect(Collectors.toList());
+        return new NodeRequestImpl(requirementList);
     }
-    List<Requirement> requirementList = nodeRequest.getRequirementsList().stream().map(
-        requirementConverter).collect(Collectors.toList());
-    return new NodeRequestImpl(requirementList);
-  }
 }
