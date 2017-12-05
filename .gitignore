@@ -11,3 +11,4 @@ target
 **/.eclipse
 **/.settings
 **/*~
+**/application.conf

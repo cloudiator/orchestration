@@ -1,7 +1,7 @@
 package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
-import io.github.cloudiator.iaas.common.messaging.converters.NodeRequestConverter;
+import io.github.cloudiator.iaas.common.messaging.converters.NodeRequirementsConverter;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messaging.MessageInterface;
 
@@ -9,7 +9,7 @@ public class NodeRequestListener implements Runnable {
 
   private final MessageInterface messageInterface;
   private final NodeRequestQueue nodeRequestQueue;
-  private final NodeRequestConverter nodeRequestConverter = new NodeRequestConverter();
+  private final NodeRequirementsConverter nodeRequirementsConverter = new NodeRequirementsConverter();
 
   @Inject
   public NodeRequestListener(MessageInterface messageInterface,
@@ -24,6 +24,6 @@ public class NodeRequestListener implements Runnable {
     messageInterface.subscribe(NodeRequestMessage.class, NodeRequestMessage.parser(),
         (id, content) -> nodeRequestQueue
             .addRequest(content.getUserId(), id,
-                nodeRequestConverter.apply(content.getNodeRequest())));
+                nodeRequirementsConverter.apply(content.getNodeRequest())));
   }
 }
