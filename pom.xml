@@ -8,7 +8,7 @@
     <!-- <module>installer</module> -->
     <module>iaas-vm</module>
     <!--<module>watchdog</module>-->
-    <module>byon</module>
+    <!--<module>byon</module>-->
     <!-- <module>noderegistry</module> -->
     <module>node-agent</module>
   </modules>

@@ -3,22 +3,19 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.iaas.common.messaging.converters.NodeToNodeMessageConverter;
-import io.github.cloudiator.iaas.common.messaging.converters.RequirementConverter;
 import io.github.cloudiator.iaas.common.messaging.converters.VirtualMachineMessageToVirtualMachine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import org.cloudiator.iaas.node.NodeRequestQueue.UserNodeRequest;
+import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
-import org.cloudiator.messages.entities.CommonEntities;
-import org.cloudiator.messages.entities.Solution.OclSolutionRequest;
-import org.cloudiator.messages.entities.Solution.OclSolutionResponse;
-import org.cloudiator.messages.entities.SolutionEntities.OclProblem;
+import org.cloudiator.messages.entities.Matchmaking.MatchmakingRequest;
+import org.cloudiator.messages.entities.Matchmaking.MatchmakingResponse;
 import org.cloudiator.messaging.MessageInterface;
-import org.cloudiator.messaging.services.SolutionService;
+import org.cloudiator.messaging.services.MatchmakingService;
 import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +23,8 @@ import org.slf4j.LoggerFactory;
 public class NodeRequestWorker implements Runnable {
 
   private final NodeRequestQueue nodeRequestQueue;
-  private final SolutionService solutionService;
+  private final MatchmakingService matchmakingService;
   private final VirtualMachineService virtualMachineService;
-  private final RequirementConverter requirementConverter = new RequirementConverter();
   private final MessageInterface messageInterface;
   private final VirtualMachineToNode virtualMachineToNode = new VirtualMachineToNode();
   private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
@@ -38,11 +34,11 @@ public class NodeRequestWorker implements Runnable {
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
-      SolutionService solutionService,
+      MatchmakingService matchmakingService,
       VirtualMachineService virtualMachineService,
       MessageInterface messageInterface) {
     this.nodeRequestQueue = nodeRequestQueue;
-    this.solutionService = solutionService;
+    this.matchmakingService = matchmakingService;
     this.virtualMachineService = virtualMachineService;
     this.messageInterface = messageInterface;
   }
@@ -51,7 +47,7 @@ public class NodeRequestWorker implements Runnable {
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
 
-      UserNodeRequest userNodeRequest = null;
+      NodeRequest userNodeRequest = null;
       try {
         userNodeRequest = nodeRequestQueue.takeRequest();
       } catch (InterruptedException e) {
@@ -60,19 +56,22 @@ public class NodeRequestWorker implements Runnable {
       }
 
       try {
-        final String userId = userNodeRequest.getUserId();
-        final String messageId = userNodeRequest.getMessageId();
+        final String userId = userNodeRequest.getNodeRequestMessage().getUserId();
+        final String messageId = userNodeRequest.getId();
 
         List<VirtualMachine> responses = new ArrayList<>();
         List<Error> errors = new ArrayList<>();
 
-        final OclSolutionResponse oclSolutionResponse = solutionService
-            .solveOCLProblem(createOclSolutionRequestFromNodeRequest(userNodeRequest));
+        final MatchmakingResponse matchmakingResponse = matchmakingService.requestMatch(
+            MatchmakingRequest.newBuilder()
+                .setRequirements(userNodeRequest.getNodeRequestMessage().getNodeRequest())
+                .setUserId(userId)
+                .build());
 
         CountDownLatch countDownLatch = new CountDownLatch(
-            oclSolutionResponse.getSolution().getNodesCount());
+            matchmakingResponse.getNodesCount());
 
-        oclSolutionResponse.getSolution().getNodesList().forEach(
+        matchmakingResponse.getNodesList().forEach(
             virtualMachineRequest -> virtualMachineService.createVirtualMachineAsync(
                 CreateVirtualMachineRequestMessage.newBuilder()
                     .setUserId(userId)
@@ -105,7 +104,7 @@ public class NodeRequestWorker implements Runnable {
       } catch (Exception e) {
         LOGGER.error(String.format("Error %s occurred while working on request %s.", e.getMessage(),
             userNodeRequest), e);
-        messageInterface.reply(NodeRequestResponse.class, userNodeRequest.getMessageId(),
+        messageInterface.reply(NodeRequestResponse.class, userNodeRequest.getId(),
             Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
       }
     }
@@ -116,22 +115,5 @@ public class NodeRequestWorker implements Runnable {
     return String.format(errorFormat, errors.size(),
         errors.stream().map(error -> error.getCode() + " " + error.getMessage())
             .collect(Collectors.toList()));
-  }
-
-  private OclSolutionRequest createOclSolutionRequestFromNodeRequest(
-      UserNodeRequest userNodeRequest) {
-
-    List<CommonEntities.OclRequirement> oclRequirements = userNodeRequest.getNodeRequest()
-        .requirements().stream().map(requirement -> {
-          if (requirement instanceof de.uniulm.omi.cloudiator.domain.OclRequirement) {
-            return requirementConverter.applyBack(requirement).getOclRequirement();
-          } else {
-            throw new IllegalStateException("Currently only ocl requirements are supported.");
-          }
-        }).collect(Collectors.toList());
-
-    OclProblem oclProblem = OclProblem.newBuilder().addAllRequirements(oclRequirements).build();
-    return OclSolutionRequest.newBuilder().setUserId(userNodeRequest.getUserId())
-        .setProblem(oclProblem).build();
   }
 }
