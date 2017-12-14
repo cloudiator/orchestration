@@ -25,7 +25,7 @@ public class HardwareOfferRepositoryJpa extends BaseModelRepositoryJpa<HardwareO
 
   @Override
   public HardwareOffer findByCpuRamDisk(int numberOfCores, long mbOfRam,
-      @Nullable Float diskSpace) {
+      @Nullable Double diskSpace) {
     //todo: check correctness of query
     String queryStringWithDiskSpace = String
         .format(

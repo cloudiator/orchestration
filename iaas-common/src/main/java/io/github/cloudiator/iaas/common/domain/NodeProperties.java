@@ -10,7 +10,7 @@ public interface NodeProperties {
 
   long memory();
 
-  Optional<Float> disk();
+  Optional<Double> disk();
 
   Optional<OperatingSystem> operatingSystem();
 

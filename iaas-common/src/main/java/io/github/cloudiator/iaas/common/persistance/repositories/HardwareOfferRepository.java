@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
  */
 public interface HardwareOfferRepository extends ModelRepository<HardwareOffer> {
 
-  HardwareOffer findByCpuRamDisk(int numberOfCores, long mbOfRam, @Nullable Float diskSpace);
+  HardwareOffer findByCpuRamDisk(int numberOfCores, long mbOfRam, @Nullable Double diskSpace);
 
 
 }

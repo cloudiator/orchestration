@@ -32,7 +32,7 @@ import javax.persistence.OneToMany;
 
     @Column(nullable = false, updatable = false) private Long mbOfRam;
 
-    @Nullable private Float diskSpace;
+    @Nullable private Double diskSpace;
 
     @OneToMany(mappedBy = "hardwareOffer", cascade = CascadeType.REMOVE) private List<HardwareModel>
         hardwareModel;
@@ -40,7 +40,7 @@ import javax.persistence.OneToMany;
     protected HardwareOffer() {
     }
 
-    public HardwareOffer(Integer numberOfCores, Long mbOfRam, @Nullable Float diskSpace) {
+    public HardwareOffer(Integer numberOfCores, Long mbOfRam, @Nullable Double diskSpace) {
         this.numberOfCores = numberOfCores;
         this.mbOfRam = mbOfRam;
         this.diskSpace = diskSpace;
@@ -54,7 +54,7 @@ import javax.persistence.OneToMany;
         return mbOfRam;
     }
 
-    @Nullable public Float getDiskSpace() {
+    @Nullable public Double getDiskSpace() {
         return diskSpace;
     }
 

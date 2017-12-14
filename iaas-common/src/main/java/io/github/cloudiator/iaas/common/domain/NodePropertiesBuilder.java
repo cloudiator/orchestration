@@ -7,13 +7,14 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
+import javax.annotation.Nullable;
 
 
 public class NodePropertiesBuilder {
 
   private int numberOfCores;
   private long memory;
-  private Float disk;
+  private Double disk;
   private OperatingSystem operatingSystem;
   private GeoLocation geoLocation;
 
@@ -46,7 +47,7 @@ public class NodePropertiesBuilder {
     return this;
   }
 
-  public NodePropertiesBuilder disk(Float disk) {
+  public NodePropertiesBuilder disk(Double disk) {
     this.disk = disk;
     return this;
   }

@@ -10,13 +10,13 @@ public class NodePropertiesImpl implements NodeProperties {
   private final int numberOfCores;
   private final long memory;
   @Nullable
-  private final Float disk;
+  private final Double disk;
   @Nullable
   private final OperatingSystem operatingSystem;
   @Nullable
   private final GeoLocation geoLocation;
 
-  NodePropertiesImpl(int numberOfCores, long memory, @Nullable Float disk,
+  NodePropertiesImpl(int numberOfCores, long memory, @Nullable Double disk,
       @Nullable OperatingSystem operatingSystem,
       @Nullable GeoLocation geoLocation) {
     this.numberOfCores = numberOfCores;
@@ -37,7 +37,7 @@ public class NodePropertiesImpl implements NodeProperties {
   }
 
   @Override
-  public Optional<Float> disk() {
+  public Optional<Double> disk() {
     return Optional.ofNullable(disk);
   }
 
