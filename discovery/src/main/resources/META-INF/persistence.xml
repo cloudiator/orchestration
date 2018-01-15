@@ -6,19 +6,20 @@
   <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-
     <class>io.github.cloudiator.iaas.common.persistance.entities.ApiModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.CloudConfigurationModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.PropertyModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.CloudCredentialModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.CloudModel</class>
-    <class>io.github.cloudiator.iaas.common.persistance.entities.Tenant</class>
+    <class>io.github.cloudiator.iaas.common.persistance.entities.TenantModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.LocationModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.GeoLocation</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.ImageModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.HardwareModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.OperatingSystemModel</class>
+
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="update"/>

@@ -9,7 +9,7 @@ import io.github.cloudiator.iaas.common.persistance.entities.ApiModel;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudConfigurationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudCredentialModel;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import io.github.cloudiator.iaas.common.persistance.entities.TenantModel;
 import io.github.cloudiator.iaas.common.persistance.repositories.ApiModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudConfigurationModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudCredentialModelRepository;
@@ -65,10 +65,10 @@ public class CloudDomainRepository {
     }
 
     //get tenant or create it
-    Tenant tenant = tenantModelRepository.findByUserId(userId);
-    if (tenant == null) {
-      tenant = new Tenant(userId);
-      tenantModelRepository.save(tenant);
+    TenantModel tenantModel = tenantModelRepository.findByUserId(userId);
+    if (tenantModel == null) {
+      tenantModel = new TenantModel(userId);
+      tenantModelRepository.save(tenantModel);
     }
 
     //check if api exists, if not create it.
@@ -93,7 +93,7 @@ public class CloudDomainRepository {
     cloudConfigurationModelRepository.save(cloudConfigurationModel);
 
     //create cloud model
-    CloudModel cloudModel = new CloudModel(cloud.id(), tenant, apiModel,
+    CloudModel cloudModel = new CloudModel(cloud.id(), tenantModel, apiModel,
         cloud.endpoint().orElse(null), cloudCredentialModel, cloudConfigurationModel,
         cloud.cloudType());
     cloudModelRepository.save(cloudModel);

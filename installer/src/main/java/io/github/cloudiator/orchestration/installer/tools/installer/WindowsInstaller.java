@@ -20,7 +20,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import io.github.cloudiator.iaas.common.persistance.entities.TenantModel;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ public class WindowsInstaller extends AbstractInstaller {
 
 
   public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId,
-      Tenant tenant) {
+      TenantModel tenantModel) {
     super(remoteConnection, node);
 
         /*

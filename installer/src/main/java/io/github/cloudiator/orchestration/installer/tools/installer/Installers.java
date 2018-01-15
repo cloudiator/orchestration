@@ -21,7 +21,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import io.github.cloudiator.iaas.common.persistance.entities.TenantModel;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 
 /**
@@ -34,7 +34,7 @@ public class Installers {
   }
 
   public static InstallApi of(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
-      Tenant tenant) {
+      TenantModel tenantModel) {
 
     switch (virtualMachine.image().get().operatingSystem().operatingSystemFamily()
         .operatingSystemType()) {

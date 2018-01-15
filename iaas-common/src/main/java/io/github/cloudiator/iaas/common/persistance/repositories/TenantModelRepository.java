@@ -1,15 +1,15 @@
 package io.github.cloudiator.iaas.common.persistance.repositories;
 
 import de.uniulm.omi.cloudiator.persistance.repositories.ModelRepository;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
+import io.github.cloudiator.iaas.common.persistance.entities.TenantModel;
 
 /**
  * Created by daniel on 31.05.17.
  */
-public interface TenantModelRepository extends ModelRepository<Tenant> {
+public interface TenantModelRepository extends ModelRepository<TenantModel> {
 
-  Tenant findByUserId(String userId);
+  TenantModel findByUserId(String userId);
 
-  Tenant createOrGet(String userId);
+  TenantModel createOrGet(String userId);
 
 }

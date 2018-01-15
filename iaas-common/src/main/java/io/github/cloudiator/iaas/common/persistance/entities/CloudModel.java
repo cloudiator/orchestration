@@ -32,7 +32,7 @@ public class CloudModel extends Model {
   @Column(unique = true, nullable = false, updatable = false)
   private String cloudId;
   @ManyToOne(optional = false)
-  private Tenant tenant;
+  private TenantModel tenantModel;
 
   @ManyToOne(optional = false)
   private ApiModel apiModel;
@@ -57,11 +57,11 @@ public class CloudModel extends Model {
   protected CloudModel() {
   }
 
-  public CloudModel(String cloudId, Tenant tenant, ApiModel apiModel, @Nullable String endpoint,
+  public CloudModel(String cloudId, TenantModel tenantModel, ApiModel apiModel, @Nullable String endpoint,
       CloudCredentialModel cloudCredentialModel, CloudConfigurationModel cloudConfiguration,
       CloudType cloudType) {
     this.cloudId = cloudId;
-    this.tenant = tenant;
+    this.tenantModel = tenantModel;
     this.apiModel = apiModel;
     this.endpoint = endpoint;
     this.cloudCredential = cloudCredentialModel;
@@ -73,8 +73,8 @@ public class CloudModel extends Model {
     return cloudId;
   }
 
-  public Tenant getTenant() {
-    return tenant;
+  public TenantModel getTenantModel() {
+    return tenantModel;
   }
 
   public ApiModel getApiModel() {
