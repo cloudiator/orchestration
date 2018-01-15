@@ -61,7 +61,7 @@ public class LocationModelRepositoryJpa
   public List<LocationModel> findByTenant(String tenant) {
     checkNotNull(tenant, "tenant is null");
     String queryString = String.format(
-        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant",
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenantModel tenant where tenant.userId = :tenant",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenant);
     //noinspection unchecked
@@ -73,7 +73,7 @@ public class LocationModelRepositoryJpa
     checkNotNull(userId, "userId is null");
     checkNotNull(locationId, "locationId is null");
     String queryString = String.format(
-        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant and location.cloudUniqueId = :id",
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenantModel tenant where tenant.userId = :tenant and location.cloudUniqueId = :id",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", userId)
         .setParameter("id", locationId);
@@ -90,7 +90,7 @@ public class LocationModelRepositoryJpa
     checkNotNull(tenantId, "tenant is null");
     checkNotNull(cloudId, "cloudId is null");
     String queryString = String.format(
-        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenant tenant where tenant.userId = :tenant and cloud.cloudId = :cloudId",
+        "select location from %s location inner join location.cloudModel cloud inner join cloud.tenantModel tenant where tenant.userId = :tenant and cloud.cloudId = :cloudId",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("tenant", tenantId)
         .setParameter("cloudId", cloudId);

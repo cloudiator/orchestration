@@ -44,7 +44,7 @@ public class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> 
   public List<CloudModel> getByTenant(String userId) {
     checkNotNull(userId, "userId is null");
     String queryString = String.format(
-        "select cloud from %s cloud inner join cloud.tenant tenant where tenant.userId = :userId",
+        "select cloud from %s cloud inner join cloud.tenantModel tenant where tenant.userId = :userId",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("userId", userId);
     return query.getResultList();
@@ -56,7 +56,7 @@ public class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> 
     checkNotNull(userId, "userId is null");
     checkNotNull(cloudId, "cloudId is null");
     String queryString = String.format(
-        "select cloud from %s cloud inner join cloud.tenant tenant where tenant.userId = :userId and cloud.cloudId = :cloudId",
+        "select cloud from %s cloud inner join cloud.tenantModel tenant where tenant.userId = :userId and cloud.cloudId = :cloudId",
         type.getName());
     Query query = em().createQuery(queryString).setParameter("userId", userId)
         .setParameter("cloudId", cloudId);
