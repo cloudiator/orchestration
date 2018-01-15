@@ -1,6 +1,5 @@
 package io.github.cloudiator.iaas.vm.workflow;
 
-import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 
 /**

@@ -7,8 +7,8 @@ import java.util.Optional;
  */
 public interface Download {
 
-    String url();
+  String url();
 
-    Optional<String> fileName();
+  Optional<String> fileName();
 
 }

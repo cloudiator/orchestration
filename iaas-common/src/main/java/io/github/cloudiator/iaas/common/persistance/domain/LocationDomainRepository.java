@@ -3,7 +3,6 @@ package io.github.cloudiator.iaas.common.persistance.domain;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.LocationConverter;

@@ -13,9 +13,9 @@ import org.cloudiator.messaging.services.CloudService;
 
 public class CloudMessageRepository implements MessageRepository<Cloud> {
 
+  private final static String RESPONSE_ERROR = "Could not retrieve cloud object(s) due to error %s";
   private final CloudService cloudService;
   private final CloudMessageToCloudConverter converter = new CloudMessageToCloudConverter();
-  private final static String RESPONSE_ERROR = "Could not retrieve cloud object(s) due to error %s";
 
   public CloudMessageRepository(CloudService cloudService) {
     checkNotNull(cloudService, "cloudService is null");

@@ -5,6 +5,6 @@ package io.github.cloudiator.iaas.vm.workflow;
  */
 public interface Activity {
 
-    Exchange execute(Exchange input);
+  Exchange execute(Exchange input);
 
 }

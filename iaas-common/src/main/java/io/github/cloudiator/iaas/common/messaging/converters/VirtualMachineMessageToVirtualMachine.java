@@ -70,7 +70,7 @@ public class VirtualMachineMessageToVirtualMachine implements
 
     virtualMachine.getIpAddressesList().forEach(
         ipAddress -> builder.addIpAddress(ipConverter.apply(ipAddress)));
- 
+
     return builder.build();
 
   }

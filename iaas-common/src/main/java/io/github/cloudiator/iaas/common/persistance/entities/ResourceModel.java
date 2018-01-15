@@ -18,7 +18,8 @@
 
 package io.github.cloudiator.iaas.common.persistance.entities;
 
-import de.uniulm.omi.cloudiator.persistance.entities.Model;import javax.annotation.Nullable;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;
+import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;

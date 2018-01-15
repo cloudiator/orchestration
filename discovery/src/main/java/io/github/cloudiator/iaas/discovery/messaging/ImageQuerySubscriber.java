@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ImageQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ImageQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final ImageDomainRepository imageDomainRepository;
   private final ImageMessageToImageConverter imageConverter;
-  private static final Logger LOGGER = LoggerFactory.getLogger(ImageQuerySubscriber.class);
 
   @Inject
   public ImageQuerySubscriber(MessageInterface messageInterface,

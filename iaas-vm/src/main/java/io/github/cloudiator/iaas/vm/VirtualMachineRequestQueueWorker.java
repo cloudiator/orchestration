@@ -22,14 +22,14 @@ import org.slf4j.LoggerFactory;
 
 public class VirtualMachineRequestQueueWorker implements Runnable {
 
-  private final VirtualMachineRequestQueue virtualMachineRequestQueue;
-  private final CloudService cloudService;
-  private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestQueueWorker.class);
+  private final VirtualMachineRequestQueue virtualMachineRequestQueue;
+  private final CloudService cloudService;
   private final MessageInterface messageInterface;
   private final UpdateVirtualMachine updateVirtualMachine;
   private final VirtualMachineMessageToVirtualMachine vmConverter = new VirtualMachineMessageToVirtualMachine();
+  private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
 
   @Inject
   public VirtualMachineRequestQueueWorker(

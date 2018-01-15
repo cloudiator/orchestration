@@ -18,98 +18,101 @@
 
 package io.github.cloudiator.iaas.common.persistance.entities;
 
-import de.uniulm.omi.cloudiator.persistance.entities.Model;import java.util.List;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
 /**
  * @todo we should probably normalize this table?
  */
-@Entity public class GeoLocation extends Model {
+@Entity
+public class GeoLocation extends Model {
 
-    private String region;
+  private String region;
 
-    private String city;
+  private String city;
 
-    private String country;
+  private String country;
 
-    private String iso3166;
+  private String iso3166;
 
-    private Float locationLatitude;
+  private Float locationLatitude;
 
-    private Float locationLongitude;
+  private Float locationLongitude;
 
-    @OneToMany(mappedBy = "geoLocation") private List<LocationModel> locationModels;
+  @OneToMany(mappedBy = "geoLocation")
+  private List<LocationModel> locationModels;
 
-    /**
-     * No-args constructor used by hibernate.
-     */
-    protected GeoLocation() {
-    }
+  /**
+   * No-args constructor used by hibernate.
+   */
+  protected GeoLocation() {
+  }
 
-    public GeoLocation(String region, String city, String country, String iso3166,
-        Float locationLatitude, Float locationLongitude) {
-        this.region = region;
-        this.city = city;
-        this.country = country;
-        this.iso3166 = iso3166;
-        this.locationLatitude = locationLatitude;
-        this.locationLongitude = locationLongitude;
-    }
+  public GeoLocation(String region, String city, String country, String iso3166,
+      Float locationLatitude, Float locationLongitude) {
+    this.region = region;
+    this.city = city;
+    this.country = country;
+    this.iso3166 = iso3166;
+    this.locationLatitude = locationLatitude;
+    this.locationLongitude = locationLongitude;
+  }
 
-    public String getRegion() {
-        return region;
-    }
+  public String getRegion() {
+    return region;
+  }
 
-    public void setRegion(String region) {
-        this.region = region;
-    }
+  public void setRegion(String region) {
+    this.region = region;
+  }
 
-    public String getCity() {
-        return city;
-    }
+  public String getCity() {
+    return city;
+  }
 
-    public void setCity(String city) {
-        this.city = city;
-    }
+  public void setCity(String city) {
+    this.city = city;
+  }
 
-    public String getCountry() {
-        return country;
-    }
+  public String getCountry() {
+    return country;
+  }
 
-    public void setCountry(String country) {
-        this.country = country;
-    }
+  public void setCountry(String country) {
+    this.country = country;
+  }
 
-    public String getIso3166() {
-        return iso3166;
-    }
+  public String getIso3166() {
+    return iso3166;
+  }
 
-    public void setIso3166(String iso3166) {
-        this.iso3166 = iso3166;
-    }
+  public void setIso3166(String iso3166) {
+    this.iso3166 = iso3166;
+  }
 
-    public Float getLocationLatitude() {
-        return locationLatitude;
-    }
+  public Float getLocationLatitude() {
+    return locationLatitude;
+  }
 
-    public void setLocationLatitude(Float locationLatitude) {
-        this.locationLatitude = locationLatitude;
-    }
+  public void setLocationLatitude(Float locationLatitude) {
+    this.locationLatitude = locationLatitude;
+  }
 
-    public Float getLocationLongitude() {
-        return locationLongitude;
-    }
+  public Float getLocationLongitude() {
+    return locationLongitude;
+  }
 
-    public void setLocationLongitude(Float locationLongitude) {
-        this.locationLongitude = locationLongitude;
-    }
+  public void setLocationLongitude(Float locationLongitude) {
+    this.locationLongitude = locationLongitude;
+  }
 
-    public List<LocationModel> getLocationModels() {
-        return locationModels;
-    }
+  public List<LocationModel> getLocationModels() {
+    return locationModels;
+  }
 
-    public void setLocationModels(List<LocationModel> locationModels) {
-        this.locationModels = locationModels;
-    }
+  public void setLocationModels(List<LocationModel> locationModels) {
+    this.locationModels = locationModels;
+  }
 }

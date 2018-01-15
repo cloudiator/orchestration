@@ -40,36 +40,34 @@ import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
  */
 public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrategy {
 
-    public PasswordRemoteConnectionStrategy() {
+  public PasswordRemoteConnectionStrategy() {
+  }
+
+  @Override
+  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+      throws RemoteException {
+
+    //TODO: check if still required
+    //checkState(virtualMachine.owner().isPresent(),
+    //  "Owner of virtual machine should be set before calling connect.");
+
+    //check public Ip(s)
+
+    String publicIp = null;
+    for (IaasEntities.IpAddress ipAddress : node.getIpAddressesList()
+        ) {
+      if (ipAddress.getType().equals(IpAddressType.PUBLIC_IP)) {
+        publicIp = ipAddress.getIp();
+      }
     }
 
-    @Override public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
-        throws RemoteException {
+    checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
 
-        //TODO: check if still required
-        //checkState(virtualMachine.owner().isPresent(),
-          //  "Owner of virtual machine should be set before calling connect.");
+    //final Optional<String> anyPublicAddress =
+    //  virtualMachine.publicAddresses().stream().findAny();
 
-
-      //check public Ip(s)
-
-
-      String publicIp = null;
-      for (IaasEntities.IpAddress ipAddress:node.getIpAddressesList()
-      ) {
-        if(ipAddress.getType().equals(IpAddressType.PUBLIC_IP)){
-          publicIp = ipAddress.getIp();
-        }
-      }
-
-      checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
-
-
-      //final Optional<String> anyPublicAddress =
-        //  virtualMachine.publicAddresses().stream().findAny();
-
-      //checkArgument(anyPublicAddress.isPresent(),
-        //  "Virtual machine must have a public ip address.");
+    //checkArgument(anyPublicAddress.isPresent(),
+    //  "Virtual machine must have a public ip address.");
 
       /*
         if (!virtualMachine.loginCredential().get().password().isPresent()) {
@@ -78,36 +76,34 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
         }
     */
 
-      checkState(node.getLoginCredential().getPassword().isEmpty(),"No password provided!");
+    checkState(node.getLoginCredential().getPassword().isEmpty(), "No password provided!");
+
+    int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
+    RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType()
+        .remoteType();
+
+    //TODO: check if required
+    // Map<String, Object> properties =
+    //      new CompositeCloudPropertyProvider(virtualMachine.cloud()).properties();
+
+    return RemoteBuilder.newBuilder()
+        .remoteModule(new OverthereModule())
+        .properties(PropertiesBuilder.newBuilder().build())
+        .build().getRemoteConnection(HostAndPort
+                .fromParts(publicIp, remotePort),
+            remoteType,
+            LoginCredentialBuilder.newBuilder()
+                .password(node.getLoginCredential().getPassword())
+                .username(node.getLoginCredential().getUsername())
+                .build());
 
 
-      int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
-      RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType().remoteType();
+  }
 
-
-
-      //TODO: check if required
-      // Map<String, Object> properties =
-      //      new CompositeCloudPropertyProvider(virtualMachine.cloud()).properties();
-
-      return RemoteBuilder.newBuilder()
-          .remoteModule(new OverthereModule())
-          .properties(PropertiesBuilder.newBuilder().build())
-          .build().getRemoteConnection( HostAndPort
-          .fromParts(publicIp, remotePort),
-          remoteType,
-          LoginCredentialBuilder.newBuilder()
-              .password(node.getLoginCredential().getPassword())
-              .username(node.getLoginCredential().getUsername())
-              .build());
-
-
-    }
-
-    @Override public int getPriority() {
-        return Priority.LOW;
-    }
-
+  @Override
+  public int getPriority() {
+    return Priority.LOW;
+  }
 
 
 }

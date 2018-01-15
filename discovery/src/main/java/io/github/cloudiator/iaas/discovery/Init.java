@@ -33,7 +33,6 @@ public class Init {
     this.cloudRegistry = cloudRegistry;
     this.cloudDomainRepository = cloudDomainRepository;
 
-
     run();
   }
 

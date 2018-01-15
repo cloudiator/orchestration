@@ -7,12 +7,12 @@ import javax.annotation.Nullable;
  */
 public class Downloads {
 
-    public static Download of(String url, @Nullable String fileName) {
-        return new DownloadImpl(url, fileName);
-    }
+  public static Download of(String url, @Nullable String fileName) {
+    return new DownloadImpl(url, fileName);
+  }
 
-    public static Download of(String url) {
-        return new DownloadImpl(url, null);
-    }
+  public static Download of(String url) {
+    return new DownloadImpl(url, null);
+  }
 
 }

@@ -7,7 +7,6 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import javax.annotation.Nullable;
 
 
 public class NodePropertiesBuilder {

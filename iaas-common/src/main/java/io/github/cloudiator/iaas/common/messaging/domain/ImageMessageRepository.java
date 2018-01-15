@@ -12,9 +12,9 @@ import org.cloudiator.messaging.services.ImageService;
 
 public class ImageMessageRepository implements MessageRepository<Image> {
 
+  private final static String RESPONSE_ERROR = "Could not retrieve image object(s) due to error %s";
   private final ImageService imageService;
   private final ImageMessageToImageConverter converter = new ImageMessageToImageConverter();
-  private final static String RESPONSE_ERROR = "Could not retrieve image object(s) due to error %s";
 
   @Inject
   public ImageMessageRepository(

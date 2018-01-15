@@ -1,9 +1,8 @@
 package io.github.cloudiator.noderegistry;
 
 import javax.inject.Inject;
-
-import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.Node.NodeEvent;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.cloudiator.messaging.services.CloudService;
@@ -24,14 +23,14 @@ public final class NodeRegistrySubscriber implements Runnable {
     this.messagingService = messageInterface;
     this.registry = registry;
   }
-  
+
   @Override
   public void run() {
     subscription = messagingService.subscribe(NodeEvent.class,
         NodeEvent.parser(), (eventId, nodeEvent) -> {
 
           LOGGER.error("message received: " + eventId);
-          
+
           if (null == nodeEvent.getNodeStatus()) {
             IllegalArgumentException ex = new IllegalArgumentException("status not set: null");
             LOGGER.error("cannot start virtual machine.", ex);

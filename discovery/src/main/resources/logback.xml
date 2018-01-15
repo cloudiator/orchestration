@@ -18,7 +18,7 @@
 
 <configuration>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="STDOUT">
     <!-- encoders are assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     <encoder>
@@ -28,8 +28,8 @@
     </encoder>
   </appender>
 
-  <logger name="io.github.cloudiator.iaas.discovery" level="DEBUG"/>
-  <logger name="org.cloudiator.messaging" level="DEBUG"/>
+  <logger level="DEBUG" name="io.github.cloudiator.iaas.discovery"/>
+  <logger level="DEBUG" name="org.cloudiator.messaging"/>
 
   <root level="WARN">
     <appender-ref ref="STDOUT"/>

@@ -21,7 +21,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant; //TODO: should be cloudiator.domain class?
+import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 
 /**
@@ -29,26 +29,27 @@ import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallA
  */
 public class Installers {
 
-    private Installers() {
+  private Installers() {
 
-    }
+  }
 
-    public static InstallApi of(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
-        Tenant tenant) {
+  public static InstallApi of(RemoteConnection remoteConnection, VirtualMachine virtualMachine,
+      Tenant tenant) {
 
-        switch (virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()) {
+    switch (virtualMachine.image().get().operatingSystem().operatingSystemFamily()
+        .operatingSystemType()) {
             /*
             case LINUX:
                 return new UnixInstaller(remoteConnection, virtualMachine, tenant);
             case WINDOWS:
                 return new WindowsInstaller(remoteConnection, virtualMachine, tenant);
                 */
-            default:
-                throw new UnsupportedOperationException(String
-                    .format("OperatingSystemType %s is not supported by the installation logic",
-                        virtualMachine.image().get().operatingSystem().operatingSystemFamily()
-                            .operatingSystemType()));
-        }
+      default:
+        throw new UnsupportedOperationException(String
+            .format("OperatingSystemType %s is not supported by the installation logic",
+                virtualMachine.image().get().operatingSystem().operatingSystemFamily()
+                    .operatingSystemType()));
     }
+  }
 
 }

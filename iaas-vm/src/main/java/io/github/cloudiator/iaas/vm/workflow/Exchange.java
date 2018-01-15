@@ -7,12 +7,12 @@ import java.util.Optional;
  */
 public interface Exchange {
 
-    static Exchange of(Object o) {
-        return new ExchangeImpl(o);
-    }
+  static Exchange of(Object o) {
+    return new ExchangeImpl(o);
+  }
 
-    Optional<Object> getData();
+  Optional<Object> getData();
 
-    <T> Optional<T> getData(Class<T> clazz);
+  <T> Optional<T> getData(Class<T> clazz);
 
 }

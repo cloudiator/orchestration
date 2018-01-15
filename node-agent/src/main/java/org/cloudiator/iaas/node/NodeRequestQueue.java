@@ -8,6 +8,21 @@ import org.cloudiator.messages.Node.NodeRequestMessage;
 @Singleton
 public class NodeRequestQueue {
 
+  private final BlockingQueue<NodeRequest> pendingRequests;
+
+  public NodeRequestQueue() {
+    pendingRequests = new LinkedBlockingQueue<>();
+  }
+
+  public void addRequest(NodeRequest nodeRequest) {
+
+    this.pendingRequests.add(nodeRequest);
+  }
+
+  public NodeRequest takeRequest() throws InterruptedException {
+    return this.pendingRequests.take();
+  }
+
   public static class NodeRequest {
 
     private final NodeRequestMessage nodeRequestMessage;
@@ -29,20 +44,5 @@ public class NodeRequestQueue {
     public String getId() {
       return id;
     }
-  }
-
-  private final BlockingQueue<NodeRequest> pendingRequests;
-
-  public NodeRequestQueue() {
-    pendingRequests = new LinkedBlockingQueue<>();
-  }
-
-  public void addRequest(NodeRequest nodeRequest) {
-
-    this.pendingRequests.add(nodeRequest);
-  }
-
-  public NodeRequest takeRequest() throws InterruptedException {
-    return this.pendingRequests.take();
   }
 }

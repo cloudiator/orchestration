@@ -17,10 +17,10 @@ import org.slf4j.LoggerFactory;
  */
 public class LocationQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(LocationQueryRequest.class);
   private final MessageInterface messageInterface;
   private final LocationDomainRepository locationDomainRepository;
   private final LocationMessageToLocationConverter locationConverter;
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocationQueryRequest.class);
 
   @Inject
   public LocationQuerySubscriber(MessageInterface messageInterface,

@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
  */
 public class SecurityGroupPorts {
 
-  private SecurityGroupPorts() {
-    throw new AssertionError("static only");
-  }
-
   private static String toolPorts = "8080," + //kairos
       "31415," +  //visor
       "1099," +  //lance rmi registry
       "33033"; // lance rmi
+
+  private SecurityGroupPorts() {
+    throw new AssertionError("static only");
+  }
 
   public static Set<Integer> inBoundPorts() {
     Set<Integer> inboundPorts = new HashSet<>();

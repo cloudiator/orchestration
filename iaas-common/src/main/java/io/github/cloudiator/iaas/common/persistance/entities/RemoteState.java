@@ -22,7 +22,7 @@ package io.github.cloudiator.iaas.common.persistance.entities;
  * Created by daniel on 12.05.15.
  */
 public enum RemoteState {
-    OK,
-    INPROGRESS,
-    ERROR;
+  OK,
+  INPROGRESS,
+  ERROR;
 }

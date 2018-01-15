@@ -7,18 +7,18 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
+import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
+import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
+import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
+import io.github.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.Node.NodeEvent;
+import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
-import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +30,9 @@ public class NodeEventSubscriber implements Runnable {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(NodeEventSubscriber.class);
-
+  private static final int SERVER_ERROR = 500;
   private final MessageInterface messagingService;
   private volatile Subscription subscription;
-
-
-
-  private static final int SERVER_ERROR = 500;
 
   @Inject
   public NodeEventSubscriber(MessageInterface messageInterface) {
@@ -48,7 +44,7 @@ public class NodeEventSubscriber implements Runnable {
 
     subscription = messagingService.subscribe(NodeEvent.class,
         NodeEvent.parser(), (requestId, NodeEvent) -> {
-          Node node  = NodeEvent.getNode();
+          Node node = NodeEvent.getNode();
 
           try {
             NodeEventSubscriber.this.handleRequest(requestId,
@@ -62,15 +58,16 @@ public class NodeEventSubscriber implements Runnable {
 
   }
 
-  final void handleRequest(String requestId, Node node){
+  final void handleRequest(String requestId, Node node) {
 
-    checkState(!node.getUserId().isEmpty(),"No userId set for node: " + node.getId() + " !");
+    checkState(!node.getUserId().isEmpty(), "No userId set for node: " + node.getId() + " !");
 
+    OperatingSystem operatingSystem = new OperatingSystemConverter()
+        .apply(node.getNodeProperties().getOperationSystem());
 
-    OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());
-
-    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(Sets.newHashSet(
-        new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
+    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
+        Sets.newHashSet(
+            new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
 
     try {
       RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node, operatingSystem);
@@ -86,7 +83,7 @@ public class NodeEventSubscriber implements Runnable {
 
   }
 
-  public void installTools(RemoteConnection remoteConnection, Node node){
+  public void installTools(RemoteConnection remoteConnection, Node node) {
 
     UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node);
 
@@ -96,15 +93,15 @@ public class NodeEventSubscriber implements Runnable {
       unixInstaller.installAll();
 
     } catch (RemoteException e) {
-      LOGGER.error("Error while installing sources" , e);
+      LOGGER.error("Error while installing sources", e);
     }
 
   }
 
 
   final void sendSuccessResponse(String messageId, VirtualMachine vm) {
-   // messagingService.reply(messageId,
-     //   VirtualMachineCreatedResponse.newBuilder().setVirtualMachine(vm).build());
+    // messagingService.reply(messageId,
+    //   VirtualMachineCreatedResponse.newBuilder().setVirtualMachine(vm).build());
     //TODO
   }
 

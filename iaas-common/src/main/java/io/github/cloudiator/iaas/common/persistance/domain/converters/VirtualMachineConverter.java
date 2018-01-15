@@ -5,8 +5,8 @@ import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import io.github.cloudiator.iaas.common.persistance.entities.VirtualMachineModel;
 import javax.annotation.Nullable;
 
-public class VirtualMachineConverter implements OneWayConverter<VirtualMachineModel, VirtualMachine>{
-
+public class VirtualMachineConverter implements
+    OneWayConverter<VirtualMachineModel, VirtualMachine> {
 
 
   @Nullable

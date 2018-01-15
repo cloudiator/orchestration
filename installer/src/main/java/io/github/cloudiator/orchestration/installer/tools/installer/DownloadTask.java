@@ -28,20 +28,21 @@ import org.slf4j.LoggerFactory;
  */
 public class DownloadTask implements Callable<Integer> {
 
-    private static final Logger LOGGER =
-        LoggerFactory.getLogger(DownloadTask.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(DownloadTask.class);
 
-    private final RemoteConnection remoteConnection;
-    private final String command;
+  private final RemoteConnection remoteConnection;
+  private final String command;
 
-    public DownloadTask(RemoteConnection remoteConnection, String command) {
-        this.remoteConnection = remoteConnection;
-        this.command = command;
+  public DownloadTask(RemoteConnection remoteConnection, String command) {
+    this.remoteConnection = remoteConnection;
+    this.command = command;
 
-    }
+  }
 
-    @Override public Integer call() throws Exception {
-        LOGGER.debug("Downloading source with command: " + this.command);
-        return this.remoteConnection.executeCommand(this.command).getExitStatus();
-    }
+  @Override
+  public Integer call() throws Exception {
+    LOGGER.debug("Downloading source with command: " + this.command);
+    return this.remoteConnection.executeCommand(this.command).getExitStatus();
+  }
 }

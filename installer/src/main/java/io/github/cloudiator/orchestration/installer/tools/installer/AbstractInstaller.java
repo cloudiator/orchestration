@@ -39,104 +39,89 @@ import org.slf4j.LoggerFactory;
  */
 abstract class AbstractInstaller implements InstallApi {
 
-    private static final Logger LOGGER =
-        LoggerFactory.getLogger(AbstractInstaller.class);
-
-
-    protected final RemoteConnection remoteConnection;
-
-
-
-    protected final List<String> sourcesList = new ArrayList<>();
-
-    //TODO: refactor, replace usage of Play config file
-    //parallel download threads
-    private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
-        //Play.application().configuration().getInt("colosseum.installer.download.threads");
-
-    //KairosDBom
-    protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
-    protected static final String KAIRROSDB_DIR = "kairosdb";
-    protected static final String KAIROSDB_DOWNLOAD = "https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz";
-    //Play.application().configuration()
-      //  .getString("colosseum.installer.abstract.kairosdb.download");
-
-    //Visor
-    protected static final String VISOR_JAR = "visor.jar";
-    protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.jar";
-        //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
-
-    //Lance
-    protected static final String LANCE_JAR = "lance.jar";
-    protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
-        //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
-
-
-
-    //Java
-    protected static final String JAVA_DIR = "jre8";
-
-
-    protected static final String VISOR_PROPERTIES = "default.properties";
-
+  //KairosDBom
+  protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
+  protected static final String KAIRROSDB_DIR = "kairosdb";
+  protected static final String KAIROSDB_DOWNLOAD = "https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz";
+  //Visor
+  protected static final String VISOR_JAR = "visor.jar";
+  //Play.application().configuration().getInt("colosseum.installer.download.threads");
+  protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.jar";
+  //Lance
+  protected static final String LANCE_JAR = "lance.jar";
+  protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
+  //Play.application().configuration()
+  //  .getString("colosseum.installer.abstract.kairosdb.download");
+  //Java
+  protected static final String JAVA_DIR = "jre8";
+  protected static final String VISOR_PROPERTIES = "default.properties";
+  //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractInstaller.class);
+  //TODO: refactor, replace usage of Play config file
+  //parallel download threads
+  private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
+  //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
+  protected final RemoteConnection remoteConnection;
+  protected final List<String> sourcesList = new ArrayList<>();
   protected final Node node;
 
 
-    public AbstractInstaller(RemoteConnection remoteConnection, Node node) {
+  public AbstractInstaller(RemoteConnection remoteConnection, Node node) {
 
-        checkNotNull(remoteConnection);
+    checkNotNull(remoteConnection);
 
-        this.remoteConnection = remoteConnection;
+    this.remoteConnection = remoteConnection;
 
+    this.node = node;
 
-        this.node = node;
+  }
 
+  @Override
+  public void downloadSources() {
+
+    LOGGER.debug("Start downloading sources...");
+    ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_DOWNLOAD_THREADS);
+
+    List<Callable<Integer>> tasks = new ArrayList<>();
+
+    for (final String downloadCommand : this.sourcesList) {
+
+      Callable<Integer> downloadTask =
+          new DownloadTask(this.remoteConnection, downloadCommand);
+      tasks.add(downloadTask);
+    }
+    try {
+      List<Future<Integer>> results = executorService.invokeAll(tasks);
+
+      for (Future<Integer> exitCode : results) {
+        if (exitCode.get() != 0) {
+          throw new RuntimeException("Downloading of one or more sources failed!");
+        }
+      }
+      LOGGER.debug("All sources downloaded successfully!");
+      executorService.shutdown();
+    } catch (InterruptedException e) {
+      LOGGER.error("Installer: Interrupted Exception while downloading sources!", e);
+    } catch (ExecutionException e) {
+      LOGGER.error("Installer: Execution Exception while downloading sources!", e);
     }
 
-    @Override public void downloadSources() {
+  }
 
-        LOGGER.debug("Start downloading sources...");
-        ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_DOWNLOAD_THREADS);
+  protected String buildDefaultVisorConfig() {
 
-        List<Callable<Integer>> tasks = new ArrayList<>();
-
-        for (final String downloadCommand : this.sourcesList) {
-
-            Callable<Integer> downloadTask =
-                new DownloadTask(this.remoteConnection, downloadCommand);
-            tasks.add(downloadTask);
-        }
-        try {
-            List<Future<Integer>> results = executorService.invokeAll(tasks);
-
-            for (Future<Integer> exitCode : results) {
-                if (exitCode.get() != 0) {
-                    throw new RuntimeException("Downloading of one or more sources failed!");
-                }
-            }
-            LOGGER.debug("All sources downloaded successfully!");
-            executorService.shutdown();
-        } catch (InterruptedException e) {
-            LOGGER.error("Installer: Interrupted Exception while downloading sources!", e);
-        } catch (ExecutionException e) {
-            LOGGER.error("Installer: Execution Exception while downloading sources!", e);
-        }
-
-    }
-
-    protected String buildDefaultVisorConfig() {
-
-
-        String config = "executionThreads = " + 20 + "\n"
-            + "reportingInterval = " + 10 + "\n"
-            + "telnetPort = " + 9001 + "\n"
-            + "restHost = " + "http://0.0.0.0" + "\n" +
-            "restPort = " + 31415 + "\n" +
-            "kairosServer = " + "localhost" +  "\n" +
-            "kairosPort = " + 8080 + "\n" +
-            "reportingModule = " + "de.uniulm.omi.cloudiator.visor.reporting.kairos.KairosReportingModule" + "\n"
-            + "chukwaUrl = " + "http://localhost:8080/chukwa" + "\n" +
-            "chukwaVmId = " + "dummyNodeId";
+    String config = "executionThreads = " + 20 + "\n"
+        + "reportingInterval = " + 10 + "\n"
+        + "telnetPort = " + 9001 + "\n"
+        + "restHost = " + "http://0.0.0.0" + "\n" +
+        "restPort = " + 31415 + "\n" +
+        "kairosServer = " + "localhost" + "\n" +
+        "kairosPort = " + 8080 + "\n" +
+        "reportingModule = "
+        + "de.uniulm.omi.cloudiator.visor.reporting.kairos.KairosReportingModule" + "\n"
+        + "chukwaUrl = " + "http://localhost:8080/chukwa" + "\n" +
+        "chukwaVmId = " + "dummyNodeId";
 
         /*
         return "executionThreads = " + Play.application().configuration()
@@ -160,14 +145,14 @@ abstract class AbstractInstaller implements InstallApi {
             "chukwaVmId = " + virtualMachine.providerId().get();
             */
 
+    return config;
 
-        return config;
+  }
 
-    }
-
-    @Override public void close() {
-        LOGGER.info("Installation of all tools finished, closing remote connection!");
-        this.remoteConnection.close();
-    }
+  @Override
+  public void close() {
+    LOGGER.info("Installation of all tools finished, closing remote connection!");
+    this.remoteConnection.close();
+  }
 }
 

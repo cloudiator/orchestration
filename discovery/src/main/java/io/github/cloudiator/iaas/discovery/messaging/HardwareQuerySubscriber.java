@@ -18,10 +18,10 @@ import org.slf4j.LoggerFactory;
  */
 public class HardwareQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(HardwareQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final HardwareDomainRepository hardwareDomainRepository;
   private final HardwareMessageToHardwareConverter hardwareConverter;
-  private static final Logger LOGGER = LoggerFactory.getLogger(HardwareQuerySubscriber.class);
 
   @Inject
   public HardwareQuerySubscriber(MessageInterface messageInterface,

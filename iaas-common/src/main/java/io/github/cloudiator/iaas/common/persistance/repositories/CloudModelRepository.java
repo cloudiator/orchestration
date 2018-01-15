@@ -10,11 +10,13 @@ import javax.annotation.Nullable;
  */
 public interface CloudModelRepository extends ModelRepository<CloudModel> {
 
-  @Nullable CloudModel getByCloudId(String cloudId);
+  @Nullable
+  CloudModel getByCloudId(String cloudId);
 
   List<CloudModel> getByTenant(String userId);
 
-  @Nullable CloudModel getByTenantAndId(String userId, String cloudId);
+  @Nullable
+  CloudModel getByTenantAndId(String userId, String cloudId);
 
 
 }

@@ -8,8 +8,8 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
  */
 public class Environments {
 
-    public static Environment of(VirtualMachine virtualMachine) {
-        return null;
-    }
+  public static Environment of(VirtualMachine virtualMachine) {
+    return null;
+  }
 
 }

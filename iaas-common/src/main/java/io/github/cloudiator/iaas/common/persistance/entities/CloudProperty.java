@@ -18,41 +18,46 @@
 
 package io.github.cloudiator.iaas.common.persistance.entities;
 
-import de.uniulm.omi.cloudiator.persistance.entities.Model;import javax.persistence.Column;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 /**
  * Created by daniel on 08.09.15.
  */
-@Entity public class CloudProperty extends Model {
+@Entity
+public class CloudProperty extends Model {
 
-    @Column(nullable = false, name = "cloudproperty_key") private String key;
-    @Column(nullable = false) private String value;
-    @ManyToOne(optional = false) private CloudModel cloudModel;
+  @Column(nullable = false, name = "cloudproperty_key")
+  private String key;
+  @Column(nullable = false)
+  private String value;
+  @ManyToOne(optional = false)
+  private CloudModel cloudModel;
 
-    public CloudProperty(String key, String value, CloudModel cloudModel) {
-        this.key = key;
-        this.value = value;
-        this.cloudModel = cloudModel;
-    }
+  public CloudProperty(String key, String value, CloudModel cloudModel) {
+    this.key = key;
+    this.value = value;
+    this.cloudModel = cloudModel;
+  }
 
-    protected CloudProperty() {
-    }
+  protected CloudProperty() {
+  }
 
-    public String key() {
-        return key;
-    }
+  public String key() {
+    return key;
+  }
 
-    public String value() {
-        return value;
-    }
+  public String value() {
+    return value;
+  }
 
-    public void value(String value) {
-        this.value = value;
-    }
+  public void value(String value) {
+    this.value = value;
+  }
 
-    public CloudModel cloud() {
-        return cloudModel;
-    }
+  public CloudModel cloud() {
+    return cloudModel;
+  }
 }

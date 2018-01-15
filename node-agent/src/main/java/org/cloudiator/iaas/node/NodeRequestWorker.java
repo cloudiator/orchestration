@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 public class NodeRequestWorker implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(NodeRequestWorker.class);
   private final NodeRequestQueue nodeRequestQueue;
   private final MatchmakingService matchmakingService;
   private final VirtualMachineService virtualMachineService;
@@ -29,8 +31,6 @@ public class NodeRequestWorker implements Runnable {
   private final VirtualMachineToNode virtualMachineToNode = new VirtualMachineToNode();
   private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
   private final NodeToNodeMessageConverter nodeConverter = new NodeToNodeMessageConverter();
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(NodeRequestWorker.class);
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
@@ -41,6 +41,13 @@ public class NodeRequestWorker implements Runnable {
     this.matchmakingService = matchmakingService;
     this.virtualMachineService = virtualMachineService;
     this.messageInterface = messageInterface;
+  }
+
+  private static String buildErrorMessage(List<Error> errors) {
+    final String errorFormat = "%s Error(s) occurred during provisioning of nodes: %s";
+    return String.format(errorFormat, errors.size(),
+        errors.stream().map(error -> error.getCode() + " " + error.getMessage())
+            .collect(Collectors.toList()));
   }
 
   @Override
@@ -108,12 +115,5 @@ public class NodeRequestWorker implements Runnable {
             Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
       }
     }
-  }
-
-  private static String buildErrorMessage(List<Error> errors) {
-    final String errorFormat = "%s Error(s) occurred during provisioning of nodes: %s";
-    return String.format(errorFormat, errors.size(),
-        errors.stream().map(error -> error.getCode() + " " + error.getMessage())
-            .collect(Collectors.toList()));
   }
 }

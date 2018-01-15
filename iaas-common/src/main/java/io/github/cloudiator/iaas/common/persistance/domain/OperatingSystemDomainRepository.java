@@ -33,7 +33,7 @@ public class OperatingSystemDomainRepository {
   public void delete(OperatingSystem operatingSystem) {
     throw new UnsupportedOperationException();
   }
-  
+
   public List<OperatingSystem> findAll() {
     return operatingSystemModelRepository.findAll().stream().map(
         (Function<OperatingSystemModel, OperatingSystem>) operatingSystemModel -> operatingSystemModel)

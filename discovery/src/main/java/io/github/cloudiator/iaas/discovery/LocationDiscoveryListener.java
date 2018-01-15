@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
  */
 public class LocationDiscoveryListener implements DiscoveryListener {
 
-  private final LocationDomainRepository locationDomainRepository;
   private static final Logger LOGGER = LoggerFactory.getLogger(LocationDiscoveryListener.class);
+  private final LocationDomainRepository locationDomainRepository;
 
   @Inject
   public LocationDiscoveryListener(

@@ -19,7 +19,8 @@
 package io.github.cloudiator.iaas.common.persistance.entities;
 
 import com.google.common.collect.ImmutableMap;
-import de.uniulm.omi.cloudiator.persistance.entities.Model;import java.util.HashMap;
+import de.uniulm.omi.cloudiator.persistance.entities.Model;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -31,31 +32,35 @@ import javax.persistence.MapKeyColumn;
 /**
  * Created by daniel on 06.10.15.
  */
-@Entity public class TemplateOptions extends Model {
+@Entity
+public class TemplateOptions extends Model {
 
-    @ElementCollection @MapKeyColumn(name = "tagName") @Column(name = "tagValue")
-    private Map<String, String> tags;
-    @Nullable String userData;
+  @Nullable
+  String userData;
+  @ElementCollection
+  @MapKeyColumn(name = "tagName")
+  @Column(name = "tagValue")
+  private Map<String, String> tags;
 
-    /**
-     * Empty constructor for hibernate.
-     */
-    protected TemplateOptions() {
+  /**
+   * Empty constructor for hibernate.
+   */
+  protected TemplateOptions() {
 
+  }
+
+  public Map<String, String> tags() {
+    return ImmutableMap.copyOf(tags);
+  }
+
+  public Optional<String> userData() {
+    return Optional.ofNullable(userData);
+  }
+
+  public void addTag(String tagName, String tagValue) {
+    if (tags == null) {
+      tags = new HashMap<>();
     }
-
-    public Map<String, String> tags() {
-        return ImmutableMap.copyOf(tags);
-    }
-
-    public Optional<String> userData() {
-        return Optional.ofNullable(userData);
-    }
-
-    public void addTag(String tagName, String tagValue) {
-        if (tags == null) {
-            tags = new HashMap<>();
-        }
-        this.tags.put(tagName, tagValue);
-    }
+    this.tags.put(tagName, tagValue);
+  }
 }

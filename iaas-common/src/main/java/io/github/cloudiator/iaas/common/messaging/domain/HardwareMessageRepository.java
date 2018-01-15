@@ -12,9 +12,9 @@ import org.cloudiator.messaging.services.HardwareService;
 
 public class HardwareMessageRepository implements MessageRepository<HardwareFlavor> {
 
+  private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
   private final HardwareService hardwareService;
   private final HardwareMessageToHardwareConverter converter = new HardwareMessageToHardwareConverter();
-  private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
 
   @Inject
   public HardwareMessageRepository(

@@ -29,6 +29,6 @@ import org.cloudiator.messages.NodeEntities.Node;
  */
 public interface RemoteConnectionStrategy extends Prioritized {
 
-    RemoteConnection connect(Node node, OperatingSystem operatingSystem) throws RemoteException;
+  RemoteConnection connect(Node node, OperatingSystem operatingSystem) throws RemoteException;
 
 }

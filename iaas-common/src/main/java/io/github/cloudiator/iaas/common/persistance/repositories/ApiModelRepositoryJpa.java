@@ -20,7 +20,8 @@ public class ApiModelRepositoryJpa extends BaseModelRepositoryJpa<ApiModel> impl
   }
 
   @Override
-  @Nullable public ApiModel findByProviderName(String providerName) {
+  @Nullable
+  public ApiModel findByProviderName(String providerName) {
     String query = String.format("from %s where providerName=:p", type.getName());
     @SuppressWarnings("unchecked") List<ApiModel> models = em().createQuery(query)
         .setParameter("p", providerName).getResultList();

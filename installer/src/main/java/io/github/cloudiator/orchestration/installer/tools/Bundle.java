@@ -7,14 +7,14 @@ import java.util.Set;
  */
 public interface Bundle {
 
-    String name();
+  String name();
 
-    Set<String> dependencies(Environment environment);
+  Set<String> dependencies(Environment environment);
 
-    Set<Integer> inboundPorts();
+  Set<Integer> inboundPorts();
 
-    Set<Download> downloads(Environment environment);
+  Set<Download> downloads(Environment environment);
 
-    StatementList statements(Environment environment);
+  StatementList statements(Environment environment);
 
 }

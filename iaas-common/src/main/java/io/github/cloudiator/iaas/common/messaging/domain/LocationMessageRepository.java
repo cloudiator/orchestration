@@ -12,9 +12,9 @@ import org.cloudiator.messaging.services.LocationService;
 
 public class LocationMessageRepository implements MessageRepository<Location> {
 
+  private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
   private final LocationService locationService;
   private final LocationMessageToLocationConverter converter = new LocationMessageToLocationConverter();
-  private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
 
   @Inject
   public LocationMessageRepository(

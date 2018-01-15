@@ -8,15 +8,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class StatementImpl implements Statement {
 
-    private final String command;
+  private final String command;
 
-    StatementImpl(String command) {
-        checkNotNull(command, "command is null.");
-        checkArgument(!command.isEmpty(), "command is empty.");
-        this.command = command;
-    }
+  StatementImpl(String command) {
+    checkNotNull(command, "command is null.");
+    checkArgument(!command.isEmpty(), "command is empty.");
+    this.command = command;
+  }
 
-    @Override public String command() {
-        return command;
-    }
+  @Override
+  public String command() {
+    return command;
+  }
 }

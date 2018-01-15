@@ -25,8 +25,6 @@ import de.uniulm.omi.cloudiator.persistance.entities.Model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 @Entity
 public class CloudCredentialModel extends Model {

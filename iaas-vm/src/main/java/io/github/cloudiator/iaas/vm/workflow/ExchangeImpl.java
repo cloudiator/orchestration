@@ -8,9 +8,9 @@ import javax.annotation.Nullable;
  */
 public class ExchangeImpl implements Exchange {
 
+  private final static String ILLEGAL_CLASS = "Caller expected class %s but object %s was of type %s.";
   @Nullable
   private final Object data;
-  private final static String ILLEGAL_CLASS = "Caller expected class %s but object %s was of type %s.";
 
   public ExchangeImpl(@Nullable Object data) {
     this.data = data;

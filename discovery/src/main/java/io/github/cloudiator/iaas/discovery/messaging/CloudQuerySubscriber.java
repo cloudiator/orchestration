@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
  */
 public class CloudQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
   private final CloudMessageToCloudConverter cloudConverter = new CloudMessageToCloudConverter();
-  private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
 
   @Inject
   public CloudQuerySubscriber(MessageInterface messageInterface,
