@@ -29,7 +29,7 @@ public class HardwareOfferRepositoryJpa extends BaseModelRepositoryJpa<HardwareO
     //todo: check correctness of query
     String queryStringWithDiskSpace = String
         .format(
-            "from %s where numberOfCores=:numberOfCores and mbOfRam=:mbOfRam and diskSpace=:diskSpace)",
+            "from %s where numberOfCores=:numberOfCores and mbOfRam=:mbOfRam and diskSpace=:diskSpace",
             type.getName());
     String queryStringWithOutDiskSpace = String
         .format(
