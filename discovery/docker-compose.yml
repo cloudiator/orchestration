@@ -10,10 +10,10 @@ services:
       - MYSQL_PASSWORD
     volumes:
       - discovery_data
-  discovery:
+  discovery-agent:
     depends_on:
       - "mariadb"
-    image: cloudiator/discovery_agent:latest
+    image: cloudiator/discovery-agent:latest
     environment:
       - JPA_USER=${MYSQL_USER}
       - JPA_PASSWORD=${MYSQL_PASSWORD}
