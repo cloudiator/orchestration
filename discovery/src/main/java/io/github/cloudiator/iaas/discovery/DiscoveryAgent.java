@@ -21,8 +21,8 @@ public class DiscoveryAgent {
 
   private static Injector injector = Guice
       .createInjector(new DiscoveryModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
-              Configuration.conf().getConfig("jpa"))),
-          new KafkaMessagingModule(new KafkaContext(Configuration.conf().getConfig("kafka"))));
+              Configuration.conf())),
+          new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
 
   public static void main(String[] args) {
 

@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    volumes:
+      - discovery_data
+  discovery:
+    depends_on:
+      - "mariadb"
+    image: cloudiator/discovery_agent:latest
+    environment:
+      - JPA_USER=${MYSQL_USER}
+      - JPA_PASSWORD=${MYSQL_PASSWORD}
+      - JPA_DATABASE=${MYSQL_DATABASE}
+      - KAFKA_BOOTSTRAP_SERVERS
+      - JPA_HOST=mariadb
