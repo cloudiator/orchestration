@@ -7,8 +7,6 @@ DEFAULT_JPA_DRIVER="org.mariadb.jdbc.Driver"
 DEFAULT_KAFKA_GROUP_ID="discovery"
 DEFAULT_KAFKA_RESPONSE_TIMEOUT=10000
 
-
-
 env_required() {
   echo "EnvironmentVariable $1 is required."
   exit 1

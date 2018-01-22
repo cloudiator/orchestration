@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  mariadb:
+  discovery-store:
     image: mariadb:latest
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
