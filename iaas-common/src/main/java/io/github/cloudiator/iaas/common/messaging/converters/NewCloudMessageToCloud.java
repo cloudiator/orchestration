@@ -18,17 +18,17 @@ public class NewCloudMessageToCloud
   private CloudTypeMessageToCloudType cloudTypeConverter = new CloudTypeMessageToCloudType();
 
   @Override
-  public Cloud apply(NewCloud cloud) {
+  public Cloud apply(NewCloud newCloud) {
     final CloudBuilder cloudBuilder = CloudBuilder.newBuilder()
-        .credentials(credentialConverter.apply(cloud.getCredential()))
-        .api(apiConverter.apply(cloud.getApi()))
-        .configuration(configurationConverter.apply(cloud.getConfiguration()))
-        .cloudType(cloudTypeConverter.apply(cloud.getCloudType()));
+        .credentials(credentialConverter.apply(newCloud.getCredential()))
+        .api(apiConverter.apply(newCloud.getApi()))
+        .configuration(configurationConverter.apply(newCloud.getConfiguration()))
+        .cloudType(cloudTypeConverter.apply(newCloud.getCloudType()));
 
-    if (cloud.getEndpoint().equals("")) {
+    if (newCloud.getEndpoint() == null || newCloud.getEndpoint().equals("")) {
       cloudBuilder.endpoint(null);
     } else {
-      cloudBuilder.endpoint(cloud.getEndpoint());
+      cloudBuilder.endpoint(newCloud.getEndpoint());
     }
 
     return cloudBuilder.build();
