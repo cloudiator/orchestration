@@ -85,8 +85,9 @@ public class CloudAddedSubscriber implements Runnable {
                     createCloudRequest), e);
                 messageInterface.reply(CloudCreatedResponse.class, messageId, Error.newBuilder()
                     .setMessage(String
-                        .format("Could not understand request. An %s exception occurred: %s.",
-                            e.getClass().getName(), e.getMessage())).setCode(500).build());
+                        .format("Could not understand request %s. An %s exception occurred: %s.",
+                            createCloudRequest, e.getClass().getName(), e.getMessage()))
+                    .setCode(500).build());
                 entityManager.get().getTransaction().rollback();
               } finally {
                 unitOfWork.end();
