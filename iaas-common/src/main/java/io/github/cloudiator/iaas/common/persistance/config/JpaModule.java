@@ -18,6 +18,8 @@ import io.github.cloudiator.iaas.common.persistance.repositories.CloudCredential
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudCredentialModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepositoryJpa;
+import io.github.cloudiator.iaas.common.persistance.repositories.GeoLocationModelRepository;
+import io.github.cloudiator.iaas.common.persistance.repositories.GeoLocationModelRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.HardwareOfferRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.HardwareOfferRepositoryJpa;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepository;
@@ -55,6 +57,8 @@ public class JpaModule extends AbstractModule {
     bind(CloudCredentialModelRepository.class).to(CloudCredentialModelRepositoryJpa.class);
 
     bind(TenantModelRepository.class).to(TenantModelRepositoryJpa.class);
+
+    bind(GeoLocationModelRepository.class).to(GeoLocationModelRepositoryJpa.class);
 
     bind(new TypeLiteral<ModelRepository<HardwareModel>>() {
     }).to(new TypeLiteral<BaseModelRepositoryJpa<HardwareModel>>() {

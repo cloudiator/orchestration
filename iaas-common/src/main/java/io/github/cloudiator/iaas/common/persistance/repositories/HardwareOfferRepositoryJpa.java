@@ -41,11 +41,12 @@ public class HardwareOfferRepositoryJpa extends BaseModelRepositoryJpa<HardwareO
       query = em().createQuery(queryStringWithOutDiskSpace);
     } else {
       query = em().createQuery(queryStringWithDiskSpace);
+      query.setParameter("diskSpace", diskSpace);
     }
 
     query
         .setParameter("numberOfCores", numberOfCores)
-        .setParameter("mbOfRam", mbOfRam).setParameter("diskSpace", diskSpace);
+        .setParameter("mbOfRam", mbOfRam);
     try {
       //noinspection unchecked
       return (HardwareOffer) query.getSingleResult();

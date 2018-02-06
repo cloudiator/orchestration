@@ -11,6 +11,8 @@ import javax.annotation.Nullable;
  */
 public class LocationConverter implements OneWayConverter<LocationModel, Location> {
 
+  private static final GeoLocationConverter GEO_LOCATION_CONVERTER = new GeoLocationConverter();
+
   @Nullable
   @Override
   public Location apply(@Nullable LocationModel locationModel) {
@@ -20,6 +22,7 @@ public class LocationConverter implements OneWayConverter<LocationModel, Locatio
     return LocationBuilder.newBuilder().id(locationModel.getCloudUniqueId())
         .providerId(locationModel.getProviderId())
         .name(locationModel.getName()).scope(locationModel.getLocationScope())
+        .geoLocation(GEO_LOCATION_CONVERTER.apply(locationModel.getGeoLocationModel()))
         .assignable(locationModel.getAssignable()).parent(apply(locationModel.getParent())).build();
   }
 }

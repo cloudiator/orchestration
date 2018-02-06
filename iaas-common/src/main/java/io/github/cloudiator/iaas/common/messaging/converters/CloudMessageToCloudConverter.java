@@ -4,6 +4,7 @@ import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.domain.CloudBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import org.cloudiator.messages.entities.IaasEntities;
+import org.cloudiator.messages.entities.IaasEntities.Cloud.Builder;
 
 /**
  * Created by daniel on 31.05.17.
@@ -29,13 +30,18 @@ public class CloudMessageToCloudConverter implements TwoWayConverter<IaasEntitie
 
   @Override
   public IaasEntities.Cloud applyBack(Cloud cloud) {
-    return IaasEntities.Cloud.newBuilder()
+    final Builder cloudBuilder = IaasEntities.Cloud.newBuilder()
         .setId(cloud.id())
         .setCredential(credentialConverter.applyBack(cloud.credential()))
         .setApi(apiConverter.applyBack(cloud.api()))
         .setConfiguration(configurationConverter.applyBack(cloud.configuration()))
-        .setEndpoint(cloud.endpoint().orElse(null))
-        .setCloudType(cloudTypeConverter.applyBack(cloud.cloudType()))
-        .build();
+        .setCloudType(cloudTypeConverter.applyBack(cloud.cloudType()));
+
+    if (cloud.endpoint().isPresent()) {
+      cloudBuilder.setEndpoint(cloud.endpoint().get());
+    }
+
+    return cloudBuilder.build();
+
   }
 }

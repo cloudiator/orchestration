@@ -21,6 +21,7 @@ import io.github.cloudiator.iaas.discovery.ImageDiscoveryWorker;
 import io.github.cloudiator.iaas.discovery.Init;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryListener;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryWorker;
+import org.cloudiator.meta.cloudharmony.config.CloudHarmonyMetaModule;
 
 /**
  * Created by daniel on 31.05.17.
@@ -29,7 +30,8 @@ public class DiscoveryModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    final MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder().build();
+    final MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder()
+        .metaModule(new CloudHarmonyMetaModule()).build();
     bind(CloudRegistry.class).toInstance(multiCloudService.cloudRegistry());
     bind(ComputeService.class).toInstance(multiCloudService.computeService());
     bind(DiscoveryService.class).toInstance(multiCloudService.computeService().discoveryService());

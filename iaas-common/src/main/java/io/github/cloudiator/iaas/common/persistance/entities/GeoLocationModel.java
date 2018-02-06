@@ -19,53 +19,39 @@
 package io.github.cloudiator.iaas.common.persistance.entities;
 
 import de.uniulm.omi.cloudiator.persistance.entities.Model;
-import java.util.List;
+import java.math.BigDecimal;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 /**
  * @todo we should probably normalize this table?
  */
 @Entity
-public class GeoLocation extends Model {
-
-  private String region;
+public class GeoLocationModel extends Model {
 
   private String city;
 
   private String country;
 
-  private String iso3166;
+  private BigDecimal locationLatitude;
 
-  private Float locationLatitude;
+  private BigDecimal locationLongitude;
 
-  private Float locationLongitude;
-
-  @OneToMany(mappedBy = "geoLocation")
-  private List<LocationModel> locationModels;
+  @OneToOne(mappedBy = "geoLocationModel")
+  private LocationModel locationModel;
 
   /**
    * No-args constructor used by hibernate.
    */
-  protected GeoLocation() {
+  protected GeoLocationModel() {
   }
 
-  public GeoLocation(String region, String city, String country, String iso3166,
-      Float locationLatitude, Float locationLongitude) {
-    this.region = region;
+  public GeoLocationModel(String city, String country,
+      BigDecimal locationLatitude, BigDecimal locationLongitude) {
     this.city = city;
     this.country = country;
-    this.iso3166 = iso3166;
     this.locationLatitude = locationLatitude;
     this.locationLongitude = locationLongitude;
-  }
-
-  public String getRegion() {
-    return region;
-  }
-
-  public void setRegion(String region) {
-    this.region = region;
   }
 
   public String getCity() {
@@ -84,35 +70,31 @@ public class GeoLocation extends Model {
     this.country = country;
   }
 
-  public String getIso3166() {
-    return iso3166;
+  public LocationModel getLocationModel() {
+    return locationModel;
   }
 
-  public void setIso3166(String iso3166) {
-    this.iso3166 = iso3166;
+  public GeoLocationModel setLocationModel(
+      LocationModel locationModel) {
+    this.locationModel = locationModel;
+    return this;
   }
 
-  public Float getLocationLatitude() {
+  public BigDecimal getLocationLatitude() {
     return locationLatitude;
   }
 
-  public void setLocationLatitude(Float locationLatitude) {
+  public GeoLocationModel setLocationLatitude(BigDecimal locationLatitude) {
     this.locationLatitude = locationLatitude;
+    return this;
   }
 
-  public Float getLocationLongitude() {
+  public BigDecimal getLocationLongitude() {
     return locationLongitude;
   }
 
-  public void setLocationLongitude(Float locationLongitude) {
+  public GeoLocationModel setLocationLongitude(BigDecimal locationLongitude) {
     this.locationLongitude = locationLongitude;
-  }
-
-  public List<LocationModel> getLocationModels() {
-    return locationModels;
-  }
-
-  public void setLocationModels(List<LocationModel> locationModels) {
-    this.locationModels = locationModels;
+    return this;
   }
 }

@@ -3,12 +3,15 @@ package io.github.cloudiator.iaas.common.persistance.domain;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.iaas.common.persistance.domain.converters.LocationConverter;
 import io.github.cloudiator.iaas.common.persistance.entities.CloudModel;
+import io.github.cloudiator.iaas.common.persistance.entities.GeoLocationModel;
 import io.github.cloudiator.iaas.common.persistance.entities.LocationModel;
 import io.github.cloudiator.iaas.common.persistance.repositories.CloudModelRepository;
+import io.github.cloudiator.iaas.common.persistance.repositories.GeoLocationModelRepository;
 import io.github.cloudiator.iaas.common.persistance.repositories.LocationModelRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,13 +24,16 @@ public class LocationDomainRepository {
   private final LocationModelRepository locationModelRepository;
   private final LocationConverter locationConverter = new LocationConverter();
   private final CloudModelRepository cloudModelRepository;
+  private final GeoLocationModelRepository geoLocationModelRepository;
 
   @Inject
   public LocationDomainRepository(
       LocationModelRepository locationModelRepository,
-      CloudModelRepository cloudModelRepository) {
+      CloudModelRepository cloudModelRepository,
+      GeoLocationModelRepository geoLocationModelRepository) {
     this.locationModelRepository = locationModelRepository;
     this.cloudModelRepository = cloudModelRepository;
+    this.geoLocationModelRepository = geoLocationModelRepository;
   }
 
   public Location findById(String id) {
@@ -59,11 +65,20 @@ public class LocationDomainRepository {
       checkState(parent != null);
     }
 
+    GeoLocationModel geoLocationModel = null;
+    if (location.geoLocation().isPresent()) {
+      GeoLocation geoLocation = location.geoLocation().get();
+      geoLocationModel = new GeoLocationModel(geoLocation.city(), geoLocation.country(),
+          geoLocation.latitude(), geoLocation.longitude());
+      geoLocationModelRepository.save(geoLocationModel);
+    }
+
     LocationModel locationModel = locationModelRepository.findByCloudUniqueId(location.id());
     //todo update case
     if (locationModel == null) {
       locationModel = new LocationModel(
-          location.id(), location.providerId(), location.name(), cloudModel, parent, null,
+          location.id(), location.providerId(), location.name(), cloudModel, parent,
+          geoLocationModel,
           location.locationScope(), location.isAssignable());
     }
     locationModelRepository.save(locationModel);

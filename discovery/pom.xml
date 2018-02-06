@@ -16,6 +16,11 @@
       <artifactId>multicloud</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.github.cloudiator.sword</groupId>
+      <artifactId>cloudharmony</artifactId>
+      <version>0.3.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>io.github.cloudiator.common</groupId>
       <artifactId>common-all</artifactId>
     </dependency>

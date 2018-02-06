@@ -13,7 +13,7 @@
     <class>io.github.cloudiator.iaas.common.persistance.entities.CloudModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.TenantModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.LocationModel</class>
-    <class>io.github.cloudiator.iaas.common.persistance.entities.GeoLocation</class>
+    <class>io.github.cloudiator.iaas.common.persistance.entities.GeoLocationModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.ImageModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.HardwareModel</class>
     <class>io.github.cloudiator.iaas.common.persistance.entities.HardwareOffer</class>

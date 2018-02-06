@@ -31,6 +31,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 @Entity
 public class LocationModel extends Model {
@@ -55,8 +58,9 @@ public class LocationModel extends Model {
   private List<LocationModel> children;
 
   @Nullable
-  @ManyToOne(optional = true)
-  private GeoLocation geoLocation;
+  @OneToOne(optional = true)
+  @Cascade(CascadeType.DELETE)
+  private GeoLocationModel geoLocationModel;
 
   @Nullable
   @Column(updatable = false)
@@ -75,14 +79,14 @@ public class LocationModel extends Model {
 
   public LocationModel(String cloudUniqueId, String providerId, String name,
       CloudModel cloudModel, @Nullable LocationModel parent,
-      @Nullable GeoLocation geoLocation, @Nullable LocationScope locationScope,
+      @Nullable GeoLocationModel geoLocationModel, @Nullable LocationScope locationScope,
       Boolean isAssignable) {
     this.cloudUniqueId = cloudUniqueId;
     this.providerId = providerId;
     this.name = name;
     this.cloudModel = cloudModel;
     this.parent = parent;
-    this.geoLocation = geoLocation;
+    this.geoLocationModel = geoLocationModel;
     this.locationScope = locationScope;
     this.isAssignable = isAssignable;
   }
@@ -130,12 +134,12 @@ public class LocationModel extends Model {
   }
 
   @Nullable
-  public GeoLocation getGeoLocation() {
-    return geoLocation;
+  public GeoLocationModel getGeoLocationModel() {
+    return geoLocationModel;
   }
 
-  public void setGeoLocation(@Nullable GeoLocation geoLocation) {
-    this.geoLocation = geoLocation;
+  public void setGeoLocationModel(@Nullable GeoLocationModel geoLocationModel) {
+    this.geoLocationModel = geoLocationModel;
   }
 
   @Nullable

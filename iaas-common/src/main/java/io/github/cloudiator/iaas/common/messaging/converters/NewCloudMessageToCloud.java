@@ -19,13 +19,19 @@ public class NewCloudMessageToCloud
 
   @Override
   public Cloud apply(NewCloud cloud) {
-    return CloudBuilder.newBuilder()
+    final CloudBuilder cloudBuilder = CloudBuilder.newBuilder()
         .credentials(credentialConverter.apply(cloud.getCredential()))
         .api(apiConverter.apply(cloud.getApi()))
         .configuration(configurationConverter.apply(cloud.getConfiguration()))
-        .endpoint(cloud.getEndpoint())
-        .cloudType(cloudTypeConverter.apply(cloud.getCloudType()))
-        .build();
+        .cloudType(cloudTypeConverter.apply(cloud.getCloudType()));
+
+    if (cloud.getEndpoint().equals("")) {
+      cloudBuilder.endpoint(null);
+    } else {
+      cloudBuilder.endpoint(cloud.getEndpoint());
+    }
+
+    return cloudBuilder.build();
   }
 
 

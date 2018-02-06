@@ -12,7 +12,7 @@ services:
       - discovery_data
   discovery-agent:
     depends_on:
-      - "mariadb"
+      - "discovery-store"
     image: cloudiator/discovery-agent:latest
     environment:
       - JPA_USER=${MYSQL_USER}
