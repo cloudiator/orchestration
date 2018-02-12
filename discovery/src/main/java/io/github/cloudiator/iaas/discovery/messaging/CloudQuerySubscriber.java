@@ -3,8 +3,8 @@ package io.github.cloudiator.iaas.discovery.messaging;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import io.github.cloudiator.iaas.common.messaging.converters.CloudMessageToCloudConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
+import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
@@ -87,7 +87,7 @@ public class CloudQuerySubscriber implements Runnable {
 
   private void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
-        .addAllClouds(cloudDomainRepository.findByUser(userId).stream().map(
+        .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(
             cloudConverter::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, cloudQueryResponse);
   }

@@ -2,8 +2,8 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
-import io.github.cloudiator.iaas.common.messaging.converters.ImageMessageToImageConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.ImageDomainRepository;
+import io.github.cloudiator.messaging.ImageMessageToImageConverter;
+import io.github.cloudiator.persistance.ImageDomainRepository;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Image.ImageQueryRequest;
@@ -12,8 +12,6 @@ import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-;
 
 /**
  * Created by daniel on 01.06.17.

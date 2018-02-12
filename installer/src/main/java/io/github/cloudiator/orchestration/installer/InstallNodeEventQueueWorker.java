@@ -5,7 +5,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
+import io.github.cloudiator.messaging.OperatingSystemConverter;
 import io.github.cloudiator.orchestration.installer.InstallNodeEventQueue.NodeEventItem;
 import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;

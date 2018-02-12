@@ -2,8 +2,8 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import io.github.cloudiator.iaas.common.messaging.converters.LocationMessageToLocationConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.LocationDomainRepository;
+import io.github.cloudiator.messaging.LocationMessageToLocationConverter;
+import io.github.cloudiator.persistance.LocationDomainRepository;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Location.LocationQueryRequest;

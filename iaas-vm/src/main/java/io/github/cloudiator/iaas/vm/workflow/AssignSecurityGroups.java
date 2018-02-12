@@ -4,7 +4,7 @@ import de.uniulm.omi.cloudiator.sword.domain.TemplateOptions;
 import de.uniulm.omi.cloudiator.sword.domain.TemplateOptionsBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplateBuilder;
-import io.github.cloudiator.iaas.common.util.SecurityGroupPorts;
+import io.github.cloudiator.util.SecurityGroupPorts;
 
 public class AssignSecurityGroups implements Activity {
 

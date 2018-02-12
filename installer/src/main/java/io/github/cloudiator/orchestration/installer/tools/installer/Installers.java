@@ -21,7 +21,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import io.github.cloudiator.iaas.common.persistance.entities.TenantModel;
+import io.github.cloudiator.persistance.TenantModel;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 
 /**

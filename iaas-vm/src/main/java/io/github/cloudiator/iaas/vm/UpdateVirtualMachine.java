@@ -7,9 +7,9 @@ import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
-import io.github.cloudiator.iaas.common.messaging.domain.HardwareMessageRepository;
-import io.github.cloudiator.iaas.common.messaging.domain.ImageMessageRepository;
-import io.github.cloudiator.iaas.common.messaging.domain.LocationMessageRepository;
+import io.github.cloudiator.messaging.HardwareMessageRepository;
+import io.github.cloudiator.messaging.ImageMessageRepository;
+import io.github.cloudiator.messaging.LocationMessageRepository;
 
 public class UpdateVirtualMachine {
 

@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
-import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.Set;
 
 /**
