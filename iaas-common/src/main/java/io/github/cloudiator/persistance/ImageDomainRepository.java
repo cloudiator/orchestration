@@ -20,15 +20,18 @@ public class ImageDomainRepository {
   private static final ImageConverter IMAGE_CONVERTER = new ImageConverter();
   private final LocationDomainRepository locationDomainRepository;
   private final CloudDomainRepository cloudDomainRepository;
+  private final OperatingSystemDomainRepository operatingSystemDomainRepository;
 
   @Inject
   public ImageDomainRepository(
       ResourceRepository<ImageModel> imageModelRepository,
       LocationDomainRepository locationDomainRepository,
-      CloudDomainRepository cloudDomainRepository) {
+      CloudDomainRepository cloudDomainRepository,
+      OperatingSystemDomainRepository operatingSystemDomainRepository) {
     this.imageModelRepository = imageModelRepository;
     this.locationDomainRepository = locationDomainRepository;
     this.cloudDomainRepository = cloudDomainRepository;
+    this.operatingSystemDomainRepository = operatingSystemDomainRepository;
   }
 
 
@@ -51,7 +54,16 @@ public class ImageDomainRepository {
   }
 
   ImageModel saveAndGet(Image domain) {
+    checkNotNull(domain, "domain is null");
 
+    ImageModel model = imageModelRepository.findByCloudUniqueId(domain.id());
+    if (model == null) {
+      model = createModel(domain);
+    } else {
+      updateModel(domain, model);
+    }
+    imageModelRepository.save(model);
+    return model;
   }
 
   private CloudModel getCloudModel(String id) {
@@ -71,39 +83,6 @@ public class ImageDomainRepository {
 
   }
 
-  public void tmp(Image image) {
-
-    //get corresponding cloudModel
-    final String cloudId = IdScopedByClouds.from(image.id()).cloudId();
-    final CloudModel cloudModel = cloudModelRepository
-        .getByCloudId(cloudId);
-
-    LocationModel locationModel = null;
-    if (image.location().isPresent()) {
-      locationDomainRepository.save(image.location().get());
-      locationModel = locationModelRepository
-          .findByCloudUniqueId(image.location().get().id());
-      checkState(locationModel != null);
-    }
-
-    //generate operating system
-    OperatingSystemModel operatingSystemModel = new OperatingSystemModel(
-        image.operatingSystem().operatingSystemArchitecture(),
-        image.operatingSystem().operatingSystemFamily(),
-        String.valueOf(image.operatingSystem().operatingSystemVersion()));
-    operatingSystemModelModelRepository.save(operatingSystemModel);
-
-    ImageModel imageModel = imageModelRepository
-        .findByCloudUniqueId(image.id());
-    //todo handle update case
-    if (imageModel == null) {
-      imageModel = new ImageModel(image.id(), image.providerId(), image.name(), cloudModel,
-          locationModel, null, null, operatingSystemModel);
-    }
-    imageModelRepository.save(imageModel);
-  }
-
-
   private ImageModel createModel(Image domain) {
     final CloudModel cloudModel = getCloudModel(domain.id());
 
@@ -111,13 +90,29 @@ public class ImageDomainRepository {
         .format("Can not save image %s as related cloudModel is missing.",
             domain));
 
+    LocationModel locationModel = getOrCreateLocationModel(domain);
+
+    OperatingSystemModel operatingSystemModel = operatingSystemDomainRepository
+        .saveAndGet(domain.operatingSystem());
+
+    ImageModel imageModel = new ImageModel(domain.id(), domain.providerId(), domain.name(),
+        cloudModel,
+        locationModel, null, null, operatingSystemModel);
+
+    imageModelRepository.save(imageModel);
+
+    return imageModel;
   }
 
-  private ImageModel updateModel(Image domain, ImageModel model) {
-    return null;
-  }
+  private void updateModel(Image domain, ImageModel model) {
 
-  @Override
+    //currently we only update the operating system.
+    //todo throw exception if something else is changed?
+
+    operatingSystemDomainRepository.update(domain.operatingSystem(), model.operatingSystem());
+    imageModelRepository.save(model);
+  }
+  
   public Collection<Image> findAll(@Nullable String userId) {
     checkNotNull(userId, "userId is null");
     return imageModelRepository.findByTenant(userId).stream().map(IMAGE_CONVERTER)

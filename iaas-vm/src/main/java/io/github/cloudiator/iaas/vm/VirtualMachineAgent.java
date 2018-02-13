@@ -17,7 +17,7 @@ public class VirtualMachineAgent {
 
   private static Injector injector =
       Guice.createInjector(
-          new KafkaMessagingModule(new KafkaContext(Configuration.conf().getConfig("kafka"))),
+          new KafkaMessagingModule(new KafkaContext(Configuration.conf())),
           new MessageServiceModule(),
           new VmAgentModule());
 
