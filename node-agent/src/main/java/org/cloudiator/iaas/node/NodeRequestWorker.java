@@ -2,8 +2,8 @@ package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.iaas.common.messaging.converters.NodeToNodeMessageConverter;
-import io.github.cloudiator.iaas.common.messaging.converters.VirtualMachineMessageToVirtualMachine;
+import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
+import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;

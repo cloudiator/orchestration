@@ -2,11 +2,11 @@ package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.iaas.common.domain.Node;
-import io.github.cloudiator.iaas.common.domain.NodeBuilder;
-import io.github.cloudiator.iaas.common.domain.NodeProperties;
-import io.github.cloudiator.iaas.common.domain.NodePropertiesBuilder;
-import io.github.cloudiator.iaas.common.domain.NodeType;
+import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
+import io.github.cloudiator.domain.NodeType;
 import java.util.function.Function;
 
 public class VirtualMachineToNode implements Function<VirtualMachine, Node> {

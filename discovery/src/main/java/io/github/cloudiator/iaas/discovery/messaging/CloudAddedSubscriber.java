@@ -4,10 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import io.github.cloudiator.iaas.common.messaging.converters.CloudMessageToCloudConverter;
-import io.github.cloudiator.iaas.common.messaging.converters.NewCloudMessageToCloud;
-import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
 import io.github.cloudiator.iaas.discovery.AbstractDiscoveryWorker;
+import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
+import io.github.cloudiator.messaging.NewCloudMessageToCloud;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import javax.persistence.EntityManager;
 import org.cloudiator.messages.Cloud.CloudCreatedResponse;
 import org.cloudiator.messages.Cloud.CreateCloudRequest;
@@ -72,7 +72,7 @@ public class CloudAddedSubscriber implements Runnable {
                 } else {
 
                   //create the cloud
-                  cloudDomainRepository.add(cloudToBeCreated, createCloudRequest.getUserId());
+                  cloudDomainRepository.save(cloudToBeCreated, createCloudRequest.getUserId());
 
                   //repy
                   messageInterface.reply(messageId,

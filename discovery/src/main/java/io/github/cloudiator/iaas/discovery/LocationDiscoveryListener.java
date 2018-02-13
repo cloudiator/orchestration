@@ -3,7 +3,7 @@ package io.github.cloudiator.iaas.discovery;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import io.github.cloudiator.iaas.common.persistance.domain.LocationDomainRepository;
+import io.github.cloudiator.persistance.LocationDomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

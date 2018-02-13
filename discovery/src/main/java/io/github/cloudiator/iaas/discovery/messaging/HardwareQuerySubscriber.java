@@ -1,8 +1,8 @@
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import io.github.cloudiator.iaas.common.messaging.converters.HardwareMessageToHardwareConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.HardwareDomainRepository;
+import io.github.cloudiator.messaging.HardwareMessageToHardwareConverter;
+import io.github.cloudiator.persistance.HardwareDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;

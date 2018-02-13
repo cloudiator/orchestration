@@ -1,8 +1,8 @@
 package org.cloudiator.iaas.node;
 
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.iaas.common.domain.Node;
-import io.github.cloudiator.iaas.common.messaging.converters.NodeToNodeMessageConverter;
+import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import javax.inject.Inject;
 import org.cloudiator.messages.NodeEntities.NodeEvent;
 import org.cloudiator.messaging.MessageInterface;
