@@ -48,7 +48,7 @@
               <appendAssemblyId>false</appendAssemblyId>
               <archive>
                 <manifest>
-                  <mainClass>io.github.cloudiator.iaas.node.NodeAgent</mainClass>
+                  <mainClass>org.cloudiator.iaas.node.NodeAgent</mainClass>
                 </manifest>
               </archive>
             </configuration>
