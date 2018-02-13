@@ -14,7 +14,7 @@ public class NodeAgent {
 
   private static final Injector INJECTOR = Guice
       .createInjector(new MessageServiceModule(),
-          new KafkaMessagingModule(new KafkaContext(Configuration.conf().getConfig("kafka"))));
+          new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
 
   private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
       new ScheduledThreadPoolExecutor(5));

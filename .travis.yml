@@ -10,6 +10,7 @@ after_success:
 - ci/publish-javadoc-to-gh-pages.sh
 - discovery/ci/publish_docker.sh
 - iaas-vm/ci/publish_docker.sh
+- node-agent/ci/publish_docker.sh
 branches:
   except:
   - gh-pages

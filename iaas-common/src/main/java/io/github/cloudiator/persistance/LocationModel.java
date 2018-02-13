@@ -48,14 +48,12 @@ class LocationModel extends Model {
   private String name;
 
   @ManyToOne(optional = false)
-  @Column(updatable = false)
   private CloudModel cloudModel;
 
   @ManyToOne
   @Nullable
-  @Column(updatable = false)
   private LocationModel parent;
-  
+
   @OneToMany(mappedBy = "parent")
   private List<LocationModel> children;
 

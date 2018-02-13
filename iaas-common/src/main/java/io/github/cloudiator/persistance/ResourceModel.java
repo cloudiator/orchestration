@@ -44,12 +44,10 @@ abstract class ResourceModel extends Model {
   private String name;
 
   @ManyToOne(optional = false)
-  @Column(updatable = false)
   private CloudModel cloudModel;
 
   @Nullable
   @ManyToOne(optional = true)
-  @Column(updatable = false)
   private LocationModel locationModel;
 
   protected ResourceModel() {

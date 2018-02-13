@@ -3,12 +3,14 @@ package io.github.cloudiator.persistance;
 import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 public class GeoLocationDomainRepository {
 
   private static final GeoLocationConverter GEO_LOCATION_CONVERTER = new GeoLocationConverter();
   private final GeoLocationModelRepository geoLocationModelRepository;
 
+  @Inject
   public GeoLocationDomainRepository(
       GeoLocationModelRepository geoLocationModelRepository) {
     this.geoLocationModelRepository = geoLocationModelRepository;

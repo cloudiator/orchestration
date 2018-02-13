@@ -7,6 +7,7 @@ import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 /**
  * Created by daniel on 09.06.17.
@@ -21,7 +22,7 @@ public class CloudDomainRepository {
   private final CloudRegistry cloudRegistry;
   private final CloudConfigurationDomainRepository cloudConfigurationDomainRepository;
 
-  public CloudDomainRepository(
+  @Inject public CloudDomainRepository(
       ApiDomainRepository apiDomainRepository,
       CloudCredentialDomainRepository cloudCredentialDomainRepository,
       CloudModelRepository cloudModelRepository,

@@ -39,6 +39,8 @@ public class JpaModule extends AbstractModule {
 
     bind(GeoLocationModelRepository.class).to(GeoLocationModelRepositoryJpa.class);
 
+    bind(OperatingSystemModelRepository.class).to(OperatingSystemModelRepositoryJpa.class);
+
     bind(new TypeLiteral<ModelRepository<HardwareModel>>() {
     }).to(new TypeLiteral<BaseModelRepositoryJpa<HardwareModel>>() {
     });
