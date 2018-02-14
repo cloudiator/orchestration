@@ -50,7 +50,8 @@ public class ImageDomainRepository {
   }
 
   public void save(Image domain) {
-
+    checkNotNull(domain, "domain is null");
+    saveAndGet(domain);
   }
 
   ImageModel saveAndGet(Image domain) {
@@ -112,7 +113,7 @@ public class ImageDomainRepository {
     operatingSystemDomainRepository.update(domain.operatingSystem(), model.operatingSystem());
     imageModelRepository.save(model);
   }
-  
+
   public Collection<Image> findAll(@Nullable String userId) {
     checkNotNull(userId, "userId is null");
     return imageModelRepository.findByTenant(userId).stream().map(IMAGE_CONVERTER)
