@@ -75,9 +75,6 @@
               <descriptors>
                 <descriptor>src/assembly/src.xml</descriptor>
               </descriptors>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
               <finalName>discovery-agent</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <archive>
