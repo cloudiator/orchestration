@@ -12,7 +12,7 @@ public class NameGenerator {
 
   public String generate(@Nullable String groupName) {
 
-    if (groupName == null) {
+    if (groupName == null || groupName.isEmpty()) {
       return "node";
     }
 
