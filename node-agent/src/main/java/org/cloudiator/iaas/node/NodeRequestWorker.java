@@ -12,6 +12,7 @@ import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
+import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingRequest;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -31,6 +32,7 @@ public class NodeRequestWorker implements Runnable {
   private final VirtualMachineToNode virtualMachineToNode = new VirtualMachineToNode();
   private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
   private final NodeToNodeMessageConverter nodeConverter = new NodeToNodeMessageConverter();
+  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
@@ -65,6 +67,7 @@ public class NodeRequestWorker implements Runnable {
       try {
         final String userId = userNodeRequest.getNodeRequestMessage().getUserId();
         final String messageId = userNodeRequest.getId();
+        final String groupName = userNodeRequest.getNodeRequestMessage().getGroupName();
 
         List<VirtualMachine> responses = new ArrayList<>();
         List<Error> errors = new ArrayList<>();
@@ -79,23 +82,32 @@ public class NodeRequestWorker implements Runnable {
             matchmakingResponse.getNodesCount());
 
         matchmakingResponse.getNodesList().forEach(
-            virtualMachineRequest -> virtualMachineService.createVirtualMachineAsync(
-                CreateVirtualMachineRequestMessage.newBuilder()
-                    .setUserId(userId)
-                    .setVirtualMachineRequest(virtualMachineRequest).build(),
-                (content, error) -> {
-                  if (content != null) {
-                    responses.add(virtualMachineConverter.apply(content.getVirtualMachine()));
-                  } else if (error != null) {
-                    errors.add(error);
-                  } else {
-                    throw new IllegalStateException(
-                        "Neither content or error are set in response.");
-                  }
-                  countDownLatch.countDown();
-                }));
+            virtualMachineRequest -> {
 
-        //add timeout?
+              //we need to set name here
+              //todo check if matchmaking can do this, or if we can move it somewhere else
+              virtualMachineRequest = VirtualMachineRequest.newBuilder(virtualMachineRequest)
+                  .setName(NAME_GENERATOR
+                      .generate(groupName)).build();
+              virtualMachineService.createVirtualMachineAsync(
+
+                  CreateVirtualMachineRequestMessage.newBuilder()
+                      .setUserId(userId)
+                      .setVirtualMachineRequest(virtualMachineRequest).build(),
+                  (content, error) -> {
+                    if (content != null) {
+                      responses.add(virtualMachineConverter.apply(content.getVirtualMachine()));
+                    } else if (error != null) {
+                      errors.add(error);
+                    } else {
+                      throw new IllegalStateException(
+                          "Neither content or error are set in response.");
+                    }
+                    countDownLatch.countDown();
+                  });
+            });
+
+        //todo: add timeout?
         countDownLatch.await();
 
         if (errors.isEmpty()) {
