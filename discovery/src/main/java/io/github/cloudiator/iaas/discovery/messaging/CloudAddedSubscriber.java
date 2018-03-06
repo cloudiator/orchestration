@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CloudAddedSubscriber implements Runnable {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDiscoveryWorker.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloudAddedSubscriber.class);
 
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
