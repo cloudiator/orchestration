@@ -1,8 +1,8 @@
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import io.github.cloudiator.iaas.common.messaging.HardwareMessageToHardwareConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.HardwareDomainRepository;
+import io.github.cloudiator.messaging.HardwareMessageToHardwareConverter;
+import io.github.cloudiator.persistance.HardwareDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
@@ -18,10 +18,10 @@ import org.slf4j.LoggerFactory;
  */
 public class HardwareQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(HardwareQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final HardwareDomainRepository hardwareDomainRepository;
   private final HardwareMessageToHardwareConverter hardwareConverter;
-  private static final Logger LOGGER = LoggerFactory.getLogger(HardwareQuerySubscriber.class);
 
   @Inject
   public HardwareQuerySubscriber(MessageInterface messageInterface,
@@ -54,7 +54,7 @@ public class HardwareQuerySubscriber implements Runnable {
       return;
     }
     if (!request.getHardwareId().isEmpty()) {
-      replyForUserIdAndHardwareId(requestId, request.getUserId(), request.getCloudId());
+      replyForUserIdAndHardwareId(requestId, request.getUserId(), request.getHardwareId());
       return;
     }
     if (!request.getCloudId().isEmpty()) {

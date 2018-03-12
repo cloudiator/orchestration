@@ -12,8 +12,8 @@ import de.uniulm.omi.cloudiator.sword.service.ComputeService;
  */
 public class AssignPublicIp implements Activity {
 
-  private final ComputeService computeService;
   private final static String NO_PUBLIC_IP = "Virtual machine %s has no public ip and public ip service is not supported for compute service %s.";
+  private final ComputeService computeService;
 
   public AssignPublicIp(ComputeService computeService) {
     checkNotNull(computeService, "computeService is null");

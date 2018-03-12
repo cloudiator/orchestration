@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+  vm-store:
+    image: mariadb:latest
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    volumes:
+      - vm_data
+  discovery-agent:
+    depends_on:
+      - "vm-store"
+    image: cloudiator/vm-agent:latest
+    environment:
+      - JPA_USER=${MYSQL_USER}
+      - JPA_PASSWORD=${MYSQL_PASSWORD}
+      - JPA_DATABASE=${MYSQL_DATABASE}
+      - KAFKA_BOOTSTRAP_SERVERS
+      - JPA_HOST=vm-store

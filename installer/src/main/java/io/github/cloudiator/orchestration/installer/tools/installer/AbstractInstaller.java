@@ -22,8 +22,6 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.orchestration.installer.tools.Download;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,44 +39,31 @@ import org.slf4j.LoggerFactory;
  */
 abstract class AbstractInstaller implements InstallApi {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(AbstractInstaller.class);
-
-
-  protected final RemoteConnection remoteConnection;
-
-
-  protected final List<Download> sourcesList = new ArrayList<>();
-
-  //TODO: refactor, replace usage of Play config file
-  //parallel download threads
-  private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
-  //Play.application().configuration().getInt("colosseum.installer.download.threads");
-
   //KairosDBom
   protected static final String KAIROSDB_ARCHIVE = "kairosdb.tar.gz";
   protected static final String KAIRROSDB_DIR = "kairosdb";
   protected static final String KAIROSDB_DOWNLOAD = "https://github.com/kairosdb/kairosdb/releases/download/v0.9.4/kairosdb-0.9.4-6.tar.gz";
-  //Play.application().configuration()
-  //  .getString("colosseum.installer.abstract.kairosdb.download");
-
   //Visor
   protected static final String VISOR_JAR = "visor.jar";
-  protected static final String VISOR_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/visor/visor-service/0.2.0-SNAPSHOT/visor-service-0.2.0-20170127.192822-38.jar";
-  //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
-
+  //Play.application().configuration().getInt("colosseum.installer.download.threads");
+  protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.jar";
   //Lance
   protected static final String LANCE_JAR = "lance.jar";
-  protected static final String LANCE_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/lance/server/0.2.0-SNAPSHOT/server-0.2.0-20170720.150729-50-jar-with-dependencies.jar";
-  //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
-
-
+  protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
+  //Play.application().configuration()
+  //  .getString("colosseum.installer.abstract.kairosdb.download");
   //Java
   protected static final String JAVA_DIR = "jre8";
-
-
   protected static final String VISOR_PROPERTIES = "default.properties";
-
+  //Play.application().configuration().getString("colosseum.installer.abstract.visor.download");
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractInstaller.class);
+  //TODO: refactor, replace usage of Play config file
+  //parallel download threads
+  private static final int NUMBER_OF_DOWNLOAD_THREADS = 1;
+  //Play.application().configuration().getString("colosseum.installer.abstract.lance.download");
+  protected final RemoteConnection remoteConnection;
+  protected final List<String> sourcesList = new ArrayList<>();
   protected final Node node;
 
 
@@ -93,26 +78,18 @@ abstract class AbstractInstaller implements InstallApi {
   }
 
   @Override
-  public void downloadSources(String checkIfExistsCommand) {
+  public void downloadSources() {
 
     LOGGER.debug("Start downloading sources...");
     ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_DOWNLOAD_THREADS);
 
     List<Callable<Integer>> tasks = new ArrayList<>();
 
-    for (final Download download : this.sourcesList) {
+    for (final String downloadCommand : this.sourcesList) {
 
-      //check if source exist
-      if(checkIfSourceExists(checkIfExistsCommand, download.filePath())){
-        LOGGER.debug("Source: " + download + " already exists, skipping download");
-      }else{
-        //if source does not exist add to download list
-        Callable<Integer> downloadTask =
-            new DownloadTask(this.remoteConnection, download.downloadCommand());
-        tasks.add(downloadTask);
-      }
-
-
+      Callable<Integer> downloadTask =
+          new DownloadTask(this.remoteConnection, downloadCommand);
+      tasks.add(downloadTask);
     }
     try {
       List<Future<Integer>> results = executorService.invokeAll(tasks);
@@ -129,24 +106,6 @@ abstract class AbstractInstaller implements InstallApi {
     } catch (ExecutionException e) {
       LOGGER.error("Installer: Execution Exception while downloading sources!", e);
     }
-
-  }
-
-  private boolean checkIfSourceExists(String checkIfExistsCommand, String filePath){
-
-    String command = checkIfExistsCommand.replace("?", filePath);
-
-    try {
-      int exitCode = this.remoteConnection.executeCommand(command).getExitStatus();
-
-      if(exitCode == 0){
-        return true;
-      }
-    } catch (RemoteException e) {
-      LOGGER.error("Error while checking if source already exists!", e);
-    }
-
-    return false;
 
   }
 
@@ -196,4 +155,5 @@ abstract class AbstractInstaller implements InstallApi {
     this.remoteConnection.close();
   }
 }
+
 

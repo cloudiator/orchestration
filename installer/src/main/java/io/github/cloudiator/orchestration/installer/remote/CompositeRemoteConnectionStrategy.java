@@ -34,61 +34,63 @@ import org.slf4j.LoggerFactory;
  */
 public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrategy {
 
-    private static final Logger LOGGER =
-        LoggerFactory.getLogger(CompositeRemoteConnectionStrategy.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CompositeRemoteConnectionStrategy.class);
 
-    private final Set<RemoteConnectionStrategy> strategySet;
+  private final Set<RemoteConnectionStrategy> strategySet;
 
-    public CompositeRemoteConnectionStrategy(Set<RemoteConnectionStrategy> strategySet) {
-        if (strategySet.isEmpty()) {
-            LOGGER.warn(String.format(
-                "%s is initializing with an empty strategy set. This is likely to cause errors.",
-                this));
-        }
-        LOGGER.debug(String
-            .format("%s is loading available strategy set. Contains %s strategies.", this,
-                strategySet.size()));
+  public CompositeRemoteConnectionStrategy(Set<RemoteConnectionStrategy> strategySet) {
+    if (strategySet.isEmpty()) {
+      LOGGER.warn(String.format(
+          "%s is initializing with an empty strategy set. This is likely to cause errors.",
+          this));
+    }
+    LOGGER.debug(String
+        .format("%s is loading available strategy set. Contains %s strategies.", this,
+            strategySet.size()));
 
-            strategySet.forEach(remoteConnectionStrategy -> LOGGER
-                .debug(String.format("%s is loading strategy %s", this, remoteConnectionStrategy)));
+    strategySet.forEach(remoteConnectionStrategy -> LOGGER
+        .debug(String.format("%s is loading strategy %s", this, remoteConnectionStrategy)));
 
+    // wrap in immutable sorted set to ensure comparability.
+    this.strategySet = ImmutableSet.copyOf(Sets.newTreeSet(strategySet));
+  }
 
-        // wrap in immutable sorted set to ensure comparability.
-        this.strategySet = ImmutableSet.copyOf(Sets.newTreeSet(strategySet));
+  @Override
+  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+      throws RemoteException {
+
+    Exception lastException = null;
+    for (RemoteConnectionStrategy remoteConnectionStrategy : strategySet) {
+      try {
+        LOGGER.info(String
+            .format("%s is using strategy %s to connect to virtual machine %s", this,
+                remoteConnectionStrategy, node));
+        return remoteConnectionStrategy.connect(node, operatingSystem);
+      } catch (Exception e) {
+        LOGGER.info(String
+            .format("%s failed connecting to virtual machine %s using strategy %s", this,
+                node, remoteConnectionStrategy), e);
+        lastException = e;
+      }
     }
 
-    @Override public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
-        throws RemoteException {
+    throw new RemoteException(
+        "Tried all available remote connection strategies, but still could not connect to machine.",
+        lastException);
+  }
 
-        Exception lastException = null;
-        for (RemoteConnectionStrategy remoteConnectionStrategy : strategySet) {
-            try {
-                LOGGER.info(String
-                    .format("%s is using strategy %s to connect to virtual machine %s", this,
-                        remoteConnectionStrategy, node));
-                return remoteConnectionStrategy.connect(node, operatingSystem);
-            } catch (Exception e) {
-                LOGGER.info(String
-                    .format("%s failed connecting to virtual machine %s using strategy %s", this,
-                        node, remoteConnectionStrategy), e);
-                lastException = e;
-            }
-        }
-
-        throw new RemoteException(
-            "Tried all available remote connection strategies, but still could not connect to machine.",
-            lastException);
+  @Override
+  public int getPriority() {
+    if (!strategySet.isEmpty()) {
+      return strategySet.stream().findFirst().get().getPriority();
     }
-
-    @Override public int getPriority() {
-        if (!strategySet.isEmpty()) {
-            return strategySet.stream().findFirst().get().getPriority();
-        }
-        return Priority.MEDIUM;
-    }
+    return Priority.MEDIUM;
+  }
 
 
-    @Override public String toString() {
-        return MoreObjects.toStringHelper(this).add("strategies", strategySet).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("strategies", strategySet).toString();
+  }
 }

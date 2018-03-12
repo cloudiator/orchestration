@@ -34,7 +34,7 @@ public interface InstallApi extends AutoCloseable {
   /**
    * download all sources in parallel
    */
-  void downloadSources(String checkIfExistsCommand);
+  void downloadSources();
 
   /**
    * extract Java archive, set Java environement
@@ -66,14 +66,8 @@ public interface InstallApi extends AutoCloseable {
    */
   void installSnap() throws RemoteException;
 
-
-  /**
-   * checks if the provided tools is already running
-   */
-  boolean checkIfToolIsRunning(String toolBinary) throws RemoteException;
-
-
   @Override
   void close() throws RemoteException;
 }
+
 

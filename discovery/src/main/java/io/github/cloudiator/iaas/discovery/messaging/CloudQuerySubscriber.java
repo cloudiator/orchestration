@@ -3,8 +3,8 @@ package io.github.cloudiator.iaas.discovery.messaging;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import io.github.cloudiator.iaas.common.messaging.CloudMessageToCloudConverter;
-import io.github.cloudiator.iaas.common.persistance.domain.CloudDomainRepository;
+import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.cloudiator.messages.Cloud.CloudQueryRequest;
@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
  */
 public class CloudQuerySubscriber implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
   private final CloudMessageToCloudConverter cloudConverter = new CloudMessageToCloudConverter();
-  private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
 
   @Inject
   public CloudQuerySubscriber(MessageInterface messageInterface,
@@ -87,7 +87,7 @@ public class CloudQuerySubscriber implements Runnable {
 
   private void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
-        .addAllClouds(cloudDomainRepository.findByUser(userId).stream().map(
+        .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(
             cloudConverter::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, cloudQueryResponse);
   }

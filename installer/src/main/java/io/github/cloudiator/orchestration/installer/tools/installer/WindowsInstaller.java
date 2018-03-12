@@ -20,8 +20,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.iaas.common.persistance.entities.Tenant;
-import io.github.cloudiator.orchestration.installer.tools.DownloadImpl;
+import io.github.cloudiator.persistance.TenantModel;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
@@ -35,9 +34,6 @@ public class WindowsInstaller extends AbstractInstaller {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(WindowsInstaller.class);
-
-
-  private final String homeDir = "";
   private static final String JAVA_EXE = "jre8.exe";
   private static final String SEVEN_ZIP_ARCHIVE = "7za920.zip";
   private static final String SEVEN_ZIP_DIR = "7zip";
@@ -51,6 +47,7 @@ public class WindowsInstaller extends AbstractInstaller {
   private static final String JAVA_DOWNLOAD = "";
   //Play.application().configuration().getString("colosseum.installer.windows.java.download");
   private static final String SEVEN_ZIP_DOWNLOAD = "";
+  private final String homeDir = "";
   //Play.application().configuration().getString("colosseum.installer.windows.7zip.download");
 
     /*
@@ -61,7 +58,7 @@ public class WindowsInstaller extends AbstractInstaller {
 
 
   public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId,
-      Tenant tenant) {
+      TenantModel tenantModel) {
     super(remoteConnection, node);
 
         /*
@@ -69,7 +66,6 @@ public class WindowsInstaller extends AbstractInstaller {
         checkArgument(virtualMachine.loginCredential().get().password().isPresent(),
             "Expected login password for WindowsInstaller");
         this.password = virtualMachine.loginCredential().get().password().get();
-
         this.homeDir =
             virtualMachine.image().get().operatingSystem().operatingSystemFamily().operatingSystemType()
                 .homeDirFunction().apply(this.user);
@@ -82,37 +78,28 @@ public class WindowsInstaller extends AbstractInstaller {
   public void initSources() {
 
     //java
-    this.sourcesList
-        .add(new DownloadImpl("powershell -command (new-object System.Net.WebClient).DownloadFile('"
-            + WindowsInstaller.JAVA_DOWNLOAD + "','" + this.homeDir + "\\"
-            + WindowsInstaller.JAVA_EXE + "')", this.homeDir + "\\"
-            + WindowsInstaller.JAVA_EXE));
+    this.sourcesList.add("powershell -command (new-object System.Net.WebClient).DownloadFile('"
+        + WindowsInstaller.JAVA_DOWNLOAD + "','" + this.homeDir + "\\"
+        + WindowsInstaller.JAVA_EXE + "')");
     //7zip
-    this.sourcesList
-        .add(new DownloadImpl("powershell -command (new-object System.Net.WebClient).DownloadFile('"
-            + WindowsInstaller.SEVEN_ZIP_DOWNLOAD + "','" + this.homeDir + "\\"
-            + WindowsInstaller.SEVEN_ZIP_ARCHIVE + "')", this.homeDir + "\\"
-            + WindowsInstaller.SEVEN_ZIP_ARCHIVE));
+    this.sourcesList.add("powershell -command (new-object System.Net.WebClient).DownloadFile('"
+        + WindowsInstaller.SEVEN_ZIP_DOWNLOAD + "','" + this.homeDir + "\\"
+        + WindowsInstaller.SEVEN_ZIP_ARCHIVE + "')");
     //download visor
-    this.sourcesList
-        .add(new DownloadImpl("powershell -command (new-object System.Net.WebClient).DownloadFile('"
-            + VISOR_DOWNLOAD + "','" + this.homeDir + "\\"
-            + VISOR_JAR + "')", this.homeDir + "\\"
-            + VISOR_JAR));
+    this.sourcesList.add("powershell -command (new-object System.Net.WebClient).DownloadFile('"
+        + VISOR_DOWNLOAD + "','" + this.homeDir + "\\"
+        + VISOR_JAR + "')");
     if (KAIROS_REQUIRED) {
       //download kairosDB
-      this.sourcesList.add(new DownloadImpl(
+      this.sourcesList.add(
           "powershell -command (new-object System.Net.WebClient).DownloadFile('"
               + KAIROSDB_DOWNLOAD + "','" + this.homeDir + "\\"
-              + KAIROSDB_ARCHIVE + "')", this.homeDir + "\\"
-          + KAIROSDB_ARCHIVE));
+              + KAIROSDB_ARCHIVE + "')");
     }
     //lance
-    this.sourcesList
-        .add(new DownloadImpl("powershell -command (new-object System.Net.WebClient).DownloadFile('"
-            + LANCE_DOWNLOAD + "','" + this.homeDir + "\\"
-            + LANCE_JAR + "')", this.homeDir + "\\"
-            + LANCE_JAR));
+    this.sourcesList.add("powershell -command (new-object System.Net.WebClient).DownloadFile('"
+        + LANCE_DOWNLOAD + "','" + this.homeDir + "\\"
+        + LANCE_JAR + "')");
 
 
   }
@@ -287,7 +274,7 @@ public class WindowsInstaller extends AbstractInstaller {
     LOGGER.debug("Starting installation of all tools on WINDOWS...");
 
     this.initSources();
-    this.downloadSources(this.getCheckIfSourceExistCommand());
+    this.downloadSources();
 
     this.installJava();
 
@@ -303,19 +290,6 @@ public class WindowsInstaller extends AbstractInstaller {
   @Override
   public void installSnap() throws RemoteException {
     //TODO
-  }
-
-  @Override
-  public boolean checkIfToolIsRunning(String toolBinary) throws RemoteException {
-    return false;
-  }
-
-  private String getCheckIfSourceExistCommand() {
-
-    //replace $ with the path to check
-    //TODO: fix for Powershell!
-    String command = "[ -f \"$\" ] || { exit 99 ;}";
-    return command;
   }
 
   private void waitForSchtaskCreation() {

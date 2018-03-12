@@ -1,7 +1,6 @@
 package io.github.cloudiator.orchestration.installer.tools;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,17 +9,19 @@ import java.util.List;
  */
 public class StatementListImpl implements StatementList {
 
-    private final List<Statement> statements;
+  private final List<Statement> statements;
 
-    public StatementListImpl(List<Statement> statements) {
-        this.statements = ImmutableList.copyOf(statements);
-    }
+  public StatementListImpl(List<Statement> statements) {
+    this.statements = ImmutableList.copyOf(statements);
+  }
 
-    @Override public List<Statement> statements() {
-        return statements;
-    }
+  @Override
+  public List<Statement> statements() {
+    return statements;
+  }
 
-    @Override public Iterator<Statement> iterator() {
-        return statements.iterator();
-    }
+  @Override
+  public Iterator<Statement> iterator() {
+    return statements.iterator();
+  }
 }

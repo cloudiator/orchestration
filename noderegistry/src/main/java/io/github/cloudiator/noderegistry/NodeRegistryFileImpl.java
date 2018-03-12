@@ -1,12 +1,11 @@
 package io.github.cloudiator.noderegistry;
 
-import java.io.File; 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ final class NodeRegistryFileImpl<T> implements NodeRegistry<T> {
   public synchronized void remove(String key) throws RegistryException {
     HashMap<String, T> map = readFromFile();
     T b = map.remove(key);
-    if(b == null) {
+    if (b == null) {
       LOGGER.debug("cannot delete vm with ID '" + key + "'. Id not known.");
     } else {
       LOGGER.info("deleted vm with ID '" + key + "'.");
@@ -38,7 +37,7 @@ final class NodeRegistryFileImpl<T> implements NodeRegistry<T> {
       throws RegistryException {
     HashMap<String, T> map = readFromFile();
     T b = map.put(key, t);
-    if(b != null) {
+    if (b != null) {
       LOGGER.debug("created entry for vm with ID '" + key + "', but Id already exists.");
     } else {
       LOGGER.info("created entry for vm with ID '" + key + "'.");

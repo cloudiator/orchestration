@@ -5,6 +5,6 @@ package io.github.cloudiator.orchestration.installer.tools;
  */
 public interface Statement {
 
-    String command();
+  String command();
 
 }

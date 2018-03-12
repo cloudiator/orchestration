@@ -7,11 +7,11 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystem;
  */
 public interface Environment {
 
-    String homeDir();
+  String homeDir();
 
-    OperatingSystem os();
+  OperatingSystem os();
 
-    String publicIp();
+  String publicIp();
 
-    String privateIp();
+  String privateIp();
 }

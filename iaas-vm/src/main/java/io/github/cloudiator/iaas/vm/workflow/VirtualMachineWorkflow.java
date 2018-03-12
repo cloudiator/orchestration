@@ -1,6 +1,5 @@
 package io.github.cloudiator.iaas.vm.workflow;
 
-import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 
 /**
@@ -10,7 +9,6 @@ public class VirtualMachineWorkflow extends AbstractWorkflow {
 
   private final ComputeService computeService;
 
-  @Inject
   public VirtualMachineWorkflow(
       ComputeService computeService) {
     this.computeService = computeService;

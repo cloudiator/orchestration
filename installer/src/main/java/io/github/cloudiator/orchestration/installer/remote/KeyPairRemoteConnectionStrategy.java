@@ -31,7 +31,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
-import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
+import io.github.cloudiator.messaging.OperatingSystemConverter;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
@@ -46,29 +46,30 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
   private static final Logger LOGGER =
       LoggerFactory.getLogger(KeyPairRemoteConnectionStrategy.class);
 
-    public KeyPairRemoteConnectionStrategy() {
+  public KeyPairRemoteConnectionStrategy() {
+  }
+
+  @Override
+  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+      throws RemoteException {
+
+    //final Optional<String> anyPublicAddress =
+    //  virtualMachine.publicAddresses().stream().findAny();
+
+    //checkArgument(anyPublicAddress.isPresent(),
+    //  "Virtual machine must have a public ip address.");
+
+    //checkArgument(virtualMachine.loginCredential().isPresent(),
+    //  "Virtual machine must have login credentials available.");
+
+    String publicIp = null;
+    for (IaasEntities.IpAddress ipAddress : node.getIpAddressesList()
+        ) {
+      if (ipAddress.getType().equals(IpAddressType.PUBLIC_IP)) {
+        publicIp = ipAddress.getIp();
+      }
     }
-
-    @Override public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
-        throws RemoteException {
-
-        //final Optional<String> anyPublicAddress =
-          //  virtualMachine.publicAddresses().stream().findAny();
-
-        //checkArgument(anyPublicAddress.isPresent(),
-          //  "Virtual machine must have a public ip address.");
-
-        //checkArgument(virtualMachine.loginCredential().isPresent(),
-          //  "Virtual machine must have login credentials available.");
-
-        String publicIp = null;
-        for (IaasEntities.IpAddress ipAddress:node.getIpAddressesList()
-            ) {
-            if(ipAddress.getType().equals(IpAddressType.PUBLIC_IP)){
-                publicIp = ipAddress.getIp();
-            }
-        }
-        checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
+    checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
 
         /*
         String privateKey = virtualMachine.loginCredential().get().privateKey()
@@ -81,40 +82,43 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
             });
          */
 
-      String privateKey = node.getLoginCredential().getPrivateKey();
-      checkState(!privateKey.isEmpty(),"Could not retrieve a key pair for node!");
+    String privateKey = node.getLoginCredential().getPrivateKey();
+    checkState(!privateKey.isEmpty(), "Could not retrieve a key pair for node!");
 
-      LOGGER.debug(privateKey);
+    LOGGER.debug(privateKey);
 
-        int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
-        RemoteType remoteType =operatingSystem.operatingSystemFamily().operatingSystemType().remoteType();
+    int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
+    RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType()
+        .remoteType();
 
-        //get username from credential or OS
-        String userName;
-        if(!node.getLoginCredential().getUsername().isEmpty()){
-          userName = node.getLoginCredential().getUsername();
-        }else{
+    //get username from credential or OS
+    String userName;
+    if (!node.getLoginCredential().getUsername().isEmpty()) {
+      userName = node.getLoginCredential().getUsername();
+    } else {
 
-          OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
-          OperatingSystem operatingSystemDomain = operatingSystemConverter.apply(node.getNodeProperties().getOperationSystem());
+      OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
+      OperatingSystem operatingSystemDomain = operatingSystemConverter
+          .apply(node.getNodeProperties().getOperationSystem());
 
-          userName = operatingSystemDomain.operatingSystemFamily().loginName();
-        }
-
-        return RemoteBuilder.newBuilder()
-            .remoteModule(new OverthereModule())
-            .properties(PropertiesBuilder.newBuilder().build())
-            .build().getRemoteConnection( HostAndPort
-                    .fromParts(publicIp, remotePort),
-                remoteType,
-                LoginCredentialBuilder.newBuilder()
-                    .privateKey(privateKey)
-                    .username(userName)
-                    .build());
+      userName = operatingSystemDomain.operatingSystemFamily().loginName();
     }
 
-    @Override public int getPriority() {
-        return Prioritized.Priority.HIGH;
-    }
+    return RemoteBuilder.newBuilder()
+        .remoteModule(new OverthereModule())
+        .properties(PropertiesBuilder.newBuilder().build())
+        .build().getRemoteConnection(HostAndPort
+                .fromParts(publicIp, remotePort),
+            remoteType,
+            LoginCredentialBuilder.newBuilder()
+                .privateKey(privateKey)
+                .username(userName)
+                .build());
+  }
+
+  @Override
+  public int getPriority() {
+    return Prioritized.Priority.HIGH;
+  }
 
 }

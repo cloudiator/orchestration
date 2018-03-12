@@ -20,7 +20,6 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.orchestration.installer.tools.DownloadImpl;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
 import org.slf4j.Logger;
@@ -38,13 +37,6 @@ public class UnixInstaller extends AbstractInstaller {
 
   private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
   private static final String TOOL_PATH = "/opt/cloudiator/";
-
-  /**
-   * shell command to check if the source file of a tool exists
-   */
-  private static final String CHECK_IF_SOURCE_EXIST_COMMAND = "[ -f \"$\" ] || { exit 99 ;}";
-
-  private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + JAVA_DIR + "/bin/java";
   private static final String JAVA_ARCHIVE = "jre8.tar.gz";
   private static final String JAVA_DOWNLOAD = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=106240";
   //Play.application().configuration().getString("colosseum.installer.linux.java.download");
@@ -62,6 +54,7 @@ public class UnixInstaller extends AbstractInstaller {
   //Play.application().configuration()
   //  .getBoolean("colosseum.installer.linux.lance.docker.install.flag");
   private static final String SNAP_DOWNLOAD = "https://packagecloud.io/install/repositories/intelsdi-x/snap/script.deb.sh";
+  private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + JAVA_DIR + "/bin/java";
 
 
   public UnixInstaller(RemoteConnection remoteConnection, Node node) {
@@ -92,41 +85,31 @@ public class UnixInstaller extends AbstractInstaller {
 
     //java
     this.sourcesList
-        .add(
-            new DownloadImpl(
-                "sudo wget " + UnixInstaller.JAVA_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
-                    + UnixInstaller.JAVA_ARCHIVE,
-                "UnixInstaller.TOOL_PATH + UnixInstaller.JAVA_ARCHIVE"));
+        .add("sudo wget " + UnixInstaller.JAVA_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
+            + UnixInstaller.JAVA_ARCHIVE);
     //lance
     this.sourcesList
-        .add(new DownloadImpl(
-            "sudo wget " + LANCE_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH + LANCE_JAR,
-            "UnixInstaller.TOOL_PATH + LANCE_JAR"));
+        .add("sudo wget " + LANCE_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH + LANCE_JAR);
 
     if (DOCKER_REQUIRED) {
       //docker
-      this.sourcesList.add(new DownloadImpl(
+      this.sourcesList.add(
           "sudo wget " + UnixInstaller.DOCKER_RETRY_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
-              + UnixInstaller.DOCKER_RETRY_INSTALL, UnixInstaller.TOOL_PATH
-          + UnixInstaller.DOCKER_RETRY_INSTALL));
-      this.sourcesList.add(new DownloadImpl(
+              + UnixInstaller.DOCKER_RETRY_INSTALL);
+      this.sourcesList.add(
           "sudo wget " + UnixInstaller.DOCKER_FIX_MTU_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
-              + UnixInstaller.DOCKER_FIX_MTU_INSTALL, UnixInstaller.TOOL_PATH
-          + UnixInstaller.DOCKER_FIX_MTU_INSTALL));
+              + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
     }
 
     if (KAIROS_REQUIRED) {
       //kairosDB
       this.sourcesList.
-          add(new DownloadImpl("sudo wget " + KAIROSDB_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
-              + KAIROSDB_ARCHIVE, UnixInstaller.TOOL_PATH
-              + KAIROSDB_ARCHIVE));
+          add("sudo wget " + KAIROSDB_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH
+              + KAIROSDB_ARCHIVE);
     }
     //visor
     this.sourcesList
-        .add(new DownloadImpl(
-            "sudo wget " + VISOR_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR,
-            UnixInstaller.TOOL_PATH + VISOR_JAR));
+        .add("sudo wget " + VISOR_DOWNLOAD + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
 
   }
 
@@ -213,38 +196,28 @@ public class UnixInstaller extends AbstractInstaller {
           "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
 
     }
+    LOGGER.debug(String.format("Installing and starting Lance on node %s", node.getId()));
 
-    if(this.checkIfToolIsRunning(LANCE_JAR)){
+    //start Lance
+    String startCommand =
+        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
+            .getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
+            .findAny().get().getIp()
+            + " -Dhost.ip.private=" +
+            node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP)
+                .findAny().get().getIp() + " -Djava.rmi.server.hostname="
+            + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
+            .findAny().get().getIp() + " -Dhost.vm.id="
+            + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId()
+            + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
+            + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
 
-      LOGGER.debug("Lance already running on node %s, skipping starting Lance", node.getId());
+    LOGGER.debug("Lance start command: " + startCommand);
 
-    }else{
-      LOGGER.debug(String.format("Starting Lance on node %s", node.getId()));
-      //start Lance
-      String startCommand =
-          "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
-              .getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-              .findAny().get().getIp()
-              + " -Dhost.ip.private=" +
-              node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP)
-                  .findAny().get().getIp() + " -Djava.rmi.server.hostname="
-              + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-              .findAny().get().getIp() + " -Dhost.vm.id="
-              + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId()
-              + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
-              + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
+    this.remoteConnection.executeCommand(startCommand);
 
-      LOGGER.debug("Lance start command: " + startCommand);
-
-      this.remoteConnection.executeCommand(startCommand);
-
-      LOGGER.debug(
-          String.format("Lance installed and started successfully on node %s", node.getId()));
-    }
-
-
-
-
+    LOGGER.debug(
+        String.format("Lance installed and started successfully on node %s", node.getId()));
   }
 
   @Override
@@ -277,18 +250,6 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
   @Override
-  public boolean checkIfToolIsRunning(String toolBinary) throws RemoteException {
-
-    String command = " [ `pgrep " + toolBinary + "` ] && exit 0  || exit 99";
-
-    int exitCode = this.remoteConnection.executeCommand(command).getExitStatus();
-
-    if(exitCode==0)return true;
-
-    return false;
-  }
-
-  @Override
   public void installAll() throws RemoteException {
 
     LOGGER.debug(
@@ -298,7 +259,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     this.initToolDirectory();
 
-    this.downloadSources(CHECK_IF_SOURCE_EXIST_COMMAND);
+    this.downloadSources();
 
     this.installJava();
 

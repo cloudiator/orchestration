@@ -5,13 +5,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.Node.NodeEvent;
+import org.cloudiator.messages.NodeEntities.Node;
 
 /**
  * Created by Daniel Seybold on 20.07.2017.
  */
 public class InstallNodeEventQueue {
+
+  private final BlockingQueue<NodeEventItem> pendingRequests;
+
+  public InstallNodeEventQueue() {
+    this.pendingRequests = new LinkedBlockingQueue<>();
+  }
+
+  public NodeEventItem take() throws InterruptedException {
+    return pendingRequests.take();
+  }
+
+  public void add(String requestId, NodeEvent request) {
+    pendingRequests.add(new NodeEventItem(requestId, request.getNode()));
+  }
 
   static class NodeEventItem {
 
@@ -37,20 +51,6 @@ public class InstallNodeEventQueue {
     }
 
 
-  }
-
-  private final BlockingQueue<NodeEventItem> pendingRequests;
-
-  public InstallNodeEventQueue() {
-    this.pendingRequests = new LinkedBlockingQueue<>();
-  }
-
-  public NodeEventItem take() throws InterruptedException {
-    return pendingRequests.take();
-  }
-
-  public void add(String requestId, NodeEvent request) {
-    pendingRequests.add(new NodeEventItem(requestId, request.getNode()));
   }
 
 }

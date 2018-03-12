@@ -5,7 +5,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.iaas.common.messaging.OperatingSystemConverter;
+import io.github.cloudiator.messaging.OperatingSystemConverter;
 import io.github.cloudiator.orchestration.installer.InstallNodeEventQueue.NodeEventItem;
 import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
@@ -28,7 +28,7 @@ public class InstallNodeEventQueueWorker implements Runnable {
   private final InstallNodeEventQueue installNodeEventQueue;
 
   @Inject
-  InstallNodeEventQueueWorker(InstallNodeEventQueue installNodeEventQueue){
+  InstallNodeEventQueueWorker(InstallNodeEventQueue installNodeEventQueue) {
     this.installNodeEventQueue = installNodeEventQueue;
   }
 
@@ -69,13 +69,14 @@ public class InstallNodeEventQueueWorker implements Runnable {
 
   }
 
-  final void handleRequest(String requestId, Node node){
+  final void handleRequest(String requestId, Node node) {
 
+    OperatingSystem operatingSystem = new OperatingSystemConverter()
+        .apply(node.getNodeProperties().getOperationSystem());
 
-    OperatingSystem operatingSystem = new OperatingSystemConverter().apply(node.getNodeProperties().getOperationSystem());
-
-    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(Sets.newHashSet(
-        new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
+    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
+        Sets.newHashSet(
+            new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
 
     try {
       RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node, operatingSystem);
@@ -91,7 +92,7 @@ public class InstallNodeEventQueueWorker implements Runnable {
 
   }
 
-  public void installTools(RemoteConnection remoteConnection, Node node){
+  public void installTools(RemoteConnection remoteConnection, Node node) {
 
     UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node);
 
@@ -101,7 +102,7 @@ public class InstallNodeEventQueueWorker implements Runnable {
       unixInstaller.installAll();
 
     } catch (RemoteException e) {
-      LOGGER.error("Error while installing sources" , e);
+      LOGGER.error("Error while installing sources", e);
     }
 
   }
