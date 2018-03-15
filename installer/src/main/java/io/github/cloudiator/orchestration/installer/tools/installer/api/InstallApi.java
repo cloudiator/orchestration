@@ -61,10 +61,6 @@ public interface InstallApi extends AutoCloseable {
    */
   void installAll() throws RemoteException;
 
-  /**
-   * Download and install snap telemetry
-   */
-  void installSnap() throws RemoteException;
 
   @Override
   void close() throws RemoteException;

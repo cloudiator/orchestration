@@ -1,20 +1,8 @@
 package io.github.cloudiator.orchestration.installer;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import com.google.common.collect.Sets;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.messaging.OperatingSystemConverter;
-import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.cloudiator.messaging.MessageInterface;
@@ -42,6 +30,8 @@ public class NodeEventSubscriber implements Runnable {
   @Override
   public void run() {
 
+    /*
+
     subscription = messagingService.subscribe(NodeEvent.class,
         NodeEvent.parser(), (requestId, NodeEvent) -> {
           Node node = NodeEvent.getNode();
@@ -56,9 +46,13 @@ public class NodeEventSubscriber implements Runnable {
           }
         });
 
+        */
+
   }
 
   final void handleRequest(String requestId, Node node) {
+
+    /*
 
     checkState(!node.getUserId().isEmpty(), "No userId set for node: " + node.getId() + " !");
 
@@ -80,11 +74,14 @@ public class NodeEventSubscriber implements Runnable {
       LOGGER.error("Unable to establish remote connection!", e);
     }
 
+    */
+
 
   }
 
   public void installTools(RemoteConnection remoteConnection, Node node) {
 
+    /*
     UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node);
 
     try {
@@ -96,6 +93,8 @@ public class NodeEventSubscriber implements Runnable {
       LOGGER.error("Error while installing sources", e);
     }
 
+    */
+
   }
 
 
@@ -106,7 +105,7 @@ public class NodeEventSubscriber implements Runnable {
   }
 
   final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
-    messagingService.reply(NodeEvent.class, messageId,
+    messagingService.reply(Node.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 }

@@ -22,8 +22,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.net.HostAndPort;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.domain.RemoteType;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.PropertiesBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
@@ -31,10 +31,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
-import io.github.cloudiator.messaging.OperatingSystemConverter;
-import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.entities.IaasEntities;
-import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
+import io.github.cloudiator.domain.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +47,7 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
   }
 
   @Override
-  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+  public RemoteConnection connect(Node node)
       throws RemoteException {
 
     //final Optional<String> anyPublicAddress =
@@ -63,10 +60,9 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
     //  "Virtual machine must have login credentials available.");
 
     String publicIp = null;
-    for (IaasEntities.IpAddress ipAddress : node.getIpAddressesList()
-        ) {
-      if (ipAddress.getType().equals(IpAddressType.PUBLIC_IP)) {
-        publicIp = ipAddress.getIp();
+    for (IpAddress ipAddress : node.ipAddresses()) {
+      if (ipAddress.type().equals(IpAddress.IpAddressType.PUBLIC)) {
+        publicIp = ipAddress.ip();
       }
     }
     checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
@@ -82,26 +78,24 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
             });
          */
 
-    String privateKey = node.getLoginCredential().getPrivateKey();
+    //TODO: check if present
+    String privateKey = node.loginCredential().get().privateKey().get();
+
     checkState(!privateKey.isEmpty(), "Could not retrieve a key pair for node!");
 
     LOGGER.debug(privateKey);
 
-    int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
-    RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType()
-        .remoteType();
+    int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily().remotePort();
+
+    RemoteType remoteType = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remoteType();
 
     //get username from credential or OS
     String userName;
-    if (!node.getLoginCredential().getUsername().isEmpty()) {
-      userName = node.getLoginCredential().getUsername();
+    if (!node.loginCredential().get().username().isPresent()) {
+      userName = node.loginCredential().get().username().get();
     } else {
 
-      OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
-      OperatingSystem operatingSystemDomain = operatingSystemConverter
-          .apply(node.getNodeProperties().getOperationSystem());
-
-      userName = operatingSystemDomain.operatingSystemFamily().loginName();
+      userName = node.nodeProperties().operatingSystem().get().operatingSystemFamily().loginName();
     }
 
     return RemoteBuilder.newBuilder()

@@ -23,28 +23,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.net.HostAndPort;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.domain.RemoteType;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.PropertiesBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
-import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.entities.IaasEntities;
-import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
+import io.github.cloudiator.domain.Node;
 
 /**
  * Created by daniel on 01.09.15.
  */
 public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrategy {
 
+
   public PasswordRemoteConnectionStrategy() {
   }
 
   @Override
-  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+  public RemoteConnection connect(Node node)
       throws RemoteException {
 
     //TODO: check if still required
@@ -54,10 +53,10 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
     //check public Ip(s)
 
     String publicIp = null;
-    for (IaasEntities.IpAddress ipAddress : node.getIpAddressesList()
+    for (IpAddress ipAddress : node.ipAddresses()
         ) {
-      if (ipAddress.getType().equals(IpAddressType.PUBLIC_IP)) {
-        publicIp = ipAddress.getIp();
+      if (ipAddress.type().equals(IpAddress.IpAddressType.PUBLIC)) {
+        publicIp = ipAddress.ip();
       }
     }
 
@@ -76,11 +75,12 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
         }
     */
 
-    checkState(node.getLoginCredential().getPassword().isEmpty(), "No password provided!");
+    checkState(!node.loginCredential().get().password().isPresent(), "No password provided!");
 
-    int remotePort = operatingSystem.operatingSystemFamily().operatingSystemType().remotePort();
-    RemoteType remoteType = operatingSystem.operatingSystemFamily().operatingSystemType()
-        .remoteType();
+
+    int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remotePort();
+    RemoteType remoteType = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remoteType();
+
 
     //TODO: check if required
     // Map<String, Object> properties =
@@ -93,8 +93,8 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
                 .fromParts(publicIp, remotePort),
             remoteType,
             LoginCredentialBuilder.newBuilder()
-                .password(node.getLoginCredential().getPassword())
-                .username(node.getLoginCredential().getUsername())
+                .password(node.loginCredential().get().password().get())
+                .username(node.loginCredential().get().username().get())
                 .build());
 
 

@@ -18,11 +18,10 @@
 
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.persistance.TenantModel;
-import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
+import io.github.cloudiator.domain.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +56,8 @@ public class WindowsInstaller extends AbstractInstaller {
     */
 
 
-  public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId,
-      TenantModel tenantModel) {
-    super(remoteConnection, node);
+  public WindowsInstaller(RemoteConnection remoteConnection, Node node, String userId) {
+    super(remoteConnection, node, userId);
 
         /*
         this.user = virtualMachine.loginCredential().get().username().get();
@@ -241,15 +239,15 @@ public class WindowsInstaller extends AbstractInstaller {
 
     //create a .bat file to start Lance, because it is not possible to pass schtasks paramters using overthere
     String startCommand =
-        " java " + " -Dhost.ip.public=" + node.getIpAddressesList().stream()
-            .filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
-            + " -Dhost.ip.private=" + node.getIpAddressesList().stream()
-            .filter(p -> p.getType() == IpAddressType.PRIVATE_IP).findAny().get()
-            + " -Djava.rmi.server.hostname=" + node.getIpAddressesList().stream()
-            .filter(p -> p.getType() == IpAddressType.PUBLIC_IP).findAny().get()
-            + " -Dhost.vm.id=" + node.getId()
-            + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId() + " -Dhost.vm.cloud.id="
-            + node.getId() + " -jar " + this.homeDir + "\\"
+        " java " + " -Dhost.ip.public=" + node.ipAddresses().stream()
+            .filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC).findAny().get()
+            + " -Dhost.ip.private=" + node.ipAddresses().stream()
+            .filter(p -> p.type() == IpAddress.IpAddressType.PRIVATE).findAny().get()
+            + " -Djava.rmi.server.hostname=" + node.ipAddresses().stream()
+            .filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC).findAny().get()
+            + " -Dhost.vm.id=" + node.id()
+            + " -Dhost.vm.cloud.tenant.id=" + this.userId + " -Dhost.vm.cloud.id="
+            + node.id() + " -jar " + this.homeDir + "\\"
             + LANCE_JAR;
     this.remoteConnection
         .writeFile(this.homeDir + "\\" + WindowsInstaller.LANCE_BAT, startCommand, false);
@@ -284,20 +282,7 @@ public class WindowsInstaller extends AbstractInstaller {
     this.installKairosDb();
 
     this.installVisor();
-    this.installSnap();
   }
 
-  @Override
-  public void installSnap() throws RemoteException {
-    //TODO
-  }
 
-  private void waitForSchtaskCreation() {
-    //Sleep 5 seconds to make sure the schtask creation is finished
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      LOGGER.error("Error while waiting for schtask to be created!", e);
-    }
-  }
 }

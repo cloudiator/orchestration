@@ -21,11 +21,10 @@ package io.github.cloudiator.orchestration.installer.remote;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import io.github.cloudiator.domain.Node;
 import java.util.Set;
-import org.cloudiator.messages.NodeEntities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,7 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
   }
 
   @Override
-  public RemoteConnection connect(Node node, OperatingSystem operatingSystem)
+  public RemoteConnection connect(Node node)
       throws RemoteException {
 
     Exception lastException = null;
@@ -66,7 +65,7 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
         LOGGER.info(String
             .format("%s is using strategy %s to connect to virtual machine %s", this,
                 remoteConnectionStrategy, node));
-        return remoteConnectionStrategy.connect(node, operatingSystem);
+        return remoteConnectionStrategy.connect(node);
       } catch (Exception e) {
         LOGGER.info(String
             .format("%s failed connecting to virtual machine %s using strategy %s", this,

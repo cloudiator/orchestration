@@ -18,10 +18,10 @@
 
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.entities.IaasEntities.IpAddressType;
+import io.github.cloudiator.domain.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +57,8 @@ public class UnixInstaller extends AbstractInstaller {
   private final String JAVA_BINARY = UnixInstaller.TOOL_PATH + JAVA_DIR + "/bin/java";
 
 
-  public UnixInstaller(RemoteConnection remoteConnection, Node node) {
-    super(remoteConnection, node);
+  public UnixInstaller(RemoteConnection remoteConnection, Node node, String userId) {
+    super(remoteConnection, node, userId);
 
   }
 
@@ -68,7 +68,7 @@ public class UnixInstaller extends AbstractInstaller {
 
       LOGGER.debug(String.format(
           "Creating cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
-          node.getId()));
+          node.id()));
 
       this.remoteConnection.executeCommand("sudo mkdir " + UnixInstaller.TOOL_PATH);
 
@@ -117,7 +117,7 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installJava() throws RemoteException {
 
-    LOGGER.debug(String.format("Starting Java installation on node %s", node.getId()));
+    LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
     //create directory
     this.remoteConnection.executeCommand("sudo mkdir " + TOOL_PATH + JAVA_DIR);
     //extract java
@@ -127,13 +127,13 @@ public class UnixInstaller extends AbstractInstaller {
             + " --strip-components=1");
     // do not set symbolic link or PATH as there might be other Java versions on the VM
 
-    LOGGER.debug(String.format("Java was successfully installed on node %s", node.getId()));
+    LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
   }
 
   @Override
   public void installVisor() throws RemoteException {
 
-    LOGGER.debug(String.format("Setting up Visor on node %s", node.getId()));
+    LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
     //create properties file
     this.remoteConnection.writeFile("/tmp/" + VISOR_PROPERTIES,
         this.buildDefaultVisorConfig(), false);
@@ -150,7 +150,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     LOGGER.debug("Visor start command: " + startCommand);
     this.remoteConnection.executeCommand(startCommand);
-    LOGGER.debug(String.format("Visor started successfully on node %s", node.getId()));
+    LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
   }
 
   @Override
@@ -159,7 +159,7 @@ public class UnixInstaller extends AbstractInstaller {
     if (KAIROS_REQUIRED) {
 
       LOGGER
-          .debug(String.format("Installing and starting KairosDB on node %s", node.getId()));
+          .debug(String.format("Installing and starting KairosDB on node %s", node.id()));
       this.remoteConnection.executeCommand("sudo mkdir " + KAIRROSDB_DIR);
 
       this.remoteConnection.executeCommand(
@@ -170,7 +170,7 @@ public class UnixInstaller extends AbstractInstaller {
           " sudo su -c \"(export PATH=\"" + UnixInstaller.TOOL_PATH + "/jre8/bin/:\"$PATH;nohup "
               + KAIRROSDB_DIR + "/bin/kairosdb.sh start)\"");
 
-      LOGGER.debug(String.format("KairosDB started successfully on node %s", node.getId()));
+      LOGGER.debug(String.format("KairosDB started successfully on node %s", node.id()));
     }
   }
 
@@ -179,7 +179,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     if (DOCKER_REQUIRED) {
       LOGGER.debug(
-          String.format("Installing and starting Lance: Docker on node %s", node.getId()));
+          String.format("Installing and starting Lance: Docker on node %s", node.id()));
 
       this.remoteConnection
           .executeCommand("sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL);
@@ -196,19 +196,19 @@ public class UnixInstaller extends AbstractInstaller {
           "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
 
     }
-    LOGGER.debug(String.format("Installing and starting Lance on node %s", node.getId()));
+    LOGGER.debug(String.format("Installing and starting Lance on node %s", node.id()));
 
     //start Lance
     String startCommand =
         "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
-            .getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-            .findAny().get().getIp()
+            .ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC)
+            .findAny().get().ip()
             + " -Dhost.ip.private=" +
-            node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PRIVATE_IP)
-                .findAny().get().getIp() + " -Djava.rmi.server.hostname="
-            + node.getIpAddressesList().stream().filter(p -> p.getType() == IpAddressType.PUBLIC_IP)
-            .findAny().get().getIp() + " -Dhost.vm.id="
-            + this.node.getId() + " -Dhost.vm.cloud.tenant.id=" + this.node.getUserId()
+            node.ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PRIVATE)
+                .findAny().get().ip() + " -Djava.rmi.server.hostname="
+            + node.ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC)
+            .findAny().get().ip() + " -Dhost.vm.id="
+            + this.node.id() + " -Dhost.vm.cloud.tenant.id=" + this.userId
             + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
             + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
 
@@ -217,43 +217,16 @@ public class UnixInstaller extends AbstractInstaller {
     this.remoteConnection.executeCommand(startCommand);
 
     LOGGER.debug(
-        String.format("Lance installed and started successfully on node %s", node.getId()));
+        String.format("Lance installed and started successfully on node %s", node.id()));
   }
 
-  @Override
-  public void installSnap() throws RemoteException {
 
-    LOGGER.debug(String.format("Installing and starting Snap on node %s", node.getId()));
-
-    //download snap
-    this.remoteConnection
-        .executeCommand("sudo curl -s " + SNAP_DOWNLOAD + " | sudo bash > snap_preinstall.out");
-
-    //install snap
-    this.remoteConnection.executeCommand(
-        "sudo apt-get install -y snap-telemetry > snap_install.out");
-
-    //start snap service
-    if (node.getNodeProperties().getOperationSystem().getOperatingSystemVersion()
-        .startsWith("15.10") ||
-        node.getNodeProperties().getOperationSystem().getOperatingSystemVersion().startsWith("16")
-        ||
-        node.getNodeProperties().getOperationSystem().getOperatingSystemVersion()
-            .startsWith("17")) {
-      this.remoteConnection.executeCommand("systemctl snap-telemetry start");
-    } else { // assume its 14.10 or earlier
-      this.remoteConnection.executeCommand("service start snap-telemetry");
-    }
-
-    LOGGER.debug(
-        String.format("Snap installed and started successfully on node %s", node.getId()));
-  }
 
   @Override
   public void installAll() throws RemoteException {
 
     LOGGER.debug(
-        String.format("Starting installation of all tools on UNIX on node %s", node.getId()));
+        String.format("Starting installation of all tools on UNIX on node %s", node.id()));
 
     this.initSources();
 
@@ -269,9 +242,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     this.installVisor();
 
-    this.installSnap();
 
-    this.installSnap();
   }
 }
 

@@ -1,17 +1,7 @@
 package io.github.cloudiator.orchestration.installer;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
-import io.github.cloudiator.messaging.OperatingSystemConverter;
 import io.github.cloudiator.orchestration.installer.InstallNodeEventQueue.NodeEventItem;
-import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.tools.installer.UnixInstaller;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine;
 import org.slf4j.Logger;
@@ -71,6 +61,8 @@ public class InstallNodeEventQueueWorker implements Runnable {
 
   final void handleRequest(String requestId, Node node) {
 
+    /*
+
     OperatingSystem operatingSystem = new OperatingSystemConverter()
         .apply(node.getNodeProperties().getOperationSystem());
 
@@ -89,23 +81,11 @@ public class InstallNodeEventQueueWorker implements Runnable {
       LOGGER.error("Unable to establish remote connection!", e);
     }
 
+    */
+
 
   }
 
-  public void installTools(RemoteConnection remoteConnection, Node node) {
-
-    UnixInstaller unixInstaller = new UnixInstaller(remoteConnection, node);
-
-    try {
-
-      LOGGER.debug("Remote connection established, starting to isntall clouiator tools...");
-      unixInstaller.installAll();
-
-    } catch (RemoteException e) {
-      LOGGER.error("Error while installing sources", e);
-    }
-
-  }
 
 
   final void sendSuccessResponse(String messageId, VirtualMachine vm) {

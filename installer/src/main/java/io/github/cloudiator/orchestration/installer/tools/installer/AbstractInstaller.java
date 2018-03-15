@@ -22,6 +22,7 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.cloudiator.messages.NodeEntities.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,14 +66,18 @@ abstract class AbstractInstaller implements InstallApi {
   protected final List<String> sourcesList = new ArrayList<>();
   protected final Node node;
 
+  //TODO: might be changed to Tenant
+  protected final String userId;
 
-  public AbstractInstaller(RemoteConnection remoteConnection, Node node) {
+
+  public AbstractInstaller(RemoteConnection remoteConnection, Node node, String userId) {
 
     checkNotNull(remoteConnection);
 
     this.remoteConnection = remoteConnection;
 
     this.node = node;
+    this.userId = userId;
 
   }
 

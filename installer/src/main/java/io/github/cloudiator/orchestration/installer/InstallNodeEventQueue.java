@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messages.NodeEntities.Node;
 
 /**
@@ -23,8 +22,8 @@ public class InstallNodeEventQueue {
     return pendingRequests.take();
   }
 
-  public void add(String requestId, NodeEvent request) {
-    pendingRequests.add(new NodeEventItem(requestId, request.getNode()));
+  public void add(String requestId, Node request) {
+    pendingRequests.add(new NodeEventItem(requestId, request));
   }
 
   static class NodeEventItem {
