@@ -5,7 +5,7 @@
   <modules>
     <module>iaas-common</module>
     <module>discovery</module>
-    <!-- <module>installer</module> -->
+    <module>installer</module>
     <module>iaas-vm</module>
     <!--<module>watchdog</module>-->
     <!--<module>byon</module>-->

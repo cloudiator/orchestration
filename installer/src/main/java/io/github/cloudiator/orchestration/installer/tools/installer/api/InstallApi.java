@@ -27,19 +27,11 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 public interface InstallApi extends AutoCloseable {
 
   /**
-   * Place all download commands in the download queue
+   * Creates required folders and installs required software
    */
-  void initSources();
+  void bootstrap() throws RemoteException;
 
-  /**
-   * download all sources in parallel
-   */
-  void downloadSources();
 
-  /**
-   * extract Java archive, set Java environement
-   */
-  void installJava() throws RemoteException;
 
   /**
    * create the visor configuration file and start visor
@@ -56,17 +48,15 @@ public interface InstallApi extends AutoCloseable {
    */
   void installLance() throws RemoteException;
 
-  /**
-   * Download and install all necessary software for cloudiator (java, visor, lifecycle agent)
-   */
-  void installAll() throws RemoteException;
 
   /**
-   * Download and install snap telemetry
+   * Download and install Docker
    */
-  void installSnap() throws RemoteException;
+  void installDocker() throws RemoteException;
+
 
   @Override
   void close() throws RemoteException;
 }
+
 

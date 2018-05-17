@@ -29,6 +29,8 @@ public class LoginCredentialMessageToLoginCredentialConverter implements
 
     LoginCredentialBuilder loginCredentialBuilder = LoginCredentialBuilder.newBuilder();
 
+    loginCredentialBuilder.username(loginCredential.getUsername());
+
     switch (loginCredential.getCredentialCase()) {
       case PASSWORD:
         loginCredentialBuilder.password(loginCredential.getPassword());

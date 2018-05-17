@@ -23,7 +23,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     final NodeBuilder nodeBuilder = NodeBuilder.newBuilder().id(node.getId())
         .nodeProperties(nodePropertiesConverter.apply(node.getNodeProperties()))
         .nodeType(nodeTypeConverter.applyBack(node.getNodeType())).ipAddresses(
-            node.getIpAddressesList().stream().map(ipAddressConverter)
+            node.getIpAddressesList().stream().map(ipAddressConverter::apply)
                 .collect(Collectors.toSet()));
 
     if (node.hasLoginCredential()) {
