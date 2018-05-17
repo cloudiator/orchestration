@@ -46,10 +46,10 @@ abstract class AbstractInstaller implements InstallApi {
   //Visor
   protected static final String VISOR_JAR = "visor.jar";
   //Play.application().configuration().getInt("colosseum.installer.download.threads");
-  protected static final String VISOR_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-visor/lastSuccessfulBuild/artifact/visor-service/target/visor.jar";
+  protected static final String VISOR_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/visor/visor-service/0.3.0-SNAPSHOT/visor-service-0.3.0-20180219.105415-1.jar";
   //Lance
   protected static final String LANCE_JAR = "lance.jar";
-  protected static final String LANCE_DOWNLOAD = "https://omi-dev.e-technik.uni-ulm.de/jenkins/job/cloudiator-lance/lastSuccessfulBuild/artifact/server/target/lance-server-jar-with-dependencies.jar";
+  protected static final String LANCE_DOWNLOAD = "https://oss.sonatype.org/content/repositories/snapshots/io/github/cloudiator/lance/server/0.2.0-SNAPSHOT/server-0.2.0-20171122.122528-54-jar-with-dependencies.jar";
   //Play.application().configuration()
   //  .getString("colosseum.installer.abstract.kairosdb.download");
   //Java
@@ -81,7 +81,6 @@ abstract class AbstractInstaller implements InstallApi {
 
   }
 
-  @Override
   public void downloadSources() {
 
     LOGGER.debug("Start downloading sources...");
@@ -124,30 +123,18 @@ abstract class AbstractInstaller implements InstallApi {
         "kairosPort = " + 8080 + "\n" +
         "reportingModule = "
         + "de.uniulm.omi.cloudiator.visor.reporting.kairos.KairosReportingModule" + "\n"
-        + "chukwaUrl = " + "http://localhost:8080/chukwa" + "\n" +
-        "chukwaVmId = " + "dummyNodeId";
+        + "chukwaUrl = " + "http://localhost:8080/chukwa" + "\n"
+        + "chukwaVmId = " + "dummyNodeId" + "\n"
+        + "influxUrl =" + "" + "\n"
+        + "influxDatabaseName=visor" + "\n"
+        + "influxUserName=root" + "\n"
+        + "influxPassword=root" + "\n"
+        + "jsonTcpServer=localhost" + "\n"
+        + "jsonTcpPort=5000" + "\n"
+        + "vmId=" + this.node.id()  + "\n"
+        + "cloudId=1" + "\n"
+        + "jmsBroker=tcp://localhost:61616";
 
-        /*
-        return "executionThreads = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.executionThreads") +
-            "\n" + "reportingInterval = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.reportingInterval") +
-            "\n" + "telnetPort = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.telnetPort") + "\n" +
-            "restHost = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.restHost") + "\n" +
-            "restPort = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.restPort") + "\n" +
-            "kairosServer = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.kairosServer") + "\n" +
-            "kairosPort = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.kairosPort") + "\n" +
-            "reportingModule = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.reportingModule") +
-            "\n" + "chukwaUrl = " + Play.application().configuration()
-            .getString("colosseum.installer.abstract.visor.config.chukwaUrl") + "\n" +
-            "chukwaVmId = " + virtualMachine.providerId().get();
-            */
 
     return config;
 

@@ -11,9 +11,13 @@ import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnect
 import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.tools.installer.Installers;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Installation.InstallationRequest;
+import org.cloudiator.messages.Installation.InstallationResponse;
+import org.cloudiator.messages.InstallationEntities.Tool;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
@@ -47,8 +51,9 @@ public class InstallEventSubscriber implements Runnable {
         InstallationRequest.parser(), (requestId, InstallationRequest) -> {
 
           try {
-            InstallEventSubscriber.this.handleRequest(requestId,
+            List<Tool> installedTools = InstallEventSubscriber.this.handleRequest(requestId,
                 InstallationRequest);
+            InstallEventSubscriber.this.sendInstallResponse(requestId, installedTools);
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
             InstallEventSubscriber.this.sendErrorResponse(requestId,
@@ -58,58 +63,80 @@ public class InstallEventSubscriber implements Runnable {
 
   }
 
-  final void handleRequest(String requestId, InstallationRequest installationRequest){
-
-    //TODO: change from NodeEntities to Domain Object
-    //TODO: pass the selected tools for the installation to the installer
+  final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
+      throws RemoteException {
     //TODO: implement queue + worker as done for NodeEvent to enable mutlipe installations in parallel
 
     LOGGER.debug("Received installRequest with requestId: " + requestId);
-    System.out.println("Received installRequest with requestId: " + requestId);
 
     Node node = nodeToNodeMessageConverter
         .applyBack(installationRequest.getInstallation().getNode());
 
-
     //checkState(!node.getId().isEmpty(),"No nodeId set for node: " + node.getId() + " !");
 
-    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(Sets.newHashSet(
-        new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
+    LOGGER.debug("Received installRequest with requestId: " + requestId);
 
-    try {
-      RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node);
+    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
+        Sets.newHashSet(
+            new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
 
-      installTools(remoteConnection, node, installationRequest.getUserId());
+    List<Tool> installedTools;
 
-      LOGGER.debug("Established remote connection! Let's DD this node!");
+    RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node);
 
-    } catch (RemoteException e) {
-      LOGGER.error("Unable to establish remote connection!", e);
-    }
+    installedTools = installTools(installationRequest.getInstallation().getToolList(),
+        remoteConnection, node,
+        installationRequest.getUserId());
+
+    return installedTools;
 
   }
 
-  public void installTools(RemoteConnection remoteConnection, Node node, String userId){
 
+  public List<Tool> installTools(List<Tool> tools, RemoteConnection remoteConnection, Node node,
+      String userId) throws RemoteException {
 
+    LOGGER.debug("Remote connection established, starting to install Cloudiator tools...");
+
+    List<Tool> installedTools = new ArrayList<>();
 
     InstallApi installApi = Installers.of(remoteConnection, node, userId);
 
+    //TODO: replace default Java installation when integrating Ansible scripts
+    installApi.bootstrap();
 
-    try {
-
-      LOGGER.debug("Remote connection established, starting to install Cloudiator tools...");
-      installApi.installAll();
-
-    } catch (RemoteException e) {
-      LOGGER.error("Error while installing sources" , e);
+    for (Tool tool : tools) {
+      if (tool.equals(Tool.LANCE)) {
+        installApi.installLance();
+        installedTools.add(tool);
+      } else if (tool.equals(Tool.AXE)) {
+        LOGGER.warn("AXE installation currently supported!");
+      } else if (tool.equals(Tool.DOCKER)) {
+        installApi.installDocker();
+        installedTools.add(tool);
+      } else if (tool.equals(Tool.KAIROSDB)) {
+        installApi.installKairosDb();
+        installedTools.add(tool);
+      } else if (tool.equals(Tool.VISOR)) {
+        installApi.installVisor();
+        installedTools.add(tool);
+      } else {
+        throw new IllegalStateException("Unsupported toolName: " + tool.name());
+      }
     }
+
+    return installedTools;
 
   }
 
 
   final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
-    messagingService.reply(InstallationRequest.class, messageId,
+    messagingService.reply(InstallationResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
+  }
+
+  final void sendInstallResponse(String messageId, List<Tool> installedTools) {
+    messagingService
+        .reply(messageId, InstallationResponse.newBuilder().addAllTool(installedTools).build());
   }
 }

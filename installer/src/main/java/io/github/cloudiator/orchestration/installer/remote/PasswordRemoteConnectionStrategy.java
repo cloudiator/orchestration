@@ -61,6 +61,7 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
     }
 
     checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
+    checkState(!publicIp.isEmpty(), "PublicIp is empty! Virtual machine must have a public ip address.");
 
     //final Optional<String> anyPublicAddress =
     //  virtualMachine.publicAddresses().stream().findAny();
@@ -75,7 +76,8 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
         }
     */
 
-    checkState(!node.loginCredential().get().password().isPresent(), "No password provided!");
+    checkState(node.loginCredential().get().password().isPresent(), "No password provided!");
+
 
 
     int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remotePort();

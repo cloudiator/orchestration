@@ -36,12 +36,6 @@ public class InstallAgent {
 
     LOGGER.debug("Starting InstallAgent...");
 
-    /*
-    final NodeEventSubscriber nodeEventSubscriber =
-        injector.getInstance(NodeEventSubscriber.class);
-    nodeEventSubscriber.run();
-    */
-
     //TODO: change to use queue and worker instead of single instance
     final InstallEventSubscriber installEventSubscriber =
         injector.getInstance(InstallEventSubscriber.class);

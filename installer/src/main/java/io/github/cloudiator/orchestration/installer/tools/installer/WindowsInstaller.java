@@ -73,6 +73,10 @@ public class WindowsInstaller extends AbstractInstaller {
   }
 
   @Override
+  public void bootstrap() throws RemoteException {
+    //TODO
+  }
+
   public void initSources() {
 
     //java
@@ -102,7 +106,7 @@ public class WindowsInstaller extends AbstractInstaller {
 
   }
 
-  @Override
+
   public void installJava() throws RemoteException {
 
     LOGGER.debug("Installing Java...");
@@ -266,7 +270,7 @@ public class WindowsInstaller extends AbstractInstaller {
 
   }
 
-  @Override
+
   public void installAll() throws RemoteException {
 
     LOGGER.debug("Starting installation of all tools on WINDOWS...");
@@ -282,6 +286,11 @@ public class WindowsInstaller extends AbstractInstaller {
     this.installKairosDb();
 
     this.installVisor();
+  }
+
+  @Override
+  public void installDocker() throws RemoteException {
+    LOGGER.warn("Docker installation is currently not supported for Windows!");
   }
 
 

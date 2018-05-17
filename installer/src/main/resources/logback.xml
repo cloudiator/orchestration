@@ -32,7 +32,7 @@
   <logger name="io.github.cloudiator.orchestration.installer" level="DEBUG"/>
   <logger name="org.cloudiator.messaging" level="DEBUG"/>
 
-    <root level="ERROR">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 

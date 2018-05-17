@@ -15,9 +15,11 @@ public class IpAddressMessageToIpAddress implements
 
   @Override
   public IaasEntities.IpAddress applyBack(IpAddress ipAddress) {
-    return IaasEntities.IpAddress.newBuilder().setIp(ipAddress.ip())
+    return IaasEntities.IpAddress.newBuilder()
+        .setIp(ipAddress.ip())
         .setVersion(versionConverter.applyBack(ipAddress.version()))
-        .setType(typeConverter.applyBack(ipAddress.type())).build();
+        .setType(typeConverter.applyBack(ipAddress.type()))
+        .build();
   }
 
   @Override
