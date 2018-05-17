@@ -48,58 +48,66 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
 
     while (!Thread.currentThread().isInterrupted()) {
 
-      UserCreateVirtualMachineRequest userCreateVirtualMachineRequest = null;
-      try {
-        userCreateVirtualMachineRequest = virtualMachineRequestQueue.take();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-
-      LOGGER.debug(String.format("Starting execution of new virtual machine request %s.",
-          userCreateVirtualMachineRequest));
-
       try {
 
-        checkNotNull(userCreateVirtualMachineRequest, "userCreateVirtualMachineRequest is null");
+        UserCreateVirtualMachineRequest userCreateVirtualMachineRequest = null;
+        try {
+          userCreateVirtualMachineRequest = virtualMachineRequestQueue.take();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
 
-        VirtualMachineTemplate virtualMachineTemplate = virtualMachineRequestToTemplateConverter
-            .apply(userCreateVirtualMachineRequest.virtualMachineRequest());
+        LOGGER.debug(String.format("Starting execution of new virtual machine request %s.",
+            userCreateVirtualMachineRequest));
 
-        LOGGER.debug(String.format("Using virtual machine template %s to start virtual machine.",
-            virtualMachineTemplate));
+        try {
 
-        CloudMessageRepository cloudMessageRepository = new CloudMessageRepository(cloudService);
-        Cloud cloud = cloudMessageRepository.getById(userCreateVirtualMachineRequest.userId(),
-            CloudId.instance().apply(virtualMachineTemplate));
+          checkNotNull(userCreateVirtualMachineRequest, "userCreateVirtualMachineRequest is null");
 
-        MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder().build();
-        multiCloudService.cloudRegistry().register(cloud);
+          VirtualMachineTemplate virtualMachineTemplate = virtualMachineRequestToTemplateConverter
+              .apply(userCreateVirtualMachineRequest.virtualMachineRequest());
 
-        VirtualMachineWorkflow virtualMachineWorkflow = new VirtualMachineWorkflow(
-            multiCloudService.computeService());
+          LOGGER.debug(String.format("Using virtual machine template %s to start virtual machine.",
+              virtualMachineTemplate));
 
-        LOGGER.debug("Starting execution of workflow for virtual machine.");
+          CloudMessageRepository cloudMessageRepository = new CloudMessageRepository(cloudService);
+          Cloud cloud = cloudMessageRepository.getById(userCreateVirtualMachineRequest.userId(),
+              CloudId.instance().apply(virtualMachineTemplate));
 
-        Exchange result = virtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
+          MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder().build();
+          multiCloudService.cloudRegistry().register(cloud);
 
-        VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
+          VirtualMachineWorkflow virtualMachineWorkflow = new VirtualMachineWorkflow(
+              multiCloudService.computeService());
 
-        //decorate virtual machine
-        final VirtualMachine update = updateVirtualMachine
-            .update(userCreateVirtualMachineRequest.userId(), virtualMachineTemplate,
-                virtualMachine);
+          LOGGER.debug("Starting execution of workflow for virtual machine.");
 
-        messageInterface.reply(userCreateVirtualMachineRequest.requestId(),
-            VirtualMachineCreatedResponse.newBuilder()
-                .setVirtualMachine(vmConverter.applyBack(update)).build());
+          Exchange result = virtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
+
+          VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
+
+          //decorate virtual machine
+          final VirtualMachine update = updateVirtualMachine
+              .update(userCreateVirtualMachineRequest.userId(), virtualMachineTemplate,
+                  virtualMachine);
+
+          messageInterface.reply(userCreateVirtualMachineRequest.requestId(),
+              VirtualMachineCreatedResponse.newBuilder()
+                  .setVirtualMachine(vmConverter.applyBack(update)).build());
+
+        } catch (Exception e) {
+          LOGGER.error("Error during execution of virtual machine creation", e);
+          messageInterface
+              .reply(VirtualMachineCreatedResponse.class,
+                  userCreateVirtualMachineRequest.requestId(),
+                  Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
+        }
 
       } catch (Exception e) {
-        messageInterface
-            .reply(VirtualMachineCreatedResponse.class, userCreateVirtualMachineRequest.requestId(),
-                Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
-        LOGGER.error("Error during execution of virtual machine creation", e);
+        LOGGER.warn(String
+                .format("Uncaught error %e during execution of worker. Caught to resume operation.", e),
+            e.getMessage());
       }
-
     }
 
 
