@@ -55,12 +55,18 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
         Thread.currentThread().interrupt();
       }
 
+      LOGGER.debug(String.format("Starting execution of new virtual machine request %s.",
+          userCreateVirtualMachineRequest));
+
       try {
 
         checkNotNull(userCreateVirtualMachineRequest, "userCreateVirtualMachineRequest is null");
 
         VirtualMachineTemplate virtualMachineTemplate = virtualMachineRequestToTemplateConverter
             .apply(userCreateVirtualMachineRequest.virtualMachineRequest());
+
+        LOGGER.debug(String.format("Using virtual machine template %s to start virtual machine.",
+            virtualMachineTemplate));
 
         CloudMessageRepository cloudMessageRepository = new CloudMessageRepository(cloudService);
         Cloud cloud = cloudMessageRepository.getById(userCreateVirtualMachineRequest.userId(),
@@ -71,6 +77,9 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
 
         VirtualMachineWorkflow virtualMachineWorkflow = new VirtualMachineWorkflow(
             multiCloudService.computeService());
+
+        LOGGER.debug("Starting execution of workflow for virtual machine.");
+
         Exchange result = virtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
 
         VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();

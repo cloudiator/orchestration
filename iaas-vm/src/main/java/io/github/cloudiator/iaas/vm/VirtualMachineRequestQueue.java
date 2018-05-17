@@ -3,6 +3,7 @@ package io.github.cloudiator.iaas.vm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
@@ -57,6 +58,12 @@ class VirtualMachineRequestQueue {
 
     public String userId() {
       return userId;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("requestId", requestId)
+          .add("virtualMachineRequest", virtualMachineRequest).add("userId", userId).toString();
     }
 
   }
