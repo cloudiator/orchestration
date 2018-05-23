@@ -32,8 +32,9 @@ public class GeoLocationDomainRepository {
   }
 
   private GeoLocationModel createModel(GeoLocation domain) {
-    return new GeoLocationModel(domain.city(), domain.country(), domain.latitude(),
-        domain.longitude());
+    return new GeoLocationModel(domain.city().orElse(null), domain.country().orElse(null),
+        domain.latitude().orElse(null),
+        domain.longitude().orElse(null));
   }
 
 
@@ -44,11 +45,10 @@ public class GeoLocationDomainRepository {
 
 
   private void updateModel(GeoLocation domain, GeoLocationModel model) {
-
-    model.setCity(domain.city());
-    model.setCountry(domain.country());
-    model.setLocationLatitude(domain.latitude());
-    model.setLocationLongitude(domain.longitude());
+    model.setCity(domain.city().orElse(null));
+    model.setCountry(domain.country().orElse(null));
+    model.setLocationLatitude(domain.latitude().orElse(null));
+    model.setLocationLongitude(domain.longitude().orElse(null));
 
   }
 }

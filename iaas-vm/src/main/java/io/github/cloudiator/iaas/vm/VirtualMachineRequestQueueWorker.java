@@ -105,8 +105,9 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
 
       } catch (Exception e) {
         LOGGER.warn(String
-                .format("Uncaught error %e during execution of worker. Caught to resume operation.", e),
-            e.getMessage());
+                .format("Uncaught error %s during execution of worker. Caught to resume operation.",
+                    e.getMessage()),
+            e);
       }
     }
 

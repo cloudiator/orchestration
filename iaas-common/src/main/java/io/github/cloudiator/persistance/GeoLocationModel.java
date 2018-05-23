@@ -19,6 +19,7 @@
 package io.github.cloudiator.persistance;
 
 import java.math.BigDecimal;
+import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
@@ -28,12 +29,16 @@ import javax.persistence.OneToOne;
 @Entity
 class GeoLocationModel extends Model {
 
+  @Nullable
   private String city;
 
+  @Nullable
   private String country;
 
+  @Nullable
   private BigDecimal locationLatitude;
 
+  @Nullable
   private BigDecimal locationLongitude;
 
   @OneToOne(mappedBy = "geoLocationModel")
@@ -45,30 +50,35 @@ class GeoLocationModel extends Model {
   protected GeoLocationModel() {
   }
 
-  public GeoLocationModel(String city, String country,
-      BigDecimal locationLatitude, BigDecimal locationLongitude) {
+  public GeoLocationModel(@Nullable String city, @Nullable String country,
+      @Nullable BigDecimal locationLatitude, @Nullable BigDecimal locationLongitude) {
     this.city = city;
     this.country = country;
     this.locationLatitude = locationLatitude;
     this.locationLongitude = locationLongitude;
   }
 
+  @Nullable
   public String getCity() {
     return city;
   }
 
-  public void setCity(String city) {
+  public GeoLocationModel setCity(@Nullable String city) {
     this.city = city;
+    return this;
   }
 
+  @Nullable
   public String getCountry() {
     return country;
   }
 
-  public void setCountry(String country) {
+  public GeoLocationModel setCountry(@Nullable String country) {
     this.country = country;
+    return this;
   }
 
+  @Nullable
   public BigDecimal getLocationLatitude() {
     return locationLatitude;
   }

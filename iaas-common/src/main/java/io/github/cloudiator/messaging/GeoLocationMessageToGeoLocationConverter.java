@@ -14,17 +14,17 @@ public class GeoLocationMessageToGeoLocationConverter implements
   public IaasEntities.GeoLocation applyBack(GeoLocation geoLocation) {
     final Builder builder = IaasEntities.GeoLocation.newBuilder();
 
-    if (geoLocation.city() != null) {
-      builder.setCity(geoLocation.city());
+    if (geoLocation.city().isPresent()) {
+      builder.setCity(geoLocation.city().get());
     }
-    if (geoLocation.country() != null) {
-      builder.setCountry(geoLocation.country());
+    if (geoLocation.country().isPresent()) {
+      builder.setCountry(geoLocation.country().get());
     }
-    if (geoLocation.latitude() != null) {
-      builder.setLatitude(geoLocation.latitude().doubleValue());
+    if (geoLocation.latitude().isPresent()) {
+      builder.setLatitude(geoLocation.latitude().get().doubleValue());
     }
-    if (geoLocation.longitude() != null) {
-      builder.setLongitude(geoLocation.longitude().doubleValue());
+    if (geoLocation.longitude().isPresent()) {
+      builder.setLongitude(geoLocation.longitude().get().doubleValue());
     }
 
     return builder.build();
