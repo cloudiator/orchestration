@@ -2,7 +2,9 @@ package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
+import io.github.cloudiator.domain.NodeGroup;
+import io.github.cloudiator.domain.NodeGroups;
+import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +33,8 @@ public class NodeRequestWorker implements Runnable {
   private final MessageInterface messageInterface;
   private final VirtualMachineToNode virtualMachineToNode = new VirtualMachineToNode();
   private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
-  private final NodeToNodeMessageConverter nodeConverter = new NodeToNodeMessageConverter();
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
+  private static final NodeGroupMessageToNodeGroup NODE_GROUP_CONVERTER = new NodeGroupMessageToNodeGroup();
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
@@ -110,12 +112,14 @@ public class NodeRequestWorker implements Runnable {
         //todo: add timeout?
         countDownLatch.await();
 
+        //create node group
+        final NodeGroup nodeGroup = NodeGroups
+            .of(responses.stream().map(virtualMachineToNode).collect(Collectors.toList()));
+
         if (errors.isEmpty()) {
           messageInterface.reply(messageId,
-              NodeRequestResponse.newBuilder().addAllNode(responses.stream()
-                  .map(virtualMachineToNode)
-                  .map(nodeConverter)
-                  .collect(Collectors.toList())).build());
+              NodeRequestResponse.newBuilder()
+                  .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
         } else {
           messageInterface.reply(NodeRequestResponse.class, messageId,
               Error.newBuilder().setMessage(buildErrorMessage(errors)).setCode(500).build());
