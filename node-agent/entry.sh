@@ -4,7 +4,7 @@ set -x
 
 DEFAULT_JPA_DIALECT="org.hibernate.dialect.MySQL5Dialect"
 DEFAULT_JPA_DRIVER="org.mariadb.jdbc.Driver"
-DEFAULT_KAFKA_GROUP_ID="vm"
+DEFAULT_KAFKA_GROUP_ID="node"
 DEFAULT_KAFKA_RESPONSE_TIMEOUT=10000
 
 env_required() {
