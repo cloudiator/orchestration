@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import javax.persistence.EntityManager;
 
-public class CloudCredentialModelRepositoryJpa extends
+class CloudCredentialModelRepositoryJpa extends
     BaseModelRepositoryJpa<CloudCredentialModel> implements CloudCredentialModelRepository {
 
   @Inject

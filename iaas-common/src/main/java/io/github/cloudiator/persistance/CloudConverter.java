@@ -9,7 +9,7 @@ import de.uniulm.omi.cloudiator.sword.domain.Configuration;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class CloudConverter implements OneWayConverter<CloudModel, Cloud> {
+class CloudConverter implements OneWayConverter<CloudModel, Cloud> {
 
   private final static CloudCredentialConverter CLOUD_CREDENTIAL_CONVERTER = new CloudCredentialConverter();
   private final static CloudConfigurationConverter CLOUD_CONFIGURATION_CONVERTER = new CloudConfigurationConverter();

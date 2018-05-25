@@ -30,7 +30,7 @@ import javax.persistence.Query;
 /**
  * Created by daniel on 21.06.15.
  */
-public class BaseResourceRepositoryJpa<T extends ResourceModel>
+class BaseResourceRepositoryJpa<T extends ResourceModel>
     extends BaseModelRepositoryJpa<T> implements ResourceRepository<T> {
 
   @Inject

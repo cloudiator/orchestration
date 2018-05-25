@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import javax.persistence.EntityManager;
 
-public class GeoLocationModelRepositoryJpa extends BaseModelRepositoryJpa<GeoLocationModel> implements
+class GeoLocationModelRepositoryJpa extends BaseModelRepositoryJpa<GeoLocationModel> implements
     GeoLocationModelRepository {
 
   @Inject

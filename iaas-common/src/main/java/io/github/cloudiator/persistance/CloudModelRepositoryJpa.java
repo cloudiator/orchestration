@@ -14,7 +14,7 @@ import javax.persistence.Query;
 /**
  * Created by daniel on 31.05.17.
  */
-public class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> implements
+class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> implements
     CloudModelRepository {
 
   @Inject

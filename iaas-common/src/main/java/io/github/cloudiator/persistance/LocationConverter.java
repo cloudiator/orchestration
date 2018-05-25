@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 02.06.17.
  */
-public class LocationConverter implements OneWayConverter<LocationModel, Location> {
+class LocationConverter implements OneWayConverter<LocationModel, Location> {
 
   private static final GeoLocationConverter GEO_LOCATION_CONVERTER = new GeoLocationConverter();
 

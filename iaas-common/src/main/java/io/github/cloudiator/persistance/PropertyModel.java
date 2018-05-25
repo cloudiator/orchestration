@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class PropertyModel extends Model {
+class PropertyModel extends Model {
 
   @Column(nullable = false)
   private String propertyKey;

@@ -11,7 +11,7 @@ import javax.persistence.Query;
 /**
  * Created by daniel on 02.06.17.
  */
-public class HardwareOfferModelRepositoryJpa extends BaseModelRepositoryJpa<HardwareOfferModel> implements
+class HardwareOfferModelRepositoryJpa extends BaseModelRepositoryJpa<HardwareOfferModel> implements
     HardwareOfferModelRepository {
 
   @Inject

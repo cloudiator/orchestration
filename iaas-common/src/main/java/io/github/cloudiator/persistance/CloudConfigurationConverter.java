@@ -7,7 +7,7 @@ import de.uniulm.omi.cloudiator.sword.domain.PropertiesBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class CloudConfigurationConverter implements
+class CloudConfigurationConverter implements
     OneWayConverter<CloudConfigurationModel, Configuration> {
 
   @Nullable

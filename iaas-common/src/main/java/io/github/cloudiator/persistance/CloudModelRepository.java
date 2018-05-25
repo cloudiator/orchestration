@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 31.05.17.
  */
-public interface CloudModelRepository extends ModelRepository<CloudModel> {
+interface CloudModelRepository extends ModelRepository<CloudModel> {
 
   @Nullable
   CloudModel getByCloudId(String cloudId);

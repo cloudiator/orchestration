@@ -5,7 +5,7 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocationBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class GeoLocationConverter implements OneWayConverter<GeoLocationModel, GeoLocation> {
+class GeoLocationConverter implements OneWayConverter<GeoLocationModel, GeoLocation> {
 
   @Nullable
   @Override

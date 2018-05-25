@@ -5,7 +5,7 @@ import de.uniulm.omi.cloudiator.sword.domain.ApiBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class ApiConverter implements OneWayConverter<ApiModel, Api> {
+class ApiConverter implements OneWayConverter<ApiModel, Api> {
 
   @Nullable
   @Override

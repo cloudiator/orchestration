@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 02.06.17.
  */
-public class HardwareConverter implements OneWayConverter<HardwareModel, HardwareFlavor> {
+class HardwareConverter implements OneWayConverter<HardwareModel, HardwareFlavor> {
 
   private final LocationConverter locationConverter = new LocationConverter();
 

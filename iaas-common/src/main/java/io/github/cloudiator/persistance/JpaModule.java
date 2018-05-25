@@ -63,6 +63,8 @@ public class JpaModule extends AbstractModule {
 
     bind(HardwareOfferModelRepository.class).to(HardwareOfferModelRepositoryJpa.class);
 
+    bind(NodeModelRepository.class).to(NodeModelRepositoryJpa.class);
+
   }
 
   private JpaPersistModule buildPersistModule() {

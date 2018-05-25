@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 02.06.17.
  */
-public class ImageConverter implements OneWayConverter<ImageModel, Image> {
+class ImageConverter implements OneWayConverter<ImageModel, Image> {
 
   private final LocationConverter locationConverter = new LocationConverter();
 

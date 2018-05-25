@@ -7,7 +7,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 
-public class ApiModelRepositoryJpa extends BaseModelRepositoryJpa<ApiModel> implements
+class ApiModelRepositoryJpa extends BaseModelRepositoryJpa<ApiModel> implements
     ApiModelRepository {
 
   @Inject

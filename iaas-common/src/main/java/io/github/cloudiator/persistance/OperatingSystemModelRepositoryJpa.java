@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import javax.persistence.EntityManager;
 
-public class OperatingSystemModelRepositoryJpa extends
+class OperatingSystemModelRepositoryJpa extends
     BaseModelRepositoryJpa<OperatingSystemModel> implements OperatingSystemModelRepository {
 
   @Inject

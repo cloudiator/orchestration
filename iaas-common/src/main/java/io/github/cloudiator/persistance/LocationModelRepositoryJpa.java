@@ -30,7 +30,7 @@ import javax.persistence.Query;
 /**
  * Created by daniel on 21.06.15.
  */
-public class LocationModelRepositoryJpa
+class LocationModelRepositoryJpa
     extends BaseModelRepositoryJpa<LocationModel> implements LocationModelRepository {
 
 

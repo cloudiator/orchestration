@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 21.06.15.
  */
-public interface ResourceRepository<T extends ResourceModel>
+interface ResourceRepository<T extends ResourceModel>
     extends ModelRepository<T> {
 
   @Nullable

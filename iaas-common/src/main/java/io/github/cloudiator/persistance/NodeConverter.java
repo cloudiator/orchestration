@@ -1,5 +1,5 @@
 package io.github.cloudiator.persistance;
 
-public class NodeConverter {
+class NodeConverter {
 
 }

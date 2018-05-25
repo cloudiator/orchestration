@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import javax.persistence.EntityManager;
 
-public class CloudConfigurationModelRepositoryJpa extends
+class CloudConfigurationModelRepositoryJpa extends
     BaseModelRepositoryJpa<CloudConfigurationModel> implements CloudConfigurationModelRepository {
 
   @Inject

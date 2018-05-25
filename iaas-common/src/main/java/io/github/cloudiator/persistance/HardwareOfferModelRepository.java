@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 /**
  * Created by daniel on 02.06.17.
  */
-public interface HardwareOfferModelRepository extends ModelRepository<HardwareOfferModel> {
+interface HardwareOfferModelRepository extends ModelRepository<HardwareOfferModel> {
 
   HardwareOfferModel findByCpuRamDisk(int numberOfCores, long mbOfRam, @Nullable Double diskSpace);
 

@@ -32,7 +32,7 @@ import javax.persistence.MapKeyColumn;
  * Created by daniel on 06.10.15.
  */
 @Entity
-public class TemplateOptions extends Model {
+class TemplateOptions extends Model {
 
   @Nullable
   String userData;

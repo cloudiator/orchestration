@@ -4,7 +4,7 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class VirtualMachineConverter implements
+class VirtualMachineConverter implements
     OneWayConverter<VirtualMachineModel, VirtualMachine> {
 
 

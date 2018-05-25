@@ -5,7 +5,7 @@ import de.uniulm.omi.cloudiator.sword.domain.CredentialsBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class CloudCredentialConverter implements
+class CloudCredentialConverter implements
     OneWayConverter<CloudCredentialModel, CloudCredential> {
 
   @Nullable

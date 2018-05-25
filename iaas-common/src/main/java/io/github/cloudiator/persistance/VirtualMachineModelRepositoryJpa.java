@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import javax.persistence.EntityManager;
 
-public class VirtualMachineModelRepositoryJpa extends
+class VirtualMachineModelRepositoryJpa extends
     BaseResourceRepositoryJpa<VirtualMachineModel> implements VirtualMachineModelRepository {
 
   @Inject
