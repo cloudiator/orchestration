@@ -100,7 +100,9 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
           messageInterface
               .reply(VirtualMachineCreatedResponse.class,
                   userCreateVirtualMachineRequest.requestId(),
-                  Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
+                  Error.newBuilder().setCode(500)
+                      .setMessage("Error during creation of virtual machine: " + e.getMessage())
+                      .build());
         }
 
       } catch (Exception e) {

@@ -21,7 +21,6 @@ package io.github.cloudiator.persistance;
 import java.math.BigDecimal;
 import javax.annotation.Nullable;
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 
 /**
  * @todo we should probably normalize this table?
@@ -40,9 +39,6 @@ class GeoLocationModel extends Model {
 
   @Nullable
   private BigDecimal locationLongitude;
-
-  @OneToOne(mappedBy = "geoLocationModel")
-  private LocationModel locationModel;
 
   /**
    * No-args constructor used by hibernate.

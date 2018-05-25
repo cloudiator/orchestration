@@ -19,14 +19,10 @@
 package io.github.cloudiator.persistance;
 
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 /**
@@ -44,11 +40,9 @@ class VirtualMachineModel extends ResourceModel {
   @Nullable
   @ManyToOne()
   private HardwareModel hardwareModel;
-  /**
-   * Use set to avoid duplicate entries due to hibernate bug https://hibernate.atlassian.net/browse/HHH-7404
-   */
-  @OneToMany(mappedBy = "virtualMachineModel", cascade = {CascadeType.ALL}, orphanRemoval = true)
-  private Set<IpAddressModel> ipAddressModels;
+
+  @OneToOne
+  private IpGroupModel ipGroup;
 
   /**
    * Empty constructor for hibernate.
@@ -61,19 +55,14 @@ class VirtualMachineModel extends ResourceModel {
       @Nullable LocationModel locationModel,
       LoginCredentialModel loginCredential,
       @Nullable ImageModel imageModel,
-      @Nullable HardwareModel hardwareModel) {
+      @Nullable HardwareModel hardwareModel, @Nullable IpGroupModel ipGroup) {
     super(cloudUniqueId, providerId, name, cloudModel, locationModel);
     this.loginCredential = loginCredential;
     this.imageModel = imageModel;
     this.hardwareModel = hardwareModel;
+    this.ipGroup = ipGroup;
   }
 
-  public void addIpAddress(IpAddressModel ipAddressModel) {
-    if (ipAddressModel == null) {
-      ipAddressModels = Sets.newHashSet();
-    }
-    ipAddressModels.add(ipAddressModel);
-  }
 
   public LoginCredentialModel getLoginCredential() {
     return loginCredential;
@@ -89,7 +78,7 @@ class VirtualMachineModel extends ResourceModel {
     return hardwareModel;
   }
 
-  public Set<IpAddressModel> getIpAddressModels() {
-    return ImmutableSet.copyOf(ipAddressModels);
+  public IpGroupModel getIpGroup() {
+    return ipGroup;
   }
 }

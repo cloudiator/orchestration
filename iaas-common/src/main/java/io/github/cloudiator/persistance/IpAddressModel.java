@@ -45,7 +45,7 @@ class IpAddressModel extends Model {
   private IpAddressType type;
 
   @ManyToOne(optional = false)
-  private VirtualMachineModel virtualMachineModel;
+  private IpGroupModel ipGroup;
 
   /**
    * Empty constructor for hibernate.
@@ -53,16 +53,16 @@ class IpAddressModel extends Model {
   protected IpAddressModel() {
   }
 
-  public IpAddressModel(VirtualMachineModel virtualMachineModel, String ip, IpVersion version,
+  public IpAddressModel(IpGroupModel ipGroup, String ip, IpVersion version,
       IpAddressType type) {
 
-    checkNotNull(virtualMachineModel);
+    checkNotNull(ipGroup);
     checkNotNull(ip);
     checkArgument(!ip.isEmpty());
     checkNotNull(version);
     checkNotNull(type);
 
-    this.virtualMachineModel = virtualMachineModel;
+    this.ipGroup = ipGroup;
     this.ip = ip;
     this.version = version;
     this.type = type;
@@ -79,10 +79,6 @@ class IpAddressModel extends Model {
 
   public IpAddressType getType() {
     return type;
-  }
-
-  public VirtualMachineModel getVirtualMachineModel() {
-    return virtualMachineModel;
   }
 
   @Override
