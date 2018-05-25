@@ -24,7 +24,7 @@ class NodeModelRepositoryJpa extends BaseModelRepositoryJpa<NodeModel> implement
 
   @Nullable
   @Override
-  public NodeModel getByTenantAndId(String userId, String cloudId) {
+  public NodeModel getByTenantAndDomainId(String userId, String domainId) {
     return null;
   }
 }

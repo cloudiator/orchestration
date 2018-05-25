@@ -8,6 +8,6 @@ interface NodeModelRepository extends ModelRepository<NodeModel> {
   List<NodeModel> getByTenant(String userId);
 
   @Nullable
-  NodeModel getByTenantAndId(String userId, String cloudId);
+  NodeModel getByTenantAndDomainId(String userId, String domainId);
 
 }

@@ -1,9 +1,11 @@
 package io.github.cloudiator.iaas.discovery;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Created by daniel on 01.06.17.
  */
-public class Discovery {
+public final class Discovery {
 
   private final Object discovery;
 
@@ -19,4 +21,8 @@ public class Discovery {
     return discovery;
   }
 
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("discovery", discovery).toString();
+  }
 }
