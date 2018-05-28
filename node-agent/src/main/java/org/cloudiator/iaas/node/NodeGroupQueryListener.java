@@ -1,6 +1,7 @@
 package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.persistance.NodeDomainRepository;
@@ -53,6 +54,7 @@ public class NodeGroupQueryListener implements Runnable {
         });
   }
 
+  @Transactional
   private NodeGroupQueryResponse handleResponse(NodeGroupQueryMessage nodeGroupQueryMessage) {
     final String userId = nodeGroupQueryMessage.getUserId();
     final String id = nodeGroupQueryMessage.getNodeGroupId();

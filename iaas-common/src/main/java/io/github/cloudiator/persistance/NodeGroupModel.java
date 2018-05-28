@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -20,7 +21,7 @@ class NodeGroupModel extends Model {
   @ManyToOne
   private TenantModel tenantModel;
 
-  @OneToMany(mappedBy = "nodeGroupModel")
+  @OneToMany(mappedBy = "nodeGroupModel", cascade = CascadeType.ALL)
   private List<NodeModel> nodes;
 
   protected NodeGroupModel() {

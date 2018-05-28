@@ -66,7 +66,9 @@ public class NodeDomainRepository {
     checkNotNull(nodeGroup, "nodeGroup is null");
     checkNotNull(userId, "userId is null");
 
-    final NodeGroupModel nodeGroupModel = new NodeGroupModel();
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+
+    final NodeGroupModel nodeGroupModel = new NodeGroupModel(nodeGroup.id(), tenantModel);
     nodeGroupModelRepository.save(nodeGroupModel);
 
     for (Node node : nodeGroup.getNodes()) {

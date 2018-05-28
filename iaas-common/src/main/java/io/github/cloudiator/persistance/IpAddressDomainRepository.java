@@ -26,9 +26,11 @@ public class IpAddressDomainRepository {
   private IpGroupModel create(Collection<IpAddress> ipAddresses) {
 
     IpGroupModel ipGroupModel = new IpGroupModel();
+    ipGroupModelRepository.save(ipGroupModel);
 
     for (IpAddress ipAddress : ipAddresses) {
-      IpAddressModel ipAddressModel = new IpAddressModel();
+      IpAddressModel ipAddressModel = new IpAddressModel(ipGroupModel, ipAddress.ip(),
+          ipAddress.version(), ipAddress.type());
       ipGroupModel.addIpAddress(ipAddressModel);
     }
 

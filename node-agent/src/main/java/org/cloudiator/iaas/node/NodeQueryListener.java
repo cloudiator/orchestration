@@ -3,6 +3,7 @@ package org.cloudiator.iaas.node;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
@@ -58,6 +59,7 @@ public class NodeQueryListener implements Runnable {
         });
   }
 
+  @Transactional
   private NodeQueryResponse handleResponse(@Nullable String id, String userId) {
     checkNotNull(userId, "userId is null");
     if (id == null || id.isEmpty()) {

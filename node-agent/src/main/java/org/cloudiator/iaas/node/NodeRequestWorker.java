@@ -1,12 +1,14 @@
 package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeGroups;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
-import io.github.cloudiator.persistance.NodeGroupModelRepository;
+import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -36,16 +38,21 @@ public class NodeRequestWorker implements Runnable {
   private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private static final NodeGroupMessageToNodeGroup NODE_GROUP_CONVERTER = new NodeGroupMessageToNodeGroup();
+  private final NodeDomainRepository nodeDomainRepository;
+  private final UnitOfWork unitOfWork;
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
       MatchmakingService matchmakingService,
       VirtualMachineService virtualMachineService,
-      MessageInterface messageInterface) {
+      MessageInterface messageInterface,
+      NodeDomainRepository nodeDomainRepository, UnitOfWork unitOfWork) {
     this.nodeRequestQueue = nodeRequestQueue;
     this.matchmakingService = matchmakingService;
     this.virtualMachineService = virtualMachineService;
     this.messageInterface = messageInterface;
+    this.nodeDomainRepository = nodeDomainRepository;
+    this.unitOfWork = unitOfWork;
   }
 
   private static String buildErrorMessage(List<Error> errors) {
@@ -53,6 +60,11 @@ public class NodeRequestWorker implements Runnable {
     return String.format(errorFormat, errors.size(),
         errors.stream().map(error -> error.getCode() + " " + error.getMessage())
             .collect(Collectors.toList()));
+  }
+
+  @Transactional
+  void persistNodeGroup(NodeGroup nodeGroup, String userId) {
+    nodeDomainRepository.save(nodeGroup, userId);
   }
 
   @Override
@@ -113,14 +125,20 @@ public class NodeRequestWorker implements Runnable {
         //todo: add timeout?
         countDownLatch.await();
 
-        //create node group
-        final NodeGroup nodeGroup = NodeGroups
-            .of(responses.stream().map(virtualMachineToNode).collect(Collectors.toList()));
-
         if (errors.isEmpty()) {
+
+
+          //create node group
+          final NodeGroup nodeGroup = NodeGroups
+              .of(responses.stream().map(virtualMachineToNode).collect(Collectors.toList()));
+
+          //persist the node group
+          persistNodeGroup(nodeGroup, userId);
+
           messageInterface.reply(messageId,
               NodeRequestResponse.newBuilder()
                   .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
+
         } else {
           messageInterface.reply(NodeRequestResponse.class, messageId,
               Error.newBuilder().setMessage(buildErrorMessage(errors)).setCode(500).build());

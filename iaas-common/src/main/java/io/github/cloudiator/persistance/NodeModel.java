@@ -1,6 +1,7 @@
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import io.github.cloudiator.domain.NodeType;
 import javax.annotation.Nullable;
@@ -91,5 +92,11 @@ class NodeModel extends Model {
 
   public String getDomainId() {
     return domainId;
+  }
+
+  public NodeModel assignGroup(NodeGroupModel nodeGroupModel) {
+    checkState(this.nodeGroupModel == null, "Node Group was already assigned.");
+    this.nodeGroupModel = nodeGroupModel;
+    return this;
   }
 }

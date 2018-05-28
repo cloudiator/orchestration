@@ -68,6 +68,10 @@ public class VirtualMachineMessageToVirtualMachine implements
       builder.hardware(hardwareConverter.apply(virtualMachine.getHardware()));
     }
 
+    if (virtualMachine.hasLoginCredential()) {
+      builder.loginCredential(loginCredentialConverter.apply(virtualMachine.getLoginCredential()));
+    }
+
     virtualMachine.getIpAddressesList().forEach(
         ipAddress -> builder.addIpAddress(ipConverter.apply(ipAddress)));
 
