@@ -74,6 +74,8 @@ public class NodeDomainRepository {
     for (Node node : nodeGroup.getNodes()) {
       final NodeModel nodeModel = saveAndGet(node, userId);
       nodeGroupModel.addNode(nodeModel);
+      nodeModel.assignGroup(nodeGroupModel);
+      nodeModelRepository.save(nodeModel);
     }
 
     nodeGroupModelRepository.save(nodeGroupModel);

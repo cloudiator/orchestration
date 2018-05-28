@@ -2,17 +2,21 @@ package io.github.cloudiator.persistance;
 
 import javax.annotation.Nullable;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 @Entity
 class LoginCredentialModel extends Model {
 
   @Nullable
+  @Lob
   private String username;
 
   @Nullable
+  @Lob
   private String password;
 
   @Nullable
+  @Lob
   private String privateKey;
 
   /**

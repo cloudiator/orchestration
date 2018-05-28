@@ -29,18 +29,16 @@ public class LoginCredentialMessageToLoginCredentialConverter implements
 
     LoginCredentialBuilder loginCredentialBuilder = LoginCredentialBuilder.newBuilder();
 
-    loginCredentialBuilder.username(loginCredential.getUsername());
+    if (loginCredential.getUsername() != null && !loginCredential.getUsername().isEmpty()) {
+      loginCredentialBuilder.username(loginCredential.getUsername());
+    }
 
-    switch (loginCredential.getCredentialCase()) {
-      case PASSWORD:
-        loginCredentialBuilder.password(loginCredential.getPassword());
-        break;
-      case PRIVATEKEY:
-        loginCredentialBuilder.privateKey(loginCredential.getPrivateKey());
-      case CREDENTIAL_NOT_SET:
-        break;
-      default:
-        throw new AssertionError("Unknown credential case " + loginCredential.getCredentialCase());
+    if (loginCredential.getPassword() != null && !loginCredential.getPassword().isEmpty()) {
+      loginCredentialBuilder.password(loginCredential.getPassword());
+    }
+
+    if (loginCredential.getPrivateKey() != null && !loginCredential.getPrivateKey().isEmpty()) {
+      loginCredentialBuilder.privateKey(loginCredential.getPrivateKey());
     }
 
     return loginCredentialBuilder.build();
