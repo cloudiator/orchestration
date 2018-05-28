@@ -4,6 +4,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import io.github.cloudiator.domain.NodeType;
+import java.util.Collections;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -88,6 +90,13 @@ class NodeModel extends Model {
   @Nullable
   public IpGroupModel getIpGroup() {
     return ipGroup;
+  }
+
+  public Set<IpAddressModel> ipAddresses() {
+    if (ipGroup == null) {
+      return Collections.emptySet();
+    }
+    return ipGroup.getIpAddresses();
   }
 
   public String getDomainId() {

@@ -44,4 +44,26 @@ class NodePropertiesModel extends Model {
 
   }
 
+  public int getNumberOfCores() {
+    return numberOfCores;
+  }
+
+  public long getMemory() {
+    return memory;
+  }
+
+  @Nullable
+  public Double getDisk() {
+    return disk;
+  }
+
+  @Nullable
+  public OperatingSystemModel getOperatingSystem() {
+    return operatingSystem;
+  }
+
+  @Nullable
+  public GeoLocationModel getGeoLocation() {
+    return geoLocation;
+  }
 }

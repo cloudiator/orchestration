@@ -1,5 +1,6 @@
 package io.github.cloudiator.persistance;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -24,6 +25,10 @@ class IpGroupModel extends Model {
       this.ipAddressModels = new HashSet<>();
     }
     ipAddressModels.add(ipAddressModel);
+  }
+
+  public Set<IpAddressModel> getIpAddresses() {
+    return ImmutableSet.copyOf(ipAddressModels);
   }
 
 

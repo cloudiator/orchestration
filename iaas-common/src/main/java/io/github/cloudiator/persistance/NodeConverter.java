@@ -3,11 +3,14 @@ package io.github.cloudiator.persistance;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 class NodeConverter implements OneWayConverter<NodeModel, Node> {
 
-
+  private final NodePropertiesConverter nodePropertiesConverter = new NodePropertiesConverter();
+  private final LoginCredentialConverter loginCredentialConverter = new LoginCredentialConverter();
+  private final IpAddressConverter ipAddressConverter = new IpAddressConverter();
 
   @Nullable
   @Override
@@ -16,13 +19,16 @@ class NodeConverter implements OneWayConverter<NodeModel, Node> {
       return null;
     }
 
-    return NodeBuilder.newBuilder()
+    NodeBuilder nodeBuilder = NodeBuilder.newBuilder()
         .id(nodeModel.getDomainId())
-        .ipAddresses()
-        .loginCredential()
-        .nodeProperties()
-        .nodeType()
-        .build();
+        .loginCredential(loginCredentialConverter.apply(nodeModel.getLoginCredential()))
+        .nodeProperties(nodePropertiesConverter.apply(nodeModel.getNodeProperties()))
+        .nodeType(nodeModel.getType());
+
+    nodeBuilder.ipAddresses(
+        nodeModel.ipAddresses().stream().map(ipAddressConverter).collect(Collectors.toSet()));
+
+    return nodeBuilder.build();
 
   }
 }

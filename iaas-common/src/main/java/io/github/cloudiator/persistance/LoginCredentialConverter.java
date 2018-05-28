@@ -1,10 +1,11 @@
 package io.github.cloudiator.persistance;
 
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import javax.annotation.Nullable;
 
-public class LoginCredentialConverter implements
+class LoginCredentialConverter implements
     OneWayConverter<LoginCredentialModel, LoginCredential> {
 
   @Nullable
@@ -13,5 +14,9 @@ public class LoginCredentialConverter implements
     if (loginCredentialModel == null) {
       return null;
     }
+
+    return LoginCredentialBuilder.newBuilder().password(loginCredentialModel.getPassword())
+        .privateKey(loginCredentialModel.getPrivateKey())
+        .username(loginCredentialModel.getUsername()).build();
   }
 }
