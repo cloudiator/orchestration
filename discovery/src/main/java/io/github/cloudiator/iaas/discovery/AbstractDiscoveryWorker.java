@@ -52,7 +52,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     try {
       StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
           .forEach(discovery -> {
-            LOGGER.debug(String.format("%s found discovery %s", this, discovery));
+            LOGGER.trace(String.format("%s found discovery %s", this, discovery));
             discoveryQueue.add(discovery);
           });
     } catch (Exception e) {

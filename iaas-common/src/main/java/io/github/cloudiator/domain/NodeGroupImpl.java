@@ -9,19 +9,29 @@ import java.util.List;
 public class NodeGroupImpl implements NodeGroup {
 
   private final List<Node> nodes;
+  private final String id;
 
-  NodeGroupImpl(Collection<Node> nodes) {
+  NodeGroupImpl(String id, Collection<Node> nodes) {
+    checkNotNull(id, "id is null");
     checkNotNull(nodes, "nodes is null");
     this.nodes = ImmutableList.copyOf(nodes);
+    this.id = id;
   }
 
-  NodeGroupImpl(Node node) {
+  NodeGroupImpl(String id, Node node) {
+    checkNotNull(id, "id is null");
     checkNotNull(node, "node is null");
     this.nodes = ImmutableList.of(node);
+    this.id = id;
   }
 
   @Override
   public List<Node> getNodes() {
     return nodes;
+  }
+
+  @Override
+  public String id() {
+    return id;
   }
 }

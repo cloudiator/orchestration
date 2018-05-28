@@ -36,6 +36,10 @@ class NodeModel extends Model {
   @Nullable
   private IpGroupModel ipGroup;
 
+  @ManyToOne
+  @Nullable
+  private NodeGroupModel nodeGroupModel;
+
   /**
    * Empty constructor for hibernate
    */
@@ -45,7 +49,7 @@ class NodeModel extends Model {
 
   NodeModel(String domainId, TenantModel tenantModel, NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
-      @Nullable IpGroupModel ipGroup) {
+      @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel) {
 
     checkNotNull(domainId, "domainId is null");
     checkNotNull(tenantModel, "tenantModel is null");
@@ -58,6 +62,7 @@ class NodeModel extends Model {
     this.loginCredential = loginCredential;
     this.type = nodeType;
     this.ipGroup = ipGroup;
+    this.nodeGroupModel = nodeGroupModel;
 
   }
 
@@ -82,5 +87,9 @@ class NodeModel extends Model {
   @Nullable
   public IpGroupModel getIpGroup() {
     return ipGroup;
+  }
+
+  public String getDomainId() {
+    return domainId;
   }
 }

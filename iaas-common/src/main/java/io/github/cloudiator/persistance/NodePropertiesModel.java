@@ -1,6 +1,6 @@
 package io.github.cloudiator.persistance;
 
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -15,12 +15,33 @@ class NodePropertiesModel extends Model {
   private long memory;
 
   @Column(nullable = true)
+  @Nullable
   private Double disk;
 
   @OneToOne(optional = true)
+  @Nullable
   private OperatingSystemModel operatingSystem;
 
   @OneToOne(optional = true)
+  @Nullable
   private GeoLocationModel geoLocation;
+
+  /**
+   * Empty constructor for hibernate.
+   */
+  protected NodePropertiesModel() {
+
+  }
+
+  NodePropertiesModel(int numberOfCores, long memory, @Nullable Double disk,
+      @Nullable OperatingSystemModel operatingSystem, @Nullable GeoLocationModel geoLocation) {
+
+    this.numberOfCores = numberOfCores;
+    this.memory = memory;
+    this.disk = disk;
+    this.operatingSystem = operatingSystem;
+    this.geoLocation = geoLocation;
+
+  }
 
 }

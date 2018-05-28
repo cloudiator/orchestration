@@ -21,6 +21,7 @@ public class NodeGroupMessageToNodeGroup implements
     for (final Node node : nodeGroup.getNodes()) {
       builder.addNodes(NODE_MESSAGE_CONVERTER.apply(node));
     }
+    builder.setId(nodeGroup.id());
 
     return builder.build();
   }
@@ -33,6 +34,6 @@ public class NodeGroupMessageToNodeGroup implements
       nodes.add(NODE_MESSAGE_CONVERTER.applyBack(node));
     }
 
-    return NodeGroups.of(nodes);
+    return NodeGroups.of(nodeGroup.getId(), nodes);
   }
 }

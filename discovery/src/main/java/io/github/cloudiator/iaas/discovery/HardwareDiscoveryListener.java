@@ -30,7 +30,6 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
   @Transactional
   public void handle(Object o) {
     HardwareFlavor hardwareFlavor = (HardwareFlavor) o;
-
     hardwareDomainRepository.save(hardwareFlavor);
   }
 }

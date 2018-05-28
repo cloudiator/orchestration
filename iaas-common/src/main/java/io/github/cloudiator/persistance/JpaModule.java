@@ -65,6 +65,16 @@ public class JpaModule extends AbstractModule {
 
     bind(NodeModelRepository.class).to(NodeModelRepositoryJpa.class);
 
+    bind(NodePropertiesModelRepository.class).to(NodePropertiesModelRepositoryJpa.class);
+
+    bind(IpAddressModelRepository.class).to(IpAddressModelRepositoryJpa.class);
+
+    bind(IpGroupModelRepository.class).to(IpGroupModelRepositoryJpa.class);
+
+    bind(NodeGroupModelRepository.class).to(NodeGroupModelRepositoryJpa.class);
+
+    bind(LoginCredentialModelRepository.class).to(LoginCredentialModelRepositoryJpa.class);
+
   }
 
   private JpaPersistModule buildPersistModule() {

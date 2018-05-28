@@ -1,5 +1,6 @@
 package io.github.cloudiator.persistance;
 
+import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -13,5 +14,17 @@ class IpGroupModel extends Model {
    */
   @OneToMany(mappedBy = "ipGroup", cascade = {CascadeType.ALL}, orphanRemoval = true)
   private Set<IpAddressModel> ipAddressModels;
+
+  IpGroupModel() {
+
+  }
+
+  public void addIpAddress(IpAddressModel ipAddressModel) {
+    if (ipAddressModels == null) {
+      this.ipAddressModels = new HashSet<>();
+    }
+    ipAddressModels.add(ipAddressModel);
+  }
+
 
 }

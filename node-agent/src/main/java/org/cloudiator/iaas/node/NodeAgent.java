@@ -25,6 +25,8 @@ public class NodeAgent {
 
   public static void main(String[] args) {
     INJECTOR.getInstance(NodeRequestListener.class).run();
+    INJECTOR.getInstance(NodeQueryListener.class).run();
+    INJECTOR.getInstance(NodeGroupQueryListener.class).run();
     EXECUTION_SERVICE.execute(INJECTOR.getInstance(NodeRequestWorker.class));
   }
 
