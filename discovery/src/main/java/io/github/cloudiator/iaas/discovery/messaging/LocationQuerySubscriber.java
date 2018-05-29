@@ -75,10 +75,7 @@ public class LocationQuerySubscriber implements Runnable {
     final Location location = locationDomainRepository
         .findByTenantAndId(userId, locationId);
     if (location == null) {
-      messageInterface.reply(LocationQueryResponse.class, requestId,
-          Error.newBuilder().setCode(404)
-              .setMessage(String.format("Location with id %s was not found.", locationId))
-              .build());
+      messageInterface.reply(requestId, LocationQueryResponse.newBuilder().build());
     } else {
       LocationQueryResponse locationQueryResponse = LocationQueryResponse.newBuilder()
           .addLocations(locationConverter.applyBack(location)).build();

@@ -1,8 +1,9 @@
 package io.github.cloudiator.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import io.github.cloudiator.util.CollectorsUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.Location.LocationQueryRequest;
@@ -24,10 +25,19 @@ public class LocationMessageRepository implements MessageRepository<Location> {
   @Override
   public Location getById(String userId, String id) {
     try {
-      return locationService
+      final List<Location> collect = locationService
           .getLocations(
               LocationQueryRequest.newBuilder().setLocationId(id).setUserId(userId).build())
-          .getLocationsList().stream().map(converter).collect(CollectorsUtil.singletonCollector());
+          .getLocationsList().stream().map(converter).collect(Collectors.toList());
+
+      checkState(collect.size() <= 1, "Expected unique result.");
+
+      if (collect.isEmpty()) {
+        return null;
+      }
+      return collect.get(0);
+
+
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);
     }

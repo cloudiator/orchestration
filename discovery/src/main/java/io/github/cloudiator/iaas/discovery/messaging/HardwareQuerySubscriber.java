@@ -75,10 +75,8 @@ public class HardwareQuerySubscriber implements Runnable {
     final HardwareFlavor hardwareFlavor = hardwareDomainRepository
         .findByTenantAndId(userId, hardwareId);
     if (hardwareFlavor == null) {
-      messageInterface.reply(HardwareQueryResponse.class, requestId,
-          Error.newBuilder().setCode(404)
-              .setMessage(String.format("Hardware with id %s was not found.", hardwareId))
-              .build());
+
+      messageInterface.reply(requestId, HardwareQueryResponse.newBuilder().build());
     } else {
       HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
           .addHardwareFlavors(hardwareConverter.applyBack(hardwareFlavor)).build();

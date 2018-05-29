@@ -1,8 +1,9 @@
 package io.github.cloudiator.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import io.github.cloudiator.util.CollectorsUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.Hardware.HardwareQueryRequest;
@@ -24,10 +25,18 @@ public class HardwareMessageRepository implements MessageRepository<HardwareFlav
   @Override
   public HardwareFlavor getById(String userId, String id) {
     try {
-      return hardwareService.getHardware(
+      final List<HardwareFlavor> collect = hardwareService.getHardware(
           HardwareQueryRequest.newBuilder().setUserId(userId).setHardwareId(id).build())
           .getHardwareFlavorsList().stream().map(converter).collect(
-              CollectorsUtil.singletonCollector());
+              Collectors.toList());
+
+      checkState(collect.size() <= 1, "Expected unique result.");
+
+      if (collect.isEmpty()) {
+        return null;
+      }
+      return collect.get(0);
+
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);
     }

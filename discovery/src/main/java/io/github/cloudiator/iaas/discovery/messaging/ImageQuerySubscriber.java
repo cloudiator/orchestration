@@ -75,10 +75,7 @@ public class ImageQuerySubscriber implements Runnable {
     final Image image = imageDomainRepository
         .findByTenantAndId(userId, imageId);
     if (image == null) {
-      messageInterface.reply(ImageQueryResponse.class, requestId,
-          Error.newBuilder().setCode(404)
-              .setMessage(String.format("Image with id %s was not found.", imageId))
-              .build());
+      messageInterface.reply(requestId, ImageQueryResponse.newBuilder().build());
     } else {
       ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
           .addImages(imageConverter.applyBack(image)).build();
