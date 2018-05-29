@@ -32,6 +32,7 @@ import javax.persistence.OneToOne;
 class VirtualMachineModel extends ResourceModel {
 
   @OneToOne(cascade = CascadeType.ALL)
+  @Nullable
   private LoginCredentialModel loginCredential;
 
   @Nullable
@@ -42,6 +43,7 @@ class VirtualMachineModel extends ResourceModel {
   private HardwareModel hardwareModel;
 
   @OneToOne
+  @Nullable
   private IpGroupModel ipGroup;
 
   /**
@@ -53,7 +55,7 @@ class VirtualMachineModel extends ResourceModel {
   public VirtualMachineModel(String cloudUniqueId, String providerId, String name,
       CloudModel cloudModel,
       @Nullable LocationModel locationModel,
-      LoginCredentialModel loginCredential,
+      @Nullable LoginCredentialModel loginCredential,
       @Nullable ImageModel imageModel,
       @Nullable HardwareModel hardwareModel, @Nullable IpGroupModel ipGroup) {
     super(cloudUniqueId, providerId, name, cloudModel, locationModel);
@@ -64,6 +66,7 @@ class VirtualMachineModel extends ResourceModel {
   }
 
 
+  @Nullable
   public LoginCredentialModel getLoginCredential() {
     return loginCredential;
   }
@@ -78,6 +81,7 @@ class VirtualMachineModel extends ResourceModel {
     return hardwareModel;
   }
 
+  @Nullable
   public IpGroupModel getIpGroup() {
     return ipGroup;
   }
