@@ -22,7 +22,8 @@ public class CloudDomainRepository {
   private final CloudRegistry cloudRegistry;
   private final CloudConfigurationDomainRepository cloudConfigurationDomainRepository;
 
-  @Inject public CloudDomainRepository(
+  @Inject
+  public CloudDomainRepository(
       ApiDomainRepository apiDomainRepository,
       CloudCredentialDomainRepository cloudCredentialDomainRepository,
       CloudModelRepository cloudModelRepository,
@@ -55,20 +56,34 @@ public class CloudDomainRepository {
     }
   }
 
+  public void delete(String id, String userId) {
+    final Cloud byUserAndId = findByUserAndId(userId, id);
+    if (byUserAndId == null) {
+      throw new IllegalStateException(
+          String.format("Cloud with id %s does not exist. Can not be deleted.", id));
+    }
+    cloudModelRepository.delete(cloudModelRepository.getByCloudId(id));
+    onAfterDelete(byUserAndId);
+  }
+
   private void onAfterAdd(Cloud cloud) {
     checkState(!cloudRegistry.isRegistered(cloud), "cloud was already registered.");
     cloudRegistry.register(cloud);
   }
 
   private void onBeforeUpdate(Cloud cloud) {
-    checkState(cloudRegistry.isRegistered(cloud), "cloud was never registered.");
-    cloudRegistry.unregister(cloud.id());
+    onAfterDelete(cloud);
   }
 
   private void onAfterUpdate(Cloud cloud) {
     checkState(!cloudRegistry.isRegistered(cloud),
         "cloud is already registered, expected unregistered before update");
     cloudRegistry.register(cloud);
+  }
+
+  private void onAfterDelete(Cloud cloud) {
+    checkState(cloudRegistry.isRegistered(cloud), "cloud was never registered.");
+    cloudRegistry.unregister(cloud.id());
   }
 
   private TenantModel createIfNotExists(String userId) {

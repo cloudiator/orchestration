@@ -18,6 +18,7 @@
     <class>io.github.cloudiator.persistance.HardwareModel</class>
     <class>io.github.cloudiator.persistance.HardwareOfferModel</class>
     <class>io.github.cloudiator.persistance.OperatingSystemModel</class>
+    <class>io.github.cloudiator.persistance.ResourceModel</class>
 
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

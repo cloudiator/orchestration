@@ -2,6 +2,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.persistance.CloudDomainRepository;
@@ -69,6 +70,7 @@ public class CloudQuerySubscriber implements Runnable {
             .build());
   }
 
+  @Transactional
   private void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
     final Cloud cloud = cloudDomainRepository
         .findByUserAndId(userId, cloudId);
@@ -85,6 +87,7 @@ public class CloudQuerySubscriber implements Runnable {
 
   }
 
+  @Transactional
   private void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
         .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(

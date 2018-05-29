@@ -56,6 +56,10 @@ class CloudModel extends Model {
   @OneToMany(mappedBy = "cloudModel", orphanRemoval = true)
   private List<LocationModel> locations;
 
+  @Cascade(CascadeType.DELETE)
+  @OneToMany(mappedBy = "cloudModel", orphanRemoval = true)
+  private List<ResourceModel> resources;
+
   @Enumerated
   @Column(nullable = false)
   private CloudType cloudType;

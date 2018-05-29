@@ -6,11 +6,13 @@ import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.iaas.discovery.config.DiscoveryModule;
 import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.DeleteCloudSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
+import org.cloudiator.messages.Cloud.CloudDeletedResponse;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 
@@ -39,6 +41,8 @@ public class DiscoveryAgent {
     LocationQuerySubscriber locationQuerySubscriber = injector
         .getInstance(LocationQuerySubscriber.class);
     locationQuerySubscriber.run();
+
+    injector.getInstance(DeleteCloudSubscriber.class).run();
 
     final CloudQuerySubscriber cloudQuerySubscriber = injector
         .getInstance(CloudQuerySubscriber.class);
