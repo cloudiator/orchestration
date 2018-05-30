@@ -11,14 +11,14 @@ import io.github.cloudiator.messaging.HardwareMessageRepository;
 import io.github.cloudiator.messaging.ImageMessageRepository;
 import io.github.cloudiator.messaging.LocationMessageRepository;
 
-public class UpdateVirtualMachine {
+public class EnrichVirtualMachine {
 
   private final HardwareMessageRepository hardwareMessageRepository;
   private final LocationMessageRepository locationMessageRepository;
   private final ImageMessageRepository imageMessageRepository;
 
   @Inject
-  public UpdateVirtualMachine(
+  public EnrichVirtualMachine(
       HardwareMessageRepository hardwareMessageRepository,
       LocationMessageRepository locationMessageRepository,
       ImageMessageRepository imageMessageRepository) {

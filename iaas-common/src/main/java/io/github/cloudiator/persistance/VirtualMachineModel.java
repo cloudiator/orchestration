@@ -19,9 +19,13 @@
 package io.github.cloudiator.persistance;
 
 
+import java.util.Collections;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
@@ -29,18 +33,42 @@ import javax.persistence.OneToOne;
  * Created by daniel on 31.10.14.
  */
 @Entity
-class VirtualMachineModel extends ResourceModel {
+class VirtualMachineModel extends Model {
+
+  @Column(nullable = false, updatable = false)
+  @Lob
+  private String cloudUniqueId;
+
+  @Column(nullable = false, updatable = false)
+  @Lob
+  private String providerId;
+
+  @Column(nullable = false, updatable = false)
+  @Lob
+  private String name;
+
+  @Column(nullable = false)
+  @Lob
+  private String cloudId;
+
+  @ManyToOne(optional = false)
+  private TenantModel tenantModel;
+
+  @Nullable
+  @Lob
+  private String locationId;
 
   @OneToOne(cascade = CascadeType.ALL)
   @Nullable
   private LoginCredentialModel loginCredential;
 
   @Nullable
-  @ManyToOne()
-  private ImageModel imageModel;
+  @Lob
+  private String imageId;
+
   @Nullable
-  @ManyToOne()
-  private HardwareModel hardwareModel;
+  @Lob
+  private String hardwareId;
 
   @OneToOne
   @Nullable
@@ -53,15 +81,22 @@ class VirtualMachineModel extends ResourceModel {
   }
 
   public VirtualMachineModel(String cloudUniqueId, String providerId, String name,
-      CloudModel cloudModel,
-      @Nullable LocationModel locationModel,
+      String cloudId,
+      TenantModel tenantModel,
+      @Nullable String locationId,
       @Nullable LoginCredentialModel loginCredential,
-      @Nullable ImageModel imageModel,
-      @Nullable HardwareModel hardwareModel, @Nullable IpGroupModel ipGroup) {
-    super(cloudUniqueId, providerId, name, cloudModel, locationModel);
+      @Nullable String imageId,
+      @Nullable String hardwareId, @Nullable IpGroupModel ipGroup) {
+
+    this.cloudUniqueId = cloudUniqueId;
+    this.providerId = providerId;
+    this.name = name;
+    this.cloudId = cloudId;
+    this.tenantModel = tenantModel;
+    this.locationId = locationId;
     this.loginCredential = loginCredential;
-    this.imageModel = imageModel;
-    this.hardwareModel = hardwareModel;
+    this.imageId = imageId;
+    this.hardwareId = hardwareId;
     this.ipGroup = ipGroup;
   }
 
@@ -72,17 +107,49 @@ class VirtualMachineModel extends ResourceModel {
   }
 
   @Nullable
-  public ImageModel getImageModel() {
-    return imageModel;
-  }
-
-  @Nullable
-  public HardwareModel getHardwareModel() {
-    return hardwareModel;
-  }
-
-  @Nullable
   public IpGroupModel getIpGroup() {
     return ipGroup;
+  }
+
+  public Set<IpAddressModel> ipAddresses() {
+    if (ipGroup == null) {
+      return Collections.emptySet();
+    }
+    return ipGroup.getIpAddresses();
+  }
+
+  public String getCloudUniqueId() {
+    return cloudUniqueId;
+  }
+
+  public String getProviderId() {
+    return providerId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getCloudId() {
+    return cloudId;
+  }
+
+  @Nullable
+  public String getLocationId() {
+    return locationId;
+  }
+
+  @Nullable
+  public String getImageId() {
+    return imageId;
+  }
+
+  @Nullable
+  public String getHardwareId() {
+    return hardwareId;
+  }
+
+  public TenantModel getTenantModel() {
+    return tenantModel;
   }
 }

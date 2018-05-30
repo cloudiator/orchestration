@@ -6,11 +6,13 @@ import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.messaging.NewCloudMessageToCloud;
 import io.github.cloudiator.persistance.CloudDomainRepository;
+import org.cloudiator.messages.Cloud.CloudCreatedEvent;
 import org.cloudiator.messages.Cloud.CloudCreatedResponse;
 import org.cloudiator.messages.Cloud.CreateCloudRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
+import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +27,19 @@ public class CloudAddedSubscriber implements Runnable {
   private final CloudDomainRepository cloudDomainRepository;
   private final NewCloudMessageToCloud newCloudConverter;
   private final CloudMessageToCloudConverter cloudConverter;
+  private final CloudService cloudService;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
       CloudDomainRepository cloudDomainRepository,
       NewCloudMessageToCloud newCloudConverter,
-      CloudMessageToCloudConverter cloudConverter) {
+      CloudMessageToCloudConverter cloudConverter,
+      CloudService cloudService) {
     this.messageInterface = messageInterface;
     this.cloudDomainRepository = cloudDomainRepository;
     this.newCloudConverter = newCloudConverter;
     this.cloudConverter = cloudConverter;
+    this.cloudService = cloudService;
   }
 
   @Override
@@ -81,6 +86,11 @@ public class CloudAddedSubscriber implements Runnable {
       messageInterface.reply(messageId,
           CloudCreatedResponse.newBuilder()
               .setCloud(cloudConverter.applyBack(cloudToBeCreated)).build());
+      //emit event
+      cloudService.cloudCreatedEvent(
+          CloudCreatedEvent.newBuilder().setCloud(cloudConverter.applyBack(cloudToBeCreated))
+              .setUserId(createCloudRequest.getUserId()).build());
+
     }
   }
 

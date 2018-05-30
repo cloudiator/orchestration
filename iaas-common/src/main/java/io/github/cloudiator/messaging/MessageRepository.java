@@ -8,6 +8,5 @@ public interface MessageRepository<T> {
   @Nullable
   T getById(String userId, String id);
 
-  public List<T> getAll(String userId);
-
+  List<T> getAll(String userId);
 }

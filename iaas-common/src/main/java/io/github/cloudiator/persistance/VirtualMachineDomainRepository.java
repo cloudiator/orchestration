@@ -1,10 +1,10 @@
 package io.github.cloudiator.persistance;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public class VirtualMachineDomainRepository {
@@ -16,6 +16,8 @@ public class VirtualMachineDomainRepository {
   private final LoginCredentialDomainRepository loginCredentialDomainRepository;
   private final IpAddressDomainRepository ipAddressDomainRepository;
   private final VirtualMachineModelRepository virtualMachineModelRepository;
+  private final VirtualMachineConverter virtualMachineConverter;
+  private final TenantModelRepository tenantModelRepository;
 
   @Inject
   public VirtualMachineDomainRepository(
@@ -25,7 +27,9 @@ public class VirtualMachineDomainRepository {
       HardwareDomainRepository hardwareDomainRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository,
-      VirtualMachineModelRepository virtualMachineModelRepository) {
+      VirtualMachineModelRepository virtualMachineModelRepository,
+      VirtualMachineConverter virtualMachineConverter,
+      TenantModelRepository tenantModelRepository) {
     this.cloudDomainRepository = cloudDomainRepository;
     this.locationDomainRepository = locationDomainRepository;
     this.imageDomainRepository = imageDomainRepository;
@@ -33,67 +37,48 @@ public class VirtualMachineDomainRepository {
     this.loginCredentialDomainRepository = loginCredentialDomainRepository;
     this.ipAddressDomainRepository = ipAddressDomainRepository;
     this.virtualMachineModelRepository = virtualMachineModelRepository;
+    this.virtualMachineConverter = virtualMachineConverter;
+    this.tenantModelRepository = tenantModelRepository;
   }
 
   public VirtualMachine findById(String id) {
-    return null;
+    return virtualMachineConverter.apply(virtualMachineModelRepository.findByCloudUniqueId(id));
   }
 
   public VirtualMachine findByTenantAndId(String userId, String id) {
-    return null;
+    return virtualMachineConverter
+        .apply(virtualMachineModelRepository.findByCloudUniqueIdAndTenant(userId, id));
   }
 
-  public VirtualMachine findAll(String userId) {
-    return null;
+  public List<VirtualMachine> findAll(String userId) {
+
+    return virtualMachineModelRepository.findByTenant(userId).stream().map(virtualMachineConverter)
+        .collect(Collectors
+            .toList());
   }
 
-  public VirtualMachine findAll() {
-    return null;
+  public List<VirtualMachine> findAll() {
+    return virtualMachineModelRepository.findAll().stream().map(virtualMachineConverter)
+        .collect(Collectors.toList());
   }
 
-  public void save(VirtualMachine virtualMachine) {
-
-    //retrieve or create the cloud
-
-    //VirtualMachineModel virtualMachineModel = new VirtualMachineModel(virtualMachine.id(),
-    //    virtualMachine.providerId(), virtualMachine.name());
-
+  public void save(VirtualMachine virtualMachine, String userId) {
+    saveAndGet(virtualMachine, userId);
   }
 
-  private CloudModel getCloudModel(String id) {
-    final String cloudId = IdScopedByClouds.from(id).cloudId();
-    return cloudDomainRepository.findModelById(cloudId);
-  }
-
-  @Nullable
-  private LocationModel getOrCreateLocationModel(VirtualMachine domain) {
-
-    LocationModel locationModel = null;
-    if (domain.location().isPresent()) {
-      locationModel = locationDomainRepository
-          .saveAndGet(domain.location().get());
+  VirtualMachineModel saveAndGet(VirtualMachine virtualMachine, String userId) {
+    //retrieve an existing virtual machine
+    VirtualMachineModel virtualMachineModel = virtualMachineModelRepository
+        .findByCloudUniqueId(virtualMachine.id());
+    if (virtualMachineModel == null) {
+      virtualMachineModel = createModel(virtualMachine, userId);
+    } else {
+      virtualMachineModel = updateModel(virtualMachine, virtualMachineModel);
     }
-    return locationModel;
-  }
 
-  @Nullable
-  private ImageModel getOrCreateImageModel(VirtualMachine domain) {
+    virtualMachineModelRepository.save(virtualMachineModel);
 
-    ImageModel imageModel = null;
-    if (domain.image().isPresent()) {
-      imageModel = imageDomainRepository.saveAndGet(domain.image().get());
-    }
-    return imageModel;
-
-  }
-
-  @Nullable
-  private HardwareModel getOrCreateHardwareModel(VirtualMachine domain) {
-    HardwareModel hardwareModel = null;
-    if (domain.hardware().isPresent()) {
-      hardwareModel = hardwareDomainRepository.saveAndGet(domain.hardware().get());
-    }
-    return hardwareModel;
+    return virtualMachineModel;
   }
 
   @Nullable
@@ -110,25 +95,28 @@ public class VirtualMachineDomainRepository {
   }
 
 
-  private VirtualMachineModel createModel(VirtualMachine virtualMachine) {
+  private VirtualMachineModel createModel(VirtualMachine virtualMachine, String userId) {
 
     //retrieve the cloud
-    CloudModel cloudModel = getCloudModel(virtualMachine.id());
+    final String cloudId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
 
-    checkState(cloudModel != null, String
-        .format("Can not save virtualMachine %s as related cloudModel is missing.",
-            virtualMachine));
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
 
-    LocationModel locationModel = getOrCreateLocationModel(virtualMachine);
-    HardwareModel hardwareModel = getOrCreateHardwareModel(virtualMachine);
-    ImageModel imageModel = getOrCreateImageModel(virtualMachine);
     LoginCredentialModel loginCredentialModel = createLoginCredentialModel(virtualMachine);
     IpGroupModel ipGroupModel = createIpGroupModel(virtualMachine);
 
     return new VirtualMachineModel(virtualMachine.id(),
-        virtualMachine.providerId(), virtualMachine.name(), cloudModel, locationModel,
-        loginCredentialModel, imageModel, hardwareModel, ipGroupModel);
+        virtualMachine.providerId(), virtualMachine.name(), cloudId, tenantModel,
+        virtualMachine.locationId().orElse(null),
+        loginCredentialModel, virtualMachine.imageId().orElse(null),
+        virtualMachine.hardwareId().orElse(null), ipGroupModel);
 
+  }
+
+  private VirtualMachineModel updateModel(VirtualMachine virtualMachine,
+      VirtualMachineModel virtualMachineModel) {
+    //todo: Implement, currently noop
+    return virtualMachineModel;
   }
 
 

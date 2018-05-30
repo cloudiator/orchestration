@@ -2,21 +2,19 @@ package io.github.cloudiator.iaas.vm;
 
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
-import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
-import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
+import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.VirtualMachineRequestQueue.UserCreateVirtualMachineRequest;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.iaas.vm.workflow.VirtualMachineWorkflow;
-import io.github.cloudiator.messaging.CloudMessageRepository;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
+import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messaging.MessageInterface;
-import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,22 +23,25 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestQueueWorker.class);
   private final VirtualMachineRequestQueue virtualMachineRequestQueue;
-  private final CloudService cloudService;
   private final MessageInterface messageInterface;
-  private final UpdateVirtualMachine updateVirtualMachine;
+  private final EnrichVirtualMachine enrichVirtualMachine;
   private final VirtualMachineMessageToVirtualMachine vmConverter = new VirtualMachineMessageToVirtualMachine();
   private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
+  private final ComputeService computeService;
+  private final VirtualMachineDomainRepository virtualMachineDomainRepository;
 
   @Inject
   public VirtualMachineRequestQueueWorker(
       VirtualMachineRequestQueue virtualMachineRequestQueue,
-      CloudService cloudService,
       MessageInterface messageInterface,
-      UpdateVirtualMachine updateVirtualMachine) {
+      EnrichVirtualMachine enrichVirtualMachine,
+      ComputeService computeService,
+      VirtualMachineDomainRepository virtualMachineDomainRepository) {
     this.virtualMachineRequestQueue = virtualMachineRequestQueue;
-    this.cloudService = cloudService;
     this.messageInterface = messageInterface;
-    this.updateVirtualMachine = updateVirtualMachine;
+    this.enrichVirtualMachine = enrichVirtualMachine;
+    this.computeService = computeService;
+    this.virtualMachineDomainRepository = virtualMachineDomainRepository;
   }
 
   @Override
@@ -70,15 +71,8 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
           LOGGER.debug(String.format("Using virtual machine template %s to start virtual machine.",
               virtualMachineTemplate));
 
-          CloudMessageRepository cloudMessageRepository = new CloudMessageRepository(cloudService);
-          Cloud cloud = cloudMessageRepository.getById(userCreateVirtualMachineRequest.userId(),
-              CloudId.instance().apply(virtualMachineTemplate));
-
-          MultiCloudService multiCloudService = MultiCloudBuilder.newBuilder().build();
-          multiCloudService.cloudRegistry().register(cloud);
-
           VirtualMachineWorkflow virtualMachineWorkflow = new VirtualMachineWorkflow(
-              multiCloudService.computeService());
+              computeService);
 
           LOGGER.debug("Starting execution of workflow for virtual machine.");
 
@@ -87,9 +81,12 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
           VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
 
           //decorate virtual machine
-          final VirtualMachine update = updateVirtualMachine
+          final VirtualMachine update = enrichVirtualMachine
               .update(userCreateVirtualMachineRequest.userId(), virtualMachineTemplate,
                   virtualMachine);
+
+          //persist the vm
+          persistVirtualMachine(update, userCreateVirtualMachineRequest.userId());
 
           messageInterface.reply(userCreateVirtualMachineRequest.requestId(),
               VirtualMachineCreatedResponse.newBuilder()
@@ -114,5 +111,10 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
     }
 
 
+  }
+
+  @Transactional
+  void persistVirtualMachine(VirtualMachine vm, String userId) {
+    virtualMachineDomainRepository.save(vm, userId);
   }
 }

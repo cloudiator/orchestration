@@ -75,6 +75,8 @@ public class JpaModule extends AbstractModule {
 
     bind(LoginCredentialModelRepository.class).to(LoginCredentialModelRepositoryJpa.class);
 
+    bind(VirtualMachineModelRepository.class).to(VirtualMachineModelRepositoryJpa.class);
+
   }
 
   private JpaPersistModule buildPersistModule() {

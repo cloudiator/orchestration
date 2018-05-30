@@ -2,6 +2,7 @@ package io.github.cloudiator.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import io.github.cloudiator.util.CollectorsUtil;
 import java.util.List;
@@ -16,6 +17,7 @@ public class CloudMessageRepository implements MessageRepository<Cloud> {
   private final CloudService cloudService;
   private final CloudMessageToCloudConverter converter = new CloudMessageToCloudConverter();
 
+  @Inject
   public CloudMessageRepository(CloudService cloudService) {
     checkNotNull(cloudService, "cloudService is null");
     this.cloudService = cloudService;

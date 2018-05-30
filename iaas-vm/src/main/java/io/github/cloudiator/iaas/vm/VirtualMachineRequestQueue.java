@@ -12,7 +12,7 @@ import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 /**
  * Created by daniel on 29.06.17.
  */
-class VirtualMachineRequestQueue {
+public class VirtualMachineRequestQueue {
 
   private final BlockingQueue<UserCreateVirtualMachineRequest> pendingRequests;
 
@@ -20,11 +20,11 @@ class VirtualMachineRequestQueue {
     this.pendingRequests = new LinkedBlockingQueue<>();
   }
 
-  public UserCreateVirtualMachineRequest take() throws InterruptedException {
+  UserCreateVirtualMachineRequest take() throws InterruptedException {
     return pendingRequests.take();
   }
 
-  public void add(String requestId, CreateVirtualMachineRequestMessage request) {
+  void add(String requestId, CreateVirtualMachineRequestMessage request) {
     pendingRequests
         .add(new UserCreateVirtualMachineRequest(requestId, request.getVirtualMachineRequest(),
             request.getUserId()));
@@ -48,15 +48,15 @@ class VirtualMachineRequestQueue {
       this.userId = userId;
     }
 
-    public String requestId() {
+    String requestId() {
       return requestId;
     }
 
-    public VirtualMachineRequest virtualMachineRequest() {
+    VirtualMachineRequest virtualMachineRequest() {
       return virtualMachineRequest;
     }
 
-    public String userId() {
+    String userId() {
       return userId;
     }
 

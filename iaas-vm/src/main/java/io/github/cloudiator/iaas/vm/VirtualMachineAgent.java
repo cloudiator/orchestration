@@ -6,6 +6,9 @@ import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
+import io.github.cloudiator.iaas.vm.config.VmAgentModule;
+import io.github.cloudiator.persistance.JpaModule;
+import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
@@ -19,6 +22,8 @@ public class VirtualMachineAgent {
       Guice.createInjector(
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())),
           new MessageServiceModule(),
+          new JpaModule("defaultPersistenceUnit", new JpaContext(
+              Configuration.conf())),
           new VmAgentModule());
 
   /**
@@ -27,10 +32,12 @@ public class VirtualMachineAgent {
    * @param args args
    */
   public static void main(String[] args) {
-    final CreateVirtualMachineSubscriber createSubscriber =
-        injector.getInstance(CreateVirtualMachineSubscriber.class);
-    createSubscriber.run();
+
     EXECUTION_SERVICE.execute(injector.getInstance(VirtualMachineRequestQueueWorker.class));
+
+    injector.getInstance(CloudCreatedSubscriber.class).run();
+    injector.getInstance(CreateVirtualMachineSubscriber.class).run();
+    injector.getInstance(VirtualMachineQuerySubscriber.class).run();
 
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override

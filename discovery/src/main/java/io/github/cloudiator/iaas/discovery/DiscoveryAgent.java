@@ -15,6 +15,7 @@ import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messages.Cloud.CloudDeletedResponse;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
+import org.cloudiator.messaging.services.MessageServiceModule;
 
 /**
  * Created by daniel on 25.01.17.
@@ -22,7 +23,7 @@ import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 public class DiscoveryAgent {
 
   private static Injector injector = Guice
-      .createInjector(new DiscoveryModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
+      .createInjector(new DiscoveryModule(), new MessageServiceModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
               Configuration.conf())),
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
 
