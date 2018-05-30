@@ -33,10 +33,6 @@
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.github.cloudiator.sword</groupId>
-      <artifactId>cloudharmony</artifactId>
-    </dependency>
   </dependencies>
 
   <build>
