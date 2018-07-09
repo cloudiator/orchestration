@@ -5,7 +5,6 @@ import com.google.inject.persist.PersistService;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import io.github.cloudiator.messaging.CloudMessageRepository;
-import io.github.cloudiator.persistance.TenantDomainRepository;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.entities.User.TenantQueryRequest;
 import org.cloudiator.messages.entities.User.TenantQueryResponse;
@@ -20,26 +19,29 @@ class Init {
 
   private final PersistService persistService;
   private final CloudMessageRepository cloudMessageRepository;
-  private final TenantDomainRepository tenantDomainRepository;
   private final CloudRegistry cloudRegistry;
   private final UserService userService;
 
   @Inject
   Init(PersistService persistService,
       CloudMessageRepository cloudMessageRepository,
-      TenantDomainRepository tenantDomainRepository,
       CloudRegistry cloudRegistry, UserService userService) {
     this.persistService = persistService;
     this.cloudMessageRepository = cloudMessageRepository;
-    this.tenantDomainRepository = tenantDomainRepository;
     this.cloudRegistry = cloudRegistry;
     this.userService = userService;
     run();
   }
 
   private void run() {
-    startPersistService();
-    restoreCloudRegistry();
+    try {
+      startPersistService();
+      restoreCloudRegistry();
+    } catch (Exception e) {
+      System.err.println("Error while initializing. Exiting.");
+      System.exit(1);
+    }
+
   }
 
   private void startPersistService() {
