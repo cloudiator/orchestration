@@ -1,9 +1,14 @@
 package io.github.cloudiator.domain;
 
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public class NodeImpl implements Node {
@@ -43,6 +48,44 @@ public class NodeImpl implements Node {
   @Override
   public Set<IpAddress> ipAddresses() {
     return ipAddresses;
+  }
+
+  public Set<IpAddress> publicIpAddresses() {
+    return ipAddresses.stream().filter(ipAddress -> ipAddress.type().equals(IpAddressType.PUBLIC))
+        .collect(Collectors
+            .toSet());
+  }
+
+  public Set<IpAddress> privateIpAddresses() {
+    return ipAddresses.stream().filter(ipAddress -> ipAddress.type().equals(IpAddressType.PRIVATE))
+        .collect(Collectors
+            .toSet());
+  }
+
+  @Override
+  public IpAddress connectTo() {
+
+    SortedSet<IpAddress> sortedSet = new TreeSet<>(new Comparator<IpAddress>() {
+      @Override
+      public int compare(IpAddress ipAddress, IpAddress t1) {
+        if (ipAddress.type() == t1.type()) {
+          return 0;
+        }
+        if (ipAddress.type().equals(IpAddressType.PUBLIC)) {
+          return -1;
+        }
+        return 1;
+      }
+    });
+    sortedSet.addAll(ipAddresses);
+
+    for (IpAddress ipAddress : sortedSet) {
+      if (ipAddress.isPingable()) {
+        return ipAddress;
+      }
+    }
+
+    return sortedSet.first();
   }
 
   @Override

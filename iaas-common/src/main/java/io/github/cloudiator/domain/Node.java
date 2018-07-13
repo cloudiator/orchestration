@@ -15,4 +15,6 @@ public interface Node extends Identifiable {
   NodeType type();
 
   Set<IpAddress> ipAddresses();
+
+  IpAddress connectTo();
 }
