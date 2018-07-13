@@ -1,5 +1,7 @@
 package io.github.cloudiator.domain;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
@@ -91,5 +93,12 @@ public class NodeImpl implements Node {
   @Override
   public String id() {
     return id;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("id", id).add("properties", nodeProperties)
+        .add("loginCredential", loginCredential).add("type", nodeType).add("ipAddresses",
+            Joiner.on(",").join(ipAddresses)).toString();
   }
 }

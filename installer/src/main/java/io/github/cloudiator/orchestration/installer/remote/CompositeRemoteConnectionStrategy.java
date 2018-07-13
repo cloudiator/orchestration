@@ -63,19 +63,19 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
     for (RemoteConnectionStrategy remoteConnectionStrategy : strategySet) {
       try {
         LOGGER.info(String
-            .format("%s is using strategy %s to connect to virtual machine %s", this,
+            .format("%s is using strategy %s to connect to node %s", this,
                 remoteConnectionStrategy, node));
         return remoteConnectionStrategy.connect(node);
       } catch (Exception e) {
         LOGGER.info(String
-            .format("%s failed connecting to virtual machine %s using strategy %s", this,
+            .format("%s failed connecting to node %s using strategy %s", this,
                 node, remoteConnectionStrategy), e);
         lastException = e;
       }
     }
 
     throw new RemoteException(
-        "Tried all available remote connection strategies, but still could not connect to machine.",
+        "Tried all available remote connection strategies, but still could not connect to node.",
         lastException);
   }
 

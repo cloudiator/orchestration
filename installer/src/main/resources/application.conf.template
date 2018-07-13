@@ -6,5 +6,5 @@ installer.docker.binary.download = "https://raw.githubusercontent.com/cloudiator
 installer.docker.mtu.download = "https://raw.githubusercontent.com/cloudiator/colosseum/master/resources/fix_mtu.sh";
 
 kafka.bootstrapServers =
-kafka.groupId = node
+kafka.groupId = installer
 kafka.responseTimeout = 10000

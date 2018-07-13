@@ -24,7 +24,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.net.HostAndPort;
 import de.uniulm.omi.cloudiator.domain.RemoteType;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.PropertiesBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
@@ -46,53 +45,28 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
   public RemoteConnection connect(Node node)
       throws RemoteException {
 
-    //TODO: check if still required
-    //checkState(virtualMachine.owner().isPresent(),
-    //  "Owner of virtual machine should be set before calling connect.");
+    String connectTo = node.connectTo().ip();
 
-    //check public Ip(s)
-
-    String publicIp = null;
-    for (IpAddress ipAddress : node.ipAddresses()
-        ) {
-      if (ipAddress.type().equals(IpAddress.IpAddressType.PUBLIC)) {
-        publicIp = ipAddress.ip();
-      }
-    }
-
-    checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
-    checkState(!publicIp.isEmpty(), "PublicIp is empty! Virtual machine must have a public ip address.");
-
-    //final Optional<String> anyPublicAddress =
-    //  virtualMachine.publicAddresses().stream().findAny();
-
-    //checkArgument(anyPublicAddress.isPresent(),
-    //  "Virtual machine must have a public ip address.");
-
-      /*
-        if (!virtualMachine.loginCredential().get().password().isPresent()) {
-            throw new RemoteException(String
-                .format("Virtual machine %s does not provide a login password", virtualMachine));
-        }
-    */
+    checkNotNull(connectTo, String.format("Node %s has no ip for connection.", node));
+    checkState(node.loginCredential().isPresent(),
+        String.format("Node %s has no login credential. Can not connect.", node));
 
     checkState(node.loginCredential().get().password().isPresent(), "No password provided!");
+    checkState(node.loginCredential().get().username().isPresent(), "No username provided!");
 
+    checkState(node.nodeProperties().operatingSystem().isPresent(),
+        String.format("No operating system known for node %s. Can not connect.", node));
 
-
-    int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remotePort();
-    RemoteType remoteType = node.nodeProperties().operatingSystem().get().operatingSystemFamily().operatingSystemType().remoteType();
-
-
-    //TODO: check if required
-    // Map<String, Object> properties =
-    //      new CompositeCloudPropertyProvider(virtualMachine.cloud()).properties();
+    int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily()
+        .operatingSystemType().remotePort();
+    RemoteType remoteType = node.nodeProperties().operatingSystem().get().operatingSystemFamily()
+        .operatingSystemType().remoteType();
 
     return RemoteBuilder.newBuilder()
         .remoteModule(new OverthereModule())
         .properties(PropertiesBuilder.newBuilder().build())
         .build().getRemoteConnection(HostAndPort
-                .fromParts(publicIp, remotePort),
+                .fromParts(connectTo, remotePort),
             remoteType,
             LoginCredentialBuilder.newBuilder()
                 .password(node.loginCredential().get().password().get())

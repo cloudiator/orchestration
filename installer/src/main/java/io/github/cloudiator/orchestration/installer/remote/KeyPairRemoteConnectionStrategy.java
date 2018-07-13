@@ -50,40 +50,19 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
   public RemoteConnection connect(Node node)
       throws RemoteException {
 
-    //final Optional<String> anyPublicAddress =
-    //  virtualMachine.publicAddresses().stream().findAny();
+    String connectTo = node.connectTo().ip();
 
-    //checkArgument(anyPublicAddress.isPresent(),
-    //  "Virtual machine must have a public ip address.");
+    checkNotNull(connectTo, String.format("Node %s has no ip for connection.", node));
+    checkState(node.loginCredential().isPresent(),
+        String.format("Node %s has no login credential. Can not connect.", node));
 
-    //checkArgument(virtualMachine.loginCredential().isPresent(),
-    //  "Virtual machine must have login credentials available.");
+    checkState(node.loginCredential().get().privateKey().isPresent(), "No private key provided!");
+    checkState(node.loginCredential().get().username().isPresent(), "No username provided!");
 
-    String publicIp = null;
-    for (IpAddress ipAddress : node.ipAddresses()) {
-      if (ipAddress.type().equals(IpAddress.IpAddressType.PUBLIC)) {
-        publicIp = ipAddress.ip();
-      }
-    }
-    checkNotNull(publicIp, "No publicIps set! Virtual machine must have a public ip address.");
+    checkState(node.nodeProperties().operatingSystem().isPresent(),
+        String.format("No operating system known for node %s. Can not connect.", node));
 
-        /*
-        String privateKey = virtualMachine.loginCredential().get().privateKey()
-            .orElseThrow(new Supplier<RemoteException>() {
-                @Override public RemoteException get() {
-                    return new RemoteException(String
-                        .format("%s could not retrieve a key pair for virtual machine %s", this,
-                            virtualMachine));
-                }
-            });
-         */
-
-    //TODO: check if present
     String privateKey = node.loginCredential().get().privateKey().get();
-
-    checkState(!privateKey.isEmpty(), "Could not retrieve a key pair for node!");
-
-    LOGGER.debug(privateKey);
 
     int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily().remotePort();
 
@@ -102,7 +81,7 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
         .remoteModule(new OverthereModule())
         .properties(PropertiesBuilder.newBuilder().build())
         .build().getRemoteConnection(HostAndPort
-                .fromParts(publicIp, remotePort),
+                .fromParts(connectTo, remotePort),
             remoteType,
             LoginCredentialBuilder.newBuilder()
                 .privateKey(privateKey)

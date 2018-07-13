@@ -19,8 +19,6 @@ public class InstallAgent {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(InstallAgent.class);
-  private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
-      new LoggingScheduledThreadPoolExecutor(5));
   private static Injector injector =
       Guice.createInjector(
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())),
@@ -42,8 +40,6 @@ public class InstallAgent {
     installEventSubscriber.run();
 
     LOGGER.debug("shutting down InstallAgent...");
-
-    //EXECUTION_SERVICE.execute(injector.getInstance(InstallNodeEventQueueWorker.class));
 
   }
 
