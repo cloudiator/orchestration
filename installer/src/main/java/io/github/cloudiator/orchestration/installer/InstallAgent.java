@@ -38,9 +38,6 @@ public class InstallAgent {
     final InstallEventSubscriber installEventSubscriber =
         injector.getInstance(InstallEventSubscriber.class);
     installEventSubscriber.run();
-
-    LOGGER.debug("shutting down InstallAgent...");
-
   }
 
 }

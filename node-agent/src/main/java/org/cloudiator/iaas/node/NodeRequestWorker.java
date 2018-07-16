@@ -74,6 +74,7 @@ public class NodeRequestWorker implements Runnable {
       NodeRequest userNodeRequest = null;
       try {
         userNodeRequest = nodeRequestQueue.takeRequest();
+        LOGGER.info(String.format("%s is now handling node request %s.", this, userNodeRequest));
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         return;
@@ -87,17 +88,34 @@ public class NodeRequestWorker implements Runnable {
         List<VirtualMachine> responses = new ArrayList<>();
         List<Error> errors = new ArrayList<>();
 
+        LOGGER.debug(String
+            .format("%s is calling matchmaking engine to derive configuration for request %s.",
+                this, userNodeRequest));
+
         final MatchmakingResponse matchmakingResponse = matchmakingService.requestMatch(
             MatchmakingRequest.newBuilder()
                 .setRequirements(userNodeRequest.getNodeRequestMessage().getNodeRequest())
                 .setUserId(userId)
                 .build());
 
+        LOGGER.debug(String
+            .format("%s received matchmaking response for node request %s. Selected offer is %s.",
+                this, userNodeRequest, matchmakingResponse));
+
         CountDownLatch countDownLatch = new CountDownLatch(
             matchmakingResponse.getNodesCount());
 
+        LOGGER.debug(
+            String.format(
+                "%s is starting to start virtual machines to fulfill node request %s. Number of virtual machines is %s.",
+                this, userNodeRequest, matchmakingResponse.getNodesCount()));
+
         matchmakingResponse.getNodesList().forEach(
             virtualMachineRequest -> {
+
+              LOGGER.debug(String
+                  .format("%s is sending virtual machine request %s.", this,
+                      virtualMachineRequest));
 
               //we need to set name here
               //todo check if matchmaking can do this, or if we can move it somewhere else
@@ -119,36 +137,59 @@ public class NodeRequestWorker implements Runnable {
                           "Neither content or error are set in response.");
                     }
                     countDownLatch.countDown();
+                    LOGGER.debug(String
+                        .format(
+                            "%s received virtual machine %s or error %s. Number of virtual machines remaining: %s",
+                            this, content, error, countDownLatch.getCount()));
                   });
             });
 
         //todo: add timeout?
+        LOGGER.debug(String
+            .format("%s is waiting for all virtual machines to start for node request %s.", this,
+                userNodeRequest));
         countDownLatch.await();
+        LOGGER.debug(String
+            .format("%s finished waiting for all virtual machines to start for node request %s.",
+                this,
+                userNodeRequest));
 
         if (errors.isEmpty()) {
-
 
           //create node group
           final NodeGroup nodeGroup = NodeGroups
               .of(responses.stream().map(virtualMachineToNode).collect(Collectors.toList()));
+          LOGGER.debug("%s is grouping the nodes of request %s to node group %s.", this,
+              userNodeRequest, nodeGroup);
 
           //persist the node group
           persistNodeGroup(nodeGroup, userId);
 
+          LOGGER.debug("%s is replying success for request %s with node group %s.", this,
+              userNodeRequest, nodeGroup);
           messageInterface.reply(messageId,
               NodeRequestResponse.newBuilder()
                   .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
 
         } else {
+          LOGGER.error(String.format(
+              "%s received error messages %s while starting virtual machines for node request %s. Replying with failure.",
+              this, buildErrorMessage(errors), userNodeRequest));
           messageInterface.reply(NodeRequestResponse.class, messageId,
               Error.newBuilder().setMessage(buildErrorMessage(errors)).setCode(500).build());
         }
       } catch (Exception e) {
-        LOGGER.error(String.format("Error %s occurred while working on request %s.", e.getMessage(),
-            userNodeRequest), e);
+        LOGGER.error(String
+            .format("Unexpected error %s occurred while working on request %s.", e.getMessage(),
+                userNodeRequest), e);
         messageInterface.reply(NodeRequestResponse.class, userNodeRequest.getId(),
             Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return "NodeRequestWorker{}";
   }
 }

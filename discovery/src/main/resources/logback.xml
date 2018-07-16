@@ -32,7 +32,7 @@
   </appender>
 
   <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-    <destination>${LOGSTASH_HOST}</destination>
+    <destination>${LOGSTASH_HOST:-localhost:5000}</destination>
 
     <!-- encoder is required -->
     <encoder class="net.logstash.logback.encoder.LogstashEncoder">

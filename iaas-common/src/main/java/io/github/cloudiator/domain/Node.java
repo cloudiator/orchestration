@@ -2,9 +2,12 @@ package io.github.cloudiator.domain;
 
 import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public interface Node extends Identifiable {
 
@@ -15,6 +18,24 @@ public interface Node extends Identifiable {
   NodeType type();
 
   Set<IpAddress> ipAddresses();
+
+  default Set<IpAddress> privateIpAddresses() {
+    return ipAddresses().stream().filter(new Predicate<IpAddress>() {
+      @Override
+      public boolean test(IpAddress ipAddress) {
+        return IpAddressType.PRIVATE.equals(ipAddress.type());
+      }
+    }).collect(Collectors.toSet());
+  }
+
+  default Set<IpAddress> publicIpAddresses() {
+    return ipAddresses().stream().filter(new Predicate<IpAddress>() {
+      @Override
+      public boolean test(IpAddress ipAddress) {
+        return IpAddressType.PUBLIC.equals(ipAddress.type());
+      }
+    }).collect(Collectors.toSet());
+  }
 
   IpAddress connectTo();
 }

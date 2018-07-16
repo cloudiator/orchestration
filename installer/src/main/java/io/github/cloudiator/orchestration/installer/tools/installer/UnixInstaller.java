@@ -18,7 +18,6 @@
 
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
@@ -49,7 +48,6 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
 
-
   @Override
   public void bootstrap() throws RemoteException {
 
@@ -58,22 +56,25 @@ public class UnixInstaller extends AbstractInstaller {
         "Creating Cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
         node.id()));
 
-    CommandTask bootstrap = new CommandTask(this.remoteConnection,"sudo mkdir " + UnixInstaller.TOOL_PATH);
+    CommandTask bootstrap = new CommandTask(this.remoteConnection,
+        "sudo mkdir " + UnixInstaller.TOOL_PATH);
     bootstrap.call();
 
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "
-        + Configuration.conf().getString("installer.java.download") + "  -O " + UnixInstaller.TOOL_PATH
-        + UnixInstaller.JAVA_ARCHIVE );
+        + Configuration.conf().getString("installer.java.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
+        + UnixInstaller.JAVA_ARCHIVE);
     bootstrap.call();
     //create directory
     bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir " + TOOL_PATH + JAVA_DIR);
     bootstrap.call();
     //extract java
     // do not set symbolic link or PATH as there might be other Java versions on the VM
-    bootstrap = new CommandTask(this.remoteConnection, "sudo tar zxvf " + TOOL_PATH + UnixInstaller.JAVA_ARCHIVE + " -C " + UnixInstaller.TOOL_PATH
-        + JAVA_DIR
-        + " --strip-components=1");
+    bootstrap = new CommandTask(this.remoteConnection,
+        "sudo tar zxvf " + TOOL_PATH + UnixInstaller.JAVA_ARCHIVE + " -C " + UnixInstaller.TOOL_PATH
+            + JAVA_DIR
+            + " --strip-components=1");
     bootstrap.call();
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
@@ -85,8 +86,9 @@ public class UnixInstaller extends AbstractInstaller {
   public void installVisor() throws RemoteException {
 
     //download Visor
-    CommandTask installVisor = new CommandTask(this.remoteConnection,"sudo wget " + Configuration.conf().getString("installer.visor.download")
-        + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
+    CommandTask installVisor = new CommandTask(this.remoteConnection,
+        "sudo wget " + Configuration.conf().getString("installer.visor.download")
+            + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
     installVisor.call();
 
     LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
@@ -96,7 +98,8 @@ public class UnixInstaller extends AbstractInstaller {
     visorConfig.call();
 
     //move to tool path
-    installVisor = new CommandTask(this.remoteConnection,"sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
+    installVisor = new CommandTask(this.remoteConnection,
+        "sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
     installVisor.call();
 
     //start visor
@@ -104,7 +107,7 @@ public class UnixInstaller extends AbstractInstaller {
         "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
             + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
     LOGGER.debug("Visor start command: " + startCommand);
-    installVisor = new CommandTask(this.remoteConnection,startCommand);
+    installVisor = new CommandTask(this.remoteConnection, startCommand);
     installVisor.call();
 
     LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
@@ -113,24 +116,25 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installKairosDb() throws RemoteException {
 
-      //download KairosDB
-      this.remoteConnection.executeCommand("sudo wget " +
-          Configuration.conf().getString("installer.kairosdb.download") + "  -O " + UnixInstaller.TOOL_PATH
+    //download KairosDB
+    this.remoteConnection.executeCommand("sudo wget " +
+        Configuration.conf().getString("installer.kairosdb.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
         + KAIROSDB_ARCHIVE);
 
-      LOGGER
-          .debug(String.format("Installing and starting KairosDB on node %s", node.id()));
-      this.remoteConnection.executeCommand("sudo mkdir " + KAIRROSDB_DIR);
+    LOGGER
+        .debug(String.format("Installing and starting KairosDB on node %s", node.id()));
+    this.remoteConnection.executeCommand("sudo mkdir " + KAIRROSDB_DIR);
 
-      this.remoteConnection.executeCommand(
-          "sudo tar  zxvf " + KAIROSDB_ARCHIVE + " -C " + KAIRROSDB_DIR
-              + " --strip-components=1");
+    this.remoteConnection.executeCommand(
+        "sudo tar  zxvf " + KAIROSDB_ARCHIVE + " -C " + KAIRROSDB_DIR
+            + " --strip-components=1");
 
-      this.remoteConnection.executeCommand(
-          " sudo su -c \"(export PATH=\"" + UnixInstaller.TOOL_PATH + "/jre8/bin/:\"$PATH;nohup "
-              + KAIRROSDB_DIR + "/bin/kairosdb.sh start)\"");
+    this.remoteConnection.executeCommand(
+        " sudo su -c \"(export PATH=\"" + UnixInstaller.TOOL_PATH + "/jre8/bin/:\"$PATH;nohup "
+            + KAIRROSDB_DIR + "/bin/kairosdb.sh start)\"");
 
-      LOGGER.debug(String.format("KairosDB started successfully on node %s", node.id()));
+    LOGGER.debug(String.format("KairosDB started successfully on node %s", node.id()));
 
   }
 
@@ -138,22 +142,21 @@ public class UnixInstaller extends AbstractInstaller {
   public void installLance() throws RemoteException {
 
     //download Lance
-    CommandTask installLance = new CommandTask(this.remoteConnection,"sudo wget "
+    CommandTask installLance = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.lance.download")
         + "  -O " + UnixInstaller.TOOL_PATH + LANCE_JAR);
     installLance.call();
 
+    final String publicIpAddress = node.connectTo().ip();
+    final String privateIpAddress = node.privateIpAddresses().stream().findAny()
+        .orElse(node.connectTo()).ip();
 
     //start Lance
     String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + node
-            .ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC)
-            .findAny().get().ip()
+        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dhost.ip.public=" + publicIpAddress
             + " -Dhost.ip.private=" +
-            node.ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PRIVATE)
-                .findAny().get().ip() + " -Djava.rmi.server.hostname="
-            + node.ipAddresses().stream().filter(p -> p.type() == IpAddress.IpAddressType.PUBLIC)
-            .findAny().get().ip() + " -Dhost.vm.id="
+            privateIpAddress + " -Djava.rmi.server.hostname="
+            + publicIpAddress + " -Dhost.vm.id="
             + this.node.id() + " -Dhost.vm.cloud.tenant.id=" + this.userId
             + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
             + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
@@ -171,38 +174,44 @@ public class UnixInstaller extends AbstractInstaller {
   public void installDocker() throws RemoteException {
 
     //download Docker install script
-    CommandTask installDocker = new CommandTask(this.remoteConnection,"sudo wget " +
-        Configuration.conf().getString("installer.docker.install.download") + "  -O " + UnixInstaller.TOOL_PATH
+    CommandTask installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
+        Configuration.conf().getString("installer.docker.install.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
         + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
 
     //download Docker fix MTU
-    installDocker = new CommandTask(this.remoteConnection,"sudo wget " +
-        Configuration.conf().getString("installer.docker.mtu.download") + "  -O " + UnixInstaller.TOOL_PATH
+    installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
+        Configuration.conf().getString("installer.docker.mtu.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
         + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
     installDocker.call();
 
     LOGGER.debug(
         String.format("Installing and starting Lance: Docker on node %s", node.id()));
 
-    installDocker = new CommandTask(this.remoteConnection,"sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL);
+    installDocker = new CommandTask(this.remoteConnection,
+        "sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
 
     // Install docker via the retry script:
-    installDocker = new CommandTask(this.remoteConnection,"sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL
-        + " > docker_retry_install.out 2>&1");
+    installDocker = new CommandTask(this.remoteConnection,
+        "sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_RETRY_INSTALL
+            + " > docker_retry_install.out 2>&1");
     installDocker.call();
 
-    installDocker = new CommandTask(this.remoteConnection,"sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
+    installDocker = new CommandTask(this.remoteConnection,
+        "sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
     installDocker.call();
 
-    installDocker = new CommandTask(this.remoteConnection,"sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL
-        + " > docker_mtu_fix.out 2>&1");
+    installDocker = new CommandTask(this.remoteConnection,
+        "sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL
+            + " > docker_mtu_fix.out 2>&1");
     installDocker.call();
 
-    installDocker = new CommandTask(this.remoteConnection,"sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
+    installDocker = new CommandTask(this.remoteConnection,
+        "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
     installDocker.call();
-
 
     LOGGER.debug(String.format("Installing and starting Lance on node %s", node.id()));
 
