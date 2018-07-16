@@ -11,6 +11,7 @@ after_success:
 - discovery/ci/publish_docker.sh
 - iaas-vm/ci/publish_docker.sh
 - node-agent/ci/publish_docker.sh
+- installer/ci/publish_docker.sh
 branches:
   except:
   - gh-pages
