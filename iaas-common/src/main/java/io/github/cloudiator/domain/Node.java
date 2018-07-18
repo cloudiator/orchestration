@@ -6,7 +6,6 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public interface Node extends Identifiable {
@@ -20,21 +19,13 @@ public interface Node extends Identifiable {
   Set<IpAddress> ipAddresses();
 
   default Set<IpAddress> privateIpAddresses() {
-    return ipAddresses().stream().filter(new Predicate<IpAddress>() {
-      @Override
-      public boolean test(IpAddress ipAddress) {
-        return IpAddressType.PRIVATE.equals(ipAddress.type());
-      }
-    }).collect(Collectors.toSet());
+    return ipAddresses().stream().filter(
+        ipAddress -> IpAddressType.PRIVATE.equals(ipAddress.type())).collect(Collectors.toSet());
   }
 
   default Set<IpAddress> publicIpAddresses() {
-    return ipAddresses().stream().filter(new Predicate<IpAddress>() {
-      @Override
-      public boolean test(IpAddress ipAddress) {
-        return IpAddressType.PUBLIC.equals(ipAddress.type());
-      }
-    }).collect(Collectors.toSet());
+    return ipAddresses().stream().filter(ipAddress -> IpAddressType.PUBLIC.equals(ipAddress.type()))
+        .collect(Collectors.toSet());
   }
 
   IpAddress connectTo();

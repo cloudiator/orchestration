@@ -1,6 +1,7 @@
 package io.github.cloudiator.domain;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 import com.google.common.collect.Sets;
@@ -21,13 +22,19 @@ public class NodeTest {
         .memory(1024L).numberOfCores(4).os(
             OperatingSystems.unknown()).build();
 
+    final IpAddress publicIp = IpAddresses.of("8.8.8.8");
+    final IpAddress privateIp = IpAddresses.of("192.168.1.3");
+
     Set<IpAddress> ipAddresses = Sets
-        .newHashSet(IpAddresses.of("8.8.8.8"), IpAddresses.of("127.0.0.1"));
+        .newHashSet(publicIp, privateIp);
 
     final Node node = NodeBuilder.newBuilder().nodeType(NodeType.VM).nodeProperties(nodeProperties)
         .ipAddresses(ipAddresses).build();
 
-    assertThat(node.connectTo().ip(), equalTo("8.8.8.8"));
+    assertThat(node.publicIpAddresses(), contains(publicIp));
+    assertThat(node.privateIpAddresses(), contains(privateIp));
+
+    assertThat(node.connectTo(), equalTo(publicIp));
 
   }
 }

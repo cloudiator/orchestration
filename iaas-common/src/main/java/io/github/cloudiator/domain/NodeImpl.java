@@ -5,11 +5,8 @@ import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -52,42 +49,52 @@ public class NodeImpl implements Node {
     return ipAddresses;
   }
 
-  public Set<IpAddress> publicIpAddresses() {
-    return ipAddresses.stream().filter(ipAddress -> ipAddress.type().equals(IpAddressType.PUBLIC))
-        .collect(Collectors
-            .toSet());
+  @Nullable
+  private static IpAddress returnFirstPingable(Set<IpAddress> addresses) {
+    for (IpAddress ipAddress : addresses) {
+      if (ipAddress.isPingable()) {
+        return ipAddress;
+      }
+    }
+    return null;
   }
 
-  public Set<IpAddress> privateIpAddresses() {
-    return ipAddresses.stream().filter(ipAddress -> ipAddress.type().equals(IpAddressType.PRIVATE))
-        .collect(Collectors
-            .toSet());
+  @Nullable
+  private static IpAddress findConnectible(final Set<IpAddress> addresses) {
+    if (addresses.size() == 1) {
+      //noinspection ConstantConditions
+      return addresses.stream().findFirst().get();
+    } else if (addresses.size() > 1) {
+      final IpAddress firstPingable = returnFirstPingable(addresses);
+      if (firstPingable != null) {
+        return firstPingable;
+      } else {
+        //noinspection ConstantConditions
+        return addresses.stream().findFirst().get();
+      }
+    }
+    return null;
   }
 
   @Override
   public IpAddress connectTo() {
 
-    SortedSet<IpAddress> sortedSet = new TreeSet<>(new Comparator<IpAddress>() {
-      @Override
-      public int compare(IpAddress ipAddress, IpAddress t1) {
-        if (ipAddress.type() == t1.type()) {
-          return 0;
-        }
-        if (ipAddress.type().equals(IpAddressType.PUBLIC)) {
-          return -1;
-        }
-        return 1;
-      }
-    });
-    sortedSet.addAll(ipAddresses);
-
-    for (IpAddress ipAddress : sortedSet) {
-      if (ipAddress.isPingable()) {
-        return ipAddress;
-      }
+    if (publicIpAddresses().isEmpty() && privateIpAddresses().isEmpty()) {
+      throw new IllegalStateException(
+          String.format("Node %s has no ip addresses. Can not connect.", this));
     }
 
-    return sortedSet.first();
+    final IpAddress publicConnect = findConnectible(publicIpAddresses());
+    if (publicConnect != null) {
+      return publicConnect;
+    }
+    final IpAddress privateConnect = findConnectible(privateIpAddresses());
+    if (privateConnect != null) {
+      return privateConnect;
+    }
+
+    throw new IllegalStateException(
+        String.format("Could not derive IpAddress to connect to for node %s", this));
   }
 
   @Override
