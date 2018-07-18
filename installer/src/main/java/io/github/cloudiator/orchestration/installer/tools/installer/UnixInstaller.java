@@ -175,7 +175,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     //download Docker install script
     CommandTask installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
-        Configuration.conf().getString("installer.docker.install.download") + "  -O "
+        Configuration.conf().getString("installer.docker.binary.download") + "  -O "
         + UnixInstaller.TOOL_PATH
         + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
