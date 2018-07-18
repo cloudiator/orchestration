@@ -47,26 +47,27 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>io.github.cloudiator.orchestration.installer.InstallAgent</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <finalName>install-agent</finalName>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
         <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
+            <id>jar-with-dependencies</id>
+            <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/assembly/src.xml</descriptor>
+              </descriptors>
+              <finalName>install-agent</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <archive>
+                <manifest>
+                  <mainClass>io.github.cloudiator.orchestration.installer.InstallAgent</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
           </execution>
         </executions>
       </plugin>
