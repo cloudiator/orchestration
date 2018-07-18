@@ -24,7 +24,7 @@ class NodeModelRepositoryJpa extends BaseModelRepositoryJpa<NodeModel> implement
   public List<NodeModel> getByTenant(String userId) {
     checkNotNull(userId, "userId is null");
     String queryString = String
-        .format("from %s node inner join node.tenantModel tenant where tenant.userId = :userId",
+        .format("select node from %s node inner join node.tenantModel tenant where tenant.userId = :userId",
             type.getName());
     Query query = em().createQuery(queryString).setParameter("userId", userId);
     //noinspection unchecked
