@@ -1,5 +1,6 @@
 package io.github.cloudiator.messaging;
 
+import com.google.common.base.Strings;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.domain.CloudBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
@@ -19,13 +20,17 @@ public class CloudMessageToCloudConverter implements TwoWayConverter<IaasEntitie
 
   @Override
   public Cloud apply(IaasEntities.Cloud cloud) {
-    return CloudBuilder.newBuilder()
+    CloudBuilder cloudBuilder = CloudBuilder.newBuilder()
         .credentials(credentialConverter.apply(cloud.getCredential()))
         .api(apiConverter.apply(cloud.getApi()))
         .configuration(configurationConverter.apply(cloud.getConfiguration()))
-        .endpoint(cloud.getEndpoint())
-        .cloudType(cloudTypeConverter.apply(cloud.getCloudType()))
-        .build();
+        .cloudType(cloudTypeConverter.apply(cloud.getCloudType()));
+
+    if (!Strings.isNullOrEmpty(cloud.getEndpoint())) {
+      cloudBuilder.endpoint(cloud.getEndpoint());
+    }
+
+    return cloudBuilder.build();
   }
 
   @Override
