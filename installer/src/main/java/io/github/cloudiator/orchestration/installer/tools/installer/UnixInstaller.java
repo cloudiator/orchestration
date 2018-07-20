@@ -57,7 +57,7 @@ public class UnixInstaller extends AbstractInstaller {
         node.id()));
 
     CommandTask bootstrap = new CommandTask(this.remoteConnection,
-        "sudo mkdir " + UnixInstaller.TOOL_PATH);
+        "sudo mkdir -p" + UnixInstaller.TOOL_PATH);
     bootstrap.call();
 
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
@@ -67,7 +67,7 @@ public class UnixInstaller extends AbstractInstaller {
         + UnixInstaller.JAVA_ARCHIVE);
     bootstrap.call();
     //create directory
-    bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir " + TOOL_PATH + JAVA_DIR);
+    bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir -p" + TOOL_PATH + JAVA_DIR);
     bootstrap.call();
     //extract java
     // do not set symbolic link or PATH as there might be other Java versions on the VM
@@ -124,7 +124,7 @@ public class UnixInstaller extends AbstractInstaller {
 
     LOGGER
         .debug(String.format("Installing and starting KairosDB on node %s", node.id()));
-    this.remoteConnection.executeCommand("sudo mkdir " + KAIRROSDB_DIR);
+    this.remoteConnection.executeCommand("sudo mkdir -p" + KAIRROSDB_DIR);
 
     this.remoteConnection.executeCommand(
         "sudo tar  zxvf " + KAIROSDB_ARCHIVE + " -C " + KAIRROSDB_DIR
