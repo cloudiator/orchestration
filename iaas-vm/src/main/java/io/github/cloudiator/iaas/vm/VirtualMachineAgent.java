@@ -3,6 +3,8 @@ package io.github.cloudiator.iaas.vm;
 import com.google.common.base.MoreObjects;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
@@ -10,6 +12,7 @@ import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecut
 import io.github.cloudiator.iaas.vm.config.VmAgentModule;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
+import java.util.concurrent.TimeUnit;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
@@ -20,8 +23,6 @@ public class VirtualMachineAgent {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineAgent.class);
-  private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
-      new LoggingScheduledThreadPoolExecutor(5));
 
   private static Injector injector =
       Guice.createInjector(
@@ -29,7 +30,16 @@ public class VirtualMachineAgent {
           new MessageServiceModule(),
           new JpaModule("defaultPersistenceUnit", new JpaContext(
               Configuration.conf())),
-          new VmAgentModule());
+          new VmAgentModule(new VmAgentContext()));
+
+  private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
+      new LoggingScheduledThreadPoolExecutor(numberOfWorkers()));
+
+
+  private static int numberOfWorkers() {
+    return injector.getInstance(Key.get(Integer.class,
+        Names.named(Constants.VM_PARALLEL_STARTS)));
+  }
 
   /**
    * starts the virtual machine agent.
@@ -40,7 +50,16 @@ public class VirtualMachineAgent {
 
     LOGGER.info(String.format("%s is starting.", VirtualMachineAgent.class.getName()));
 
-    EXECUTION_SERVICE.execute(injector.getInstance(VirtualMachineRequestQueueWorker.class));
+    LOGGER.info(String.format("%s is registering shutdown hook for work execution service %s",
+        VirtualMachineAgent.class.getName(), EXECUTION_SERVICE));
+    EXECUTION_SERVICE.delayShutdownHook(5, TimeUnit.MINUTES);
+
+    LOGGER.info(String
+        .format("%s is starting %s virtual machine workers", VirtualMachineAgent.class.getName(),
+            numberOfWorkers()));
+    for (int i = 0; i < numberOfWorkers(); i++) {
+      EXECUTION_SERVICE.execute(injector.getInstance(VirtualMachineRequestQueueWorker.class));
+    }
 
     LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
         CloudCreatedSubscriber.class.getName()));
