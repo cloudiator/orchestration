@@ -12,7 +12,11 @@ import org.cloudiator.messages.entities.IaasEntities.HardwareFlavor.Builder;
 public class HardwareMessageToHardwareConverter implements
     TwoWayConverter<IaasEntities.HardwareFlavor, HardwareFlavor> {
 
-  private final LocationMessageToLocationConverter locationConverter = new LocationMessageToLocationConverter();
+  public static final HardwareMessageToHardwareConverter INSTANCE = new HardwareMessageToHardwareConverter();
+
+  private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
+
+  private HardwareMessageToHardwareConverter() {}
 
   @Override
   public IaasEntities.HardwareFlavor applyBack(HardwareFlavor hardwareFlavor) {
@@ -24,7 +28,7 @@ public class HardwareMessageToHardwareConverter implements
       builder.setDisk(hardwareFlavor.gbDisk().get());
     }
     if (hardwareFlavor.location().isPresent()) {
-      builder.setLocation(locationConverter.applyBack(hardwareFlavor.location().get()));
+      builder.setLocation(LOCATION_CONVERTER.applyBack(hardwareFlavor.location().get()));
     }
     return builder.build();
   }
@@ -32,9 +36,19 @@ public class HardwareMessageToHardwareConverter implements
   @Override
   public HardwareFlavor apply(IaasEntities.HardwareFlavor hardwareFlavor) {
 
-    return HardwareFlavorBuilder.newBuilder().cores(hardwareFlavor.getCores())
-        .gbDisk(hardwareFlavor.getDisk()).id(hardwareFlavor.getId()).name(hardwareFlavor.getName())
-        .providerId(hardwareFlavor.getProviderId()).mbRam(hardwareFlavor.getRam())
-        .location(locationConverter.apply(hardwareFlavor.getLocation())).build();
+    final HardwareFlavorBuilder hardwareFlavorBuilder = HardwareFlavorBuilder.newBuilder()
+        .cores(hardwareFlavor.getCores())
+        .id(hardwareFlavor.getId()).name(hardwareFlavor.getName())
+        .providerId(hardwareFlavor.getProviderId()).mbRam(hardwareFlavor.getRam());
+
+    if (hardwareFlavor.hasLocation()) {
+      hardwareFlavorBuilder.location(LOCATION_CONVERTER.apply(hardwareFlavor.getLocation()));
+    }
+
+    if (hardwareFlavor.getDisk() != 0) {
+      hardwareFlavorBuilder.gbDisk(hardwareFlavor.getDisk());
+    }
+
+    return hardwareFlavorBuilder.build();
   }
 }

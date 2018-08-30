@@ -18,6 +18,12 @@ public class CloudMessageToCloudConverter implements TwoWayConverter<IaasEntitie
   private CredentialMessageToCredential credentialConverter = new CredentialMessageToCredential();
   private CloudTypeMessageToCloudType cloudTypeConverter = new CloudTypeMessageToCloudType();
 
+  public static CloudMessageToCloudConverter INSTANCE = new CloudMessageToCloudConverter();
+
+  private CloudMessageToCloudConverter() {
+  }
+
+
   @Override
   public Cloud apply(IaasEntities.Cloud cloud) {
     CloudBuilder cloudBuilder = CloudBuilder.newBuilder()

@@ -12,11 +12,15 @@ import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
 public class VirtualMachineMessageToVirtualMachine implements
     TwoWayConverter<IaasEntities.VirtualMachine, VirtualMachine> {
 
+  public static final VirtualMachineMessageToVirtualMachine INSTANCE = new VirtualMachineMessageToVirtualMachine();
+
   private LoginCredentialMessageToLoginCredentialConverter loginCredentialConverter = new LoginCredentialMessageToLoginCredentialConverter();
-  private ImageMessageToImageConverter imageConverter = new ImageMessageToImageConverter();
-  private HardwareMessageToHardwareConverter hardwareConverter = new HardwareMessageToHardwareConverter();
-  private LocationMessageToLocationConverter locationConverter = new LocationMessageToLocationConverter();
+  private ImageMessageToImageConverter imageConverter = ImageMessageToImageConverter.INSTANCE;
+  private HardwareMessageToHardwareConverter hardwareConverter = HardwareMessageToHardwareConverter.INSTANCE;
+  private LocationMessageToLocationConverter locationConverter = LocationMessageToLocationConverter.INSTANCE;
   private IpAddressMessageToIpAddress ipConverter = new IpAddressMessageToIpAddress();
+
+  private VirtualMachineMessageToVirtualMachine() {}
 
 
   @Override

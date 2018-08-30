@@ -15,7 +15,7 @@ public class CloudMessageRepository implements MessageRepository<Cloud> {
 
   private final static String RESPONSE_ERROR = "Could not retrieve cloud object(s) due to error %s";
   private final CloudService cloudService;
-  private final CloudMessageToCloudConverter converter = new CloudMessageToCloudConverter();
+  private static final CloudMessageToCloudConverter CONVERTER = CloudMessageToCloudConverter.INSTANCE;
 
   @Inject
   public CloudMessageRepository(CloudService cloudService) {
@@ -29,7 +29,7 @@ public class CloudMessageRepository implements MessageRepository<Cloud> {
       return cloudService
           .getClouds(CloudQueryRequest.newBuilder().setUserId(userId).setCloudId(id).build())
           .getCloudsList().stream()
-          .map(converter)
+          .map(CONVERTER)
           .collect(CollectorsUtil.singletonCollector());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);
@@ -40,7 +40,7 @@ public class CloudMessageRepository implements MessageRepository<Cloud> {
   public List<Cloud> getAll(String userId) {
     try {
       return cloudService.getClouds(CloudQueryRequest.newBuilder().setUserId(userId).build())
-          .getCloudsList().stream().map(converter).collect(
+          .getCloudsList().stream().map(CONVERTER).collect(
               Collectors.toList());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);

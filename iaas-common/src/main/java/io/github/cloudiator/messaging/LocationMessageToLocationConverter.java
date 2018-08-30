@@ -17,6 +17,10 @@ public class LocationMessageToLocationConverter implements
   private final LocationScopeMessageToLocationScopeConverter locationScopeConverter = new LocationScopeMessageToLocationScopeConverter();
   private final GeoLocationMessageToGeoLocationConverter geoLocationConverter = new GeoLocationMessageToGeoLocationConverter();
 
+  public static final LocationMessageToLocationConverter INSTANCE = new LocationMessageToLocationConverter();
+
+  private LocationMessageToLocationConverter() {}
+
   @Override
   public IaasEntities.Location applyBack(Location location) {
     if (location == null) {

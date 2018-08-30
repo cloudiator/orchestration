@@ -11,7 +11,13 @@ import org.cloudiator.messages.entities.IaasEntities.Image.Builder;
  */
 public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntities.Image, Image> {
 
-  private LocationMessageToLocationConverter locationMessageToLocationConverter = new LocationMessageToLocationConverter();
+  public static final ImageMessageToImageConverter INSTANCE = new ImageMessageToImageConverter();
+
+  private ImageMessageToImageConverter() {
+  }
+
+
+  private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
   private OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
 
   @Override
@@ -21,7 +27,7 @@ public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntitie
         .setName(image.name())
         .setOperationSystem(operatingSystemConverter.applyBack(image.operatingSystem()));
     if (image.location().isPresent()) {
-      builder.setLocation(locationMessageToLocationConverter.applyBack(image.location().get()));
+      builder.setLocation(LOCATION_CONVERTER.applyBack(image.location().get()));
     }
     return builder.build();
   }
@@ -30,6 +36,6 @@ public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntitie
   public Image apply(IaasEntities.Image image) {
     return ImageBuilder.newBuilder().id(image.getId()).providerId(image.getProviderId())
         .name(image.getName()).os(operatingSystemConverter.apply(image.getOperationSystem()))
-        .location(locationMessageToLocationConverter.apply(image.getLocation())).build();
+        .location(LOCATION_CONVERTER.apply(image.getLocation())).build();
   }
 }

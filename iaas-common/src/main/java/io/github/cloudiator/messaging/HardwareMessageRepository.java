@@ -14,7 +14,7 @@ public class HardwareMessageRepository implements MessageRepository<HardwareFlav
 
   private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
   private final HardwareService hardwareService;
-  private final HardwareMessageToHardwareConverter converter = new HardwareMessageToHardwareConverter();
+  private static final HardwareMessageToHardwareConverter CONVERTER = HardwareMessageToHardwareConverter.INSTANCE;
 
   @Inject
   public HardwareMessageRepository(
@@ -27,7 +27,7 @@ public class HardwareMessageRepository implements MessageRepository<HardwareFlav
     try {
       final List<HardwareFlavor> collect = hardwareService.getHardware(
           HardwareQueryRequest.newBuilder().setUserId(userId).setHardwareId(id).build())
-          .getHardwareFlavorsList().stream().map(converter).collect(
+          .getHardwareFlavorsList().stream().map(CONVERTER).collect(
               Collectors.toList());
 
       checkState(collect.size() <= 1, "Expected unique result.");
@@ -47,7 +47,7 @@ public class HardwareMessageRepository implements MessageRepository<HardwareFlav
     try {
       return hardwareService
           .getHardware(HardwareQueryRequest.newBuilder().setUserId(userId).build())
-          .getHardwareFlavorsList().stream().map(converter).collect(
+          .getHardwareFlavorsList().stream().map(CONVERTER).collect(
               Collectors.toList());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);

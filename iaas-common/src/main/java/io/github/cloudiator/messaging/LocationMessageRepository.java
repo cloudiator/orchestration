@@ -14,7 +14,7 @@ public class LocationMessageRepository implements MessageRepository<Location> {
 
   private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
   private final LocationService locationService;
-  private final LocationMessageToLocationConverter converter = new LocationMessageToLocationConverter();
+  private static final LocationMessageToLocationConverter CONVERTER = LocationMessageToLocationConverter.INSTANCE;
 
   @Inject
   public LocationMessageRepository(
@@ -28,7 +28,7 @@ public class LocationMessageRepository implements MessageRepository<Location> {
       final List<Location> collect = locationService
           .getLocations(
               LocationQueryRequest.newBuilder().setLocationId(id).setUserId(userId).build())
-          .getLocationsList().stream().map(converter).collect(Collectors.toList());
+          .getLocationsList().stream().map(CONVERTER).collect(Collectors.toList());
 
       checkState(collect.size() <= 1, "Expected unique result.");
 
@@ -48,7 +48,7 @@ public class LocationMessageRepository implements MessageRepository<Location> {
     try {
       return locationService
           .getLocations(LocationQueryRequest.newBuilder().setUserId(userId).build())
-          .getLocationsList().stream().map(converter).collect(
+          .getLocationsList().stream().map(CONVERTER).collect(
               Collectors.toList());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);

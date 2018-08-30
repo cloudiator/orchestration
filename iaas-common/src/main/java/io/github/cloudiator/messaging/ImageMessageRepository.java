@@ -15,7 +15,7 @@ public class ImageMessageRepository implements MessageRepository<Image> {
 
   private final static String RESPONSE_ERROR = "Could not retrieve image object(s) due to error %s";
   private final ImageService imageService;
-  private final ImageMessageToImageConverter converter = new ImageMessageToImageConverter();
+  private static final ImageMessageToImageConverter CONVERTER = ImageMessageToImageConverter.INSTANCE;
 
   @Inject
   public ImageMessageRepository(
@@ -30,7 +30,7 @@ public class ImageMessageRepository implements MessageRepository<Image> {
     try {
       final List<Image> collect = imageService
           .getImages(ImageQueryRequest.newBuilder().setImageId(id).setUserId(userId).build())
-          .getImagesList().stream().map(converter).collect(Collectors.toList());
+          .getImagesList().stream().map(CONVERTER).collect(Collectors.toList());
 
       checkState(collect.size() <= 1, "Expected unique result.");
 
@@ -50,7 +50,7 @@ public class ImageMessageRepository implements MessageRepository<Image> {
     try {
       return imageService
           .getImages(ImageQueryRequest.newBuilder().setUserId(userId).build())
-          .getImagesList().stream().map(converter).collect(
+          .getImagesList().stream().map(CONVERTER).collect(
               Collectors.toList());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);

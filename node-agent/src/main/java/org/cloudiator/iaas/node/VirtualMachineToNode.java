@@ -1,6 +1,5 @@
 package org.cloudiator.iaas.node;
 
-import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.LoginNameSupplier.UnknownLoginNameException;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
@@ -15,8 +14,9 @@ import java.util.function.Function;
 
 public class VirtualMachineToNode implements Function<VirtualMachine, Node> {
 
-  @Inject
-  public VirtualMachineToNode() {
+  public static final VirtualMachineToNode INSTANCE = new VirtualMachineToNode();
+
+  private VirtualMachineToNode() {
   }
 
   @Override

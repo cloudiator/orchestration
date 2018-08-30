@@ -2,27 +2,25 @@ package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import com.google.inject.persist.UnitOfWork;
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeGroups;
+import io.github.cloudiator.messaging.NodeCandidateConverter;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
-import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import org.cloudiator.iaas.node.NodeCandidateIncarnation.NodeCandidateIncarnationFactory;
 import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;
-import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
-import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingRequest;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingResponse;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.services.MatchmakingService;
-import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,33 +30,30 @@ public class NodeRequestWorker implements Runnable {
       .getLogger(NodeRequestWorker.class);
   private final NodeRequestQueue nodeRequestQueue;
   private final MatchmakingService matchmakingService;
-  private final VirtualMachineService virtualMachineService;
   private final MessageInterface messageInterface;
-  private final VirtualMachineToNode virtualMachineToNode = new VirtualMachineToNode();
-  private final VirtualMachineMessageToVirtualMachine virtualMachineConverter = new VirtualMachineMessageToVirtualMachine();
-  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private static final NodeGroupMessageToNodeGroup NODE_GROUP_CONVERTER = new NodeGroupMessageToNodeGroup();
   private final NodeDomainRepository nodeDomainRepository;
-  private final UnitOfWork unitOfWork;
+  private static final NodeCandidateConverter NODE_CANDIDATE_CONVERTER = NodeCandidateConverter.INSTANCE;
+  private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
       MatchmakingService matchmakingService,
-      VirtualMachineService virtualMachineService,
       MessageInterface messageInterface,
-      NodeDomainRepository nodeDomainRepository, UnitOfWork unitOfWork) {
+      NodeDomainRepository nodeDomainRepository,
+      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory) {
     this.nodeRequestQueue = nodeRequestQueue;
     this.matchmakingService = matchmakingService;
-    this.virtualMachineService = virtualMachineService;
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
-    this.unitOfWork = unitOfWork;
+    this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
+
   }
 
-  private static String buildErrorMessage(List<Error> errors) {
+  private static String buildErrorMessage(List<Throwable> exceptions) {
     final String errorFormat = "%s Error(s) occurred during provisioning of nodes: %s";
-    return String.format(errorFormat, errors.size(),
-        errors.stream().map(error -> error.getCode() + " " + error.getMessage())
+    return String.format(errorFormat, exceptions.size(),
+        exceptions.stream().map(Throwable::getMessage)
             .collect(Collectors.toList()));
   }
 
@@ -85,8 +80,8 @@ public class NodeRequestWorker implements Runnable {
         final String messageId = userNodeRequest.getId();
         final String groupName = userNodeRequest.getNodeRequestMessage().getGroupName();
 
-        List<VirtualMachine> responses = new ArrayList<>();
-        List<Error> errors = new ArrayList<>();
+        List<Node> nodes = new ArrayList<>();
+        List<Throwable> exceptions = new ArrayList<>();
 
         LOGGER.debug(String
             .format("%s is calling matchmaking engine to derive configuration for request %s.",
@@ -103,45 +98,25 @@ public class NodeRequestWorker implements Runnable {
                 this, userNodeRequest, matchmakingResponse));
 
         CountDownLatch countDownLatch = new CountDownLatch(
-            matchmakingResponse.getNodesCount());
+            matchmakingResponse.getCandidatesCount());
 
         LOGGER.debug(
             String.format(
-                "%s is starting to start virtual machines to fulfill node request %s. Number of virtual machines is %s.",
-                this, userNodeRequest, matchmakingResponse.getNodesCount()));
+                "%s is starting to start virtual machines to fulfill node request %s. Number of nodes is %s.",
+                this, userNodeRequest, matchmakingResponse.getCandidatesCount()));
 
-        matchmakingResponse.getNodesList().forEach(
-            virtualMachineRequest -> {
+        matchmakingResponse.getCandidatesList().parallelStream().forEach(
+            nodeCandidate -> {
 
-              LOGGER.debug(String
-                  .format("%s is sending virtual machine request %s.", this,
-                      virtualMachineRequest));
-
-              //we need to set name here
-              //todo check if matchmaking can do this, or if we can move it somewhere else
-              virtualMachineRequest = VirtualMachineRequest.newBuilder(virtualMachineRequest)
-                  .setName(NAME_GENERATOR
-                      .generate(groupName)).build();
-              virtualMachineService.createVirtualMachineAsync(
-
-                  CreateVirtualMachineRequestMessage.newBuilder()
-                      .setUserId(userId)
-                      .setVirtualMachineRequest(virtualMachineRequest).build(),
-                  (content, error) -> {
-                    if (content != null) {
-                      responses.add(virtualMachineConverter.apply(content.getVirtualMachine()));
-                    } else if (error != null) {
-                      errors.add(error);
-                    } else {
-                      throw new IllegalStateException(
-                          "Neither content or error are set in response.");
-                    }
-                    countDownLatch.countDown();
-                    LOGGER.debug(String
-                        .format(
-                            "%s received virtual machine %s or error %s. Number of virtual machines remaining: %s",
-                            this, content, error, countDownLatch.getCount()));
-                  });
+              //incarnate node candidate to a new
+              try {
+                final Node incarnation = nodeCandidateIncarnationFactory.create(groupName, userId)
+                    .apply(NODE_CANDIDATE_CONVERTER.apply(nodeCandidate));
+                nodes.add(incarnation);
+              } catch (ExecutionException e) {
+                exceptions.add(e.getCause());
+              }
+              countDownLatch.countDown();
             });
 
         //todo: add timeout?
@@ -154,11 +129,11 @@ public class NodeRequestWorker implements Runnable {
                 this,
                 userNodeRequest));
 
-        if (errors.isEmpty()) {
+        if (exceptions.isEmpty()) {
 
           //create node group
           final NodeGroup nodeGroup = NodeGroups
-              .of(responses.stream().map(virtualMachineToNode).collect(Collectors.toList()));
+              .of(nodes);
           LOGGER.debug("%s is grouping the nodes of request %s to node group %s.", this,
               userNodeRequest, nodeGroup);
 
@@ -174,9 +149,9 @@ public class NodeRequestWorker implements Runnable {
         } else {
           LOGGER.error(String.format(
               "%s received error messages %s while starting virtual machines for node request %s. Replying with failure.",
-              this, buildErrorMessage(errors), userNodeRequest));
+              this, buildErrorMessage(exceptions), userNodeRequest));
           messageInterface.reply(NodeRequestResponse.class, messageId,
-              Error.newBuilder().setMessage(buildErrorMessage(errors)).setCode(500).build());
+              Error.newBuilder().setMessage(buildErrorMessage(exceptions)).setCode(500).build());
         }
       } catch (Exception e) {
         LOGGER.error(String

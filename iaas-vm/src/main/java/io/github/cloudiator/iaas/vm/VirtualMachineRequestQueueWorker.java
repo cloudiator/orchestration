@@ -25,7 +25,7 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
   private final VirtualMachineRequestQueue virtualMachineRequestQueue;
   private final MessageInterface messageInterface;
   private final EnrichVirtualMachine enrichVirtualMachine;
-  private final VirtualMachineMessageToVirtualMachine vmConverter = new VirtualMachineMessageToVirtualMachine();
+  private final VirtualMachineMessageToVirtualMachine vmConverter = VirtualMachineMessageToVirtualMachine.INSTANCE;
   private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
   private final ComputeService computeService;
   private final VirtualMachineDomainRepository virtualMachineDomainRepository;

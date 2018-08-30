@@ -19,7 +19,7 @@ public class CloudCreatedSubscriber implements Runnable {
       .getLogger(CloudCreatedSubscriber.class);
   private final MessageInterface messageInterface;
   private final CloudRegistry cloudRegistry;
-  private final CloudMessageToCloudConverter cloudMessageToCloudConverter = new CloudMessageToCloudConverter();
+  private final CloudMessageToCloudConverter cloudMessageToCloudConverter = CloudMessageToCloudConverter.INSTANCE;
 
   @Inject
   public CloudCreatedSubscriber(MessageInterface messageInterface,

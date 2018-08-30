@@ -24,7 +24,7 @@ public class CloudQuerySubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
-  private final CloudMessageToCloudConverter cloudConverter = new CloudMessageToCloudConverter();
+  private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
 
   @Inject
   public CloudQuerySubscriber(MessageInterface messageInterface,
@@ -81,7 +81,7 @@ public class CloudQuerySubscriber implements Runnable {
               .build());
     } else {
       CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
-          .addClouds(cloudConverter.applyBack(cloud)).build();
+          .addClouds(CLOUD_CONVERTER.applyBack(cloud)).build();
       messageInterface.reply(requestId, cloudQueryResponse);
     }
 
@@ -91,7 +91,7 @@ public class CloudQuerySubscriber implements Runnable {
   private void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
         .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(
-            cloudConverter::applyBack).collect(Collectors.toList())).build();
+            CLOUD_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, cloudQueryResponse);
   }
 

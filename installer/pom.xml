@@ -46,30 +46,32 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <configuration>
+          <to>
+            registry.hub.docker.com/cloudiator/install-agent
+          </to>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>jar-with-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/assembly/src.xml</descriptor>
-              </descriptors>
-              <finalName>install-agent</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-              <archive>
-                <manifest>
-                  <mainClass>io.github.cloudiator.orchestration.installer.InstallAgent</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/src.xml</descriptor>
+          </descriptors>
+          <finalName>install-agent</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+          <archive>
+            <manifest>
+              <mainClass>io.github.cloudiator.orchestration.installer.InstallAgent</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
   </build>
