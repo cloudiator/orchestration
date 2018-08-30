@@ -3,6 +3,8 @@
 # build multiple times
 # see https://github.com/GoogleContainerTools/jib/issues/802
 
+echo "Publishing vm-agent to docker"
+
 cd iaas-vm
 
 export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_BRANCH} ; fi`

@@ -9,6 +9,10 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
+  <properties>
+    <docker.tag>manual</docker.tag>
+  </properties>
+
   <artifactId>node-agent</artifactId>
   <dependencies>
     <dependency>
@@ -50,7 +54,7 @@
         <artifactId>jib-maven-plugin</artifactId>
         <configuration>
           <to>
-            registry.hub.docker.com/cloudiator/node-agent
+            registry.hub.docker.com/cloudiator/node-agent:${docker.tag}
           </to>
         </configuration>
       </plugin>

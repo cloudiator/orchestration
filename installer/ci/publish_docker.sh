@@ -3,6 +3,8 @@
 # build multiple times
 # see https://github.com/GoogleContainerTools/jib/issues/802
 
+echo "Publishing installer to docker"
+
 cd installer
 
 export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_BRANCH} ; fi`

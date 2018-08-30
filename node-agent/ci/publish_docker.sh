@@ -3,6 +3,8 @@
 # build multiple times
 # see https://github.com/GoogleContainerTools/jib/issues/802
 
+echo "Publishing node-agent to docker"
+
 cd node-agent
 
 export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_BRANCH} ; fi`

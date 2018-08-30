@@ -11,6 +11,11 @@
 
   <artifactId>iaas-vm</artifactId>
 
+  <properties>
+    <docker.tag>manual</docker.tag>
+  </properties>
+
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -46,7 +51,7 @@
         <artifactId>jib-maven-plugin</artifactId>
         <configuration>
           <to>
-            registry.hub.docker.com/cloudiator/iaas-vm
+            registry.hub.docker.com/cloudiator/vm-agent:${docker.tag}
           </to>
         </configuration>
       </plugin>
