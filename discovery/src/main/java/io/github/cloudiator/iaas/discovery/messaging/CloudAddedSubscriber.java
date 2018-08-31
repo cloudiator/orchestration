@@ -26,19 +26,17 @@ public class CloudAddedSubscriber implements Runnable {
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
   private final NewCloudMessageToCloud newCloudConverter;
-  private final CloudMessageToCloudConverter cloudConverter;
+  private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
   private final CloudService cloudService;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
       CloudDomainRepository cloudDomainRepository,
       NewCloudMessageToCloud newCloudConverter,
-      CloudMessageToCloudConverter cloudConverter,
       CloudService cloudService) {
     this.messageInterface = messageInterface;
     this.cloudDomainRepository = cloudDomainRepository;
     this.newCloudConverter = newCloudConverter;
-    this.cloudConverter = cloudConverter;
     this.cloudService = cloudService;
   }
 
@@ -85,10 +83,10 @@ public class CloudAddedSubscriber implements Runnable {
       //reply
       messageInterface.reply(messageId,
           CloudCreatedResponse.newBuilder()
-              .setCloud(cloudConverter.applyBack(cloudToBeCreated)).build());
+              .setCloud(CLOUD_CONVERTER.applyBack(cloudToBeCreated)).build());
       //emit event
       cloudService.cloudCreatedEvent(
-          CloudCreatedEvent.newBuilder().setCloud(cloudConverter.applyBack(cloudToBeCreated))
+          CloudCreatedEvent.newBuilder().setCloud(CLOUD_CONVERTER.applyBack(cloudToBeCreated))
               .setUserId(createCloudRequest.getUserId()).build());
 
     }
