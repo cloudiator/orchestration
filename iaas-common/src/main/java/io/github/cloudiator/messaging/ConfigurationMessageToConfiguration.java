@@ -14,6 +14,11 @@ import org.cloudiator.messages.entities.IaasEntities.Configuration.Builder;
 class ConfigurationMessageToConfiguration
     implements TwoWayConverter<IaasEntities.Configuration, Configuration> {
 
+  public static final ConfigurationMessageToConfiguration INSTANCE = new ConfigurationMessageToConfiguration();
+
+  private ConfigurationMessageToConfiguration() {
+  }
+
   @Override
   public Configuration apply(IaasEntities.Configuration configuration) {
     final PropertiesBuilder propertiesBuilder = PropertiesBuilder.newBuilder();

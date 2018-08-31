@@ -10,6 +10,10 @@ import org.cloudiator.messages.entities.IaasEntities;
  */
 class ApiMessageToApi implements TwoWayConverter<IaasEntities.Api, Api> {
 
+  public static final ApiMessageToApi INSTANCE = new ApiMessageToApi();
+
+  private ApiMessageToApi() {}
+
   @Override
   public Api apply(IaasEntities.Api api) {
     return ApiBuilder.newBuilder().providerName(api.getProviderName()).build();

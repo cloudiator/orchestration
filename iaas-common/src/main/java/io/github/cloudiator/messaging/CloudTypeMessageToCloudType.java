@@ -10,6 +10,11 @@ import org.cloudiator.messages.entities.IaasEntities;
 public class CloudTypeMessageToCloudType implements
     TwoWayConverter<IaasEntities.CloudType, CloudType> {
 
+  public static final CloudTypeMessageToCloudType INSTANCE = new CloudTypeMessageToCloudType();
+
+  private CloudTypeMessageToCloudType() {
+  }
+
   @Override
   public IaasEntities.CloudType applyBack(CloudType cloudType) {
     switch (cloudType) {

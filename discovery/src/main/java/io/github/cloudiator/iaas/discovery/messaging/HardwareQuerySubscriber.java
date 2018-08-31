@@ -21,15 +21,13 @@ public class HardwareQuerySubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(HardwareQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final HardwareDomainRepository hardwareDomainRepository;
-  private final HardwareMessageToHardwareConverter hardwareConverter;
+  private static final HardwareMessageToHardwareConverter HARDWARE_CONVERTER = HardwareMessageToHardwareConverter.INSTANCE;
 
   @Inject
   public HardwareQuerySubscriber(MessageInterface messageInterface,
-      HardwareDomainRepository hardwareDomainRepository,
-      HardwareMessageToHardwareConverter hardwareConverter) {
+      HardwareDomainRepository hardwareDomainRepository) {
     this.messageInterface = messageInterface;
     this.hardwareDomainRepository = hardwareDomainRepository;
-    this.hardwareConverter = hardwareConverter;
   }
 
 
@@ -79,7 +77,7 @@ public class HardwareQuerySubscriber implements Runnable {
       messageInterface.reply(requestId, HardwareQueryResponse.newBuilder().build());
     } else {
       HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
-          .addHardwareFlavors(hardwareConverter.applyBack(hardwareFlavor)).build();
+          .addHardwareFlavors(HARDWARE_CONVERTER.applyBack(hardwareFlavor)).build();
       messageInterface.reply(requestId, hardwareQueryResponse);
     }
 
@@ -89,14 +87,14 @@ public class HardwareQuerySubscriber implements Runnable {
     HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
         .addAllHardwareFlavors(
             hardwareDomainRepository.findByTenantAndCloud(userId, cloudId).stream().map(
-                hardwareConverter::applyBack).collect(Collectors.toList())).build();
+                HARDWARE_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, hardwareQueryResponse);
   }
 
   private void replyForUserId(String requestId, String userId) {
     HardwareQueryResponse hardwareQueryResponse = HardwareQueryResponse.newBuilder()
         .addAllHardwareFlavors(hardwareDomainRepository.findAll(userId).stream().map(
-            hardwareConverter::applyBack).collect(Collectors.toList())).build();
+            HARDWARE_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, hardwareQueryResponse);
   }
 

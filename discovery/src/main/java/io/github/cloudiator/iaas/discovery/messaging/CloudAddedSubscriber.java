@@ -25,18 +25,16 @@ public class CloudAddedSubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
-  private final NewCloudMessageToCloud newCloudConverter;
+  private static final NewCloudMessageToCloud newCloudConverter = NewCloudMessageToCloud.INSTANCE;
   private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
   private final CloudService cloudService;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
       CloudDomainRepository cloudDomainRepository,
-      NewCloudMessageToCloud newCloudConverter,
       CloudService cloudService) {
     this.messageInterface = messageInterface;
     this.cloudDomainRepository = cloudDomainRepository;
-    this.newCloudConverter = newCloudConverter;
     this.cloudService = cloudService;
   }
 

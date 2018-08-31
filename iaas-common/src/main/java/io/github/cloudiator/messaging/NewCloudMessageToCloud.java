@@ -11,19 +11,25 @@ import org.cloudiator.messages.entities.IaasEntities.NewCloud;
 public class NewCloudMessageToCloud
     implements OneWayConverter<NewCloud, Cloud> {
 
-  private ApiMessageToApi apiConverter = new ApiMessageToApi();
-  private ConfigurationMessageToConfiguration configurationConverter =
-      new ConfigurationMessageToConfiguration();
-  private CredentialMessageToCredential credentialConverter = new CredentialMessageToCredential();
-  private CloudTypeMessageToCloudType cloudTypeConverter = new CloudTypeMessageToCloudType();
+  public static final NewCloudMessageToCloud INSTANCE = new NewCloudMessageToCloud();
+
+  private static final ApiMessageToApi API_CONVERTER = ApiMessageToApi.INSTANCE;
+  private static final ConfigurationMessageToConfiguration CONFIGURATION_CONVERTER =
+      ConfigurationMessageToConfiguration.INSTANCE;
+  private static final  CredentialMessageToCredential CREDENTIAL_CONVERTER = CredentialMessageToCredential.INSTANCE;
+  private static final CloudTypeMessageToCloudType CLOUD_TYPE_CONVERTER = CloudTypeMessageToCloudType.INSTANCE;
+
+  private NewCloudMessageToCloud() {
+
+  }
 
   @Override
   public Cloud apply(NewCloud newCloud) {
     final CloudBuilder cloudBuilder = CloudBuilder.newBuilder()
-        .credentials(credentialConverter.apply(newCloud.getCredential()))
-        .api(apiConverter.apply(newCloud.getApi()))
-        .configuration(configurationConverter.apply(newCloud.getConfiguration()))
-        .cloudType(cloudTypeConverter.apply(newCloud.getCloudType()));
+        .credentials(CREDENTIAL_CONVERTER.apply(newCloud.getCredential()))
+        .api(API_CONVERTER.apply(newCloud.getApi()))
+        .configuration(CONFIGURATION_CONVERTER.apply(newCloud.getConfiguration()))
+        .cloudType(CLOUD_TYPE_CONVERTER.apply(newCloud.getCloudType()));
 
     if (newCloud.getEndpoint() == null || newCloud.getEndpoint().equals("")) {
       cloudBuilder.endpoint(null);

@@ -20,15 +20,13 @@ public class LocationQuerySubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(LocationQueryRequest.class);
   private final MessageInterface messageInterface;
   private final LocationDomainRepository locationDomainRepository;
-  private final LocationMessageToLocationConverter locationConverter;
+  private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
 
   @Inject
   public LocationQuerySubscriber(MessageInterface messageInterface,
-      LocationDomainRepository locationDomainRepository,
-      LocationMessageToLocationConverter locationConverter) {
+      LocationDomainRepository locationDomainRepository) {
     this.messageInterface = messageInterface;
     this.locationDomainRepository = locationDomainRepository;
-    this.locationConverter = locationConverter;
   }
 
 
@@ -78,7 +76,7 @@ public class LocationQuerySubscriber implements Runnable {
       messageInterface.reply(requestId, LocationQueryResponse.newBuilder().build());
     } else {
       LocationQueryResponse locationQueryResponse = LocationQueryResponse.newBuilder()
-          .addLocations(locationConverter.applyBack(location)).build();
+          .addLocations(LOCATION_CONVERTER.applyBack(location)).build();
       messageInterface.reply(requestId, locationQueryResponse);
     }
 
@@ -88,14 +86,14 @@ public class LocationQuerySubscriber implements Runnable {
     LocationQueryResponse locationQueryResponse = LocationQueryResponse.newBuilder()
         .addAllLocations(
             locationDomainRepository.findByTenantAndCloud(userId, cloudId).stream().map(
-                locationConverter::applyBack).collect(Collectors.toList())).build();
+                LOCATION_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, locationQueryResponse);
   }
 
   private void replyForUserId(String requestId, String userId) {
     LocationQueryResponse locationQueryResponse = LocationQueryResponse.newBuilder()
         .addAllLocations(locationDomainRepository.findAll(userId).stream().map(
-            locationConverter::applyBack).collect(Collectors.toList())).build();
+            LOCATION_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, locationQueryResponse);
   }
 }

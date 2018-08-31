@@ -21,15 +21,13 @@ public class ImageQuerySubscriber implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageQuerySubscriber.class);
   private final MessageInterface messageInterface;
   private final ImageDomainRepository imageDomainRepository;
-  private final ImageMessageToImageConverter imageConverter;
+  private static final ImageMessageToImageConverter IMAGE_CONVERTER = ImageMessageToImageConverter.INSTANCE;
 
   @Inject
   public ImageQuerySubscriber(MessageInterface messageInterface,
-      ImageDomainRepository imageDomainRepository,
-      ImageMessageToImageConverter imageConverter) {
+      ImageDomainRepository imageDomainRepository) {
     this.messageInterface = messageInterface;
     this.imageDomainRepository = imageDomainRepository;
-    this.imageConverter = imageConverter;
   }
 
   @Override
@@ -78,7 +76,7 @@ public class ImageQuerySubscriber implements Runnable {
       messageInterface.reply(requestId, ImageQueryResponse.newBuilder().build());
     } else {
       ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
-          .addImages(imageConverter.applyBack(image)).build();
+          .addImages(IMAGE_CONVERTER.applyBack(image)).build();
       messageInterface.reply(requestId, imageQueryResponse);
     }
 
@@ -88,14 +86,14 @@ public class ImageQuerySubscriber implements Runnable {
     ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
         .addAllImages(
             imageDomainRepository.findByTenantAndCloud(userId, cloudId).stream().map(
-                imageConverter::applyBack).collect(Collectors.toList())).build();
+                IMAGE_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, imageQueryResponse);
   }
 
   private void replyForUserId(String requestId, String userId) {
     ImageQueryResponse imageQueryResponse = ImageQueryResponse.newBuilder()
         .addAllImages(imageDomainRepository.findAll(userId).stream().map(
-            imageConverter::applyBack).collect(Collectors.toList())).build();
+            IMAGE_CONVERTER::applyBack).collect(Collectors.toList())).build();
     messageInterface.reply(requestId, imageQueryResponse);
   }
 }

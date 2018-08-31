@@ -11,6 +11,11 @@ import org.cloudiator.messages.entities.IaasEntities.Credential;
 class CredentialMessageToCredential implements
     TwoWayConverter<Credential, CloudCredential> {
 
+  public static final CredentialMessageToCredential INSTANCE = new CredentialMessageToCredential();
+
+  private CredentialMessageToCredential() {
+  }
+
   @Override
   public CloudCredential apply(Credential credential) {
     return CredentialsBuilder.newBuilder().user(credential.getUser())
