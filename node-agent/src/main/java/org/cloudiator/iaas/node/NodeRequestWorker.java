@@ -89,7 +89,7 @@ public class NodeRequestWorker implements Runnable {
 
         final MatchmakingResponse matchmakingResponse = matchmakingService.requestMatch(
             MatchmakingRequest.newBuilder()
-                .setRequirements(userNodeRequest.getNodeRequestMessage().getNodeRequest())
+                .setNodeRequirements(userNodeRequest.getNodeRequestMessage().getNodeRequest())
                 .setUserId(userId)
                 .build());
 
