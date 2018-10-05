@@ -216,5 +216,25 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Installing and starting Lance on node %s", node.id()));
 
   }
+
+  @Override
+  public void installSparkWorker() throws RemoteException {
+
+    LOGGER.debug(
+        String.format("Fetching and starting Spark Worker container on node %s", node.id()));
+
+    //download Docker install script
+    CommandTask startSparkWorkerContainer = new CommandTask(this.remoteConnection, "sudo docker run -d "
+        + " -e SPARK_MASTER_ENDPOINT=" + Configuration.conf().getString("installer.spark.master.ip")
+        + " -e SPARK_MASTER_PORT=" + Configuration.conf().getString("installer.spark.master.port")
+        + " -SPARK_WORKER_UI_PORT=" + Configuration.conf().getString("installer.spark.worker.ui")
+        + " -p 9999:9999 "
+        + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":" + Configuration.conf().getString("installer.spark.worker.ui")
+        + " cloudiator/spark-worker-docker:latest ");
+
+    startSparkWorkerContainer.call();
+    LOGGER.debug(String.format("Successfully started Spark Worker container  on node %s", node.id()));
+
+  }
 }
 
