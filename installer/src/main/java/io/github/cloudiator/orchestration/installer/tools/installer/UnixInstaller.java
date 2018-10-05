@@ -230,7 +230,7 @@ public class UnixInstaller extends AbstractInstaller {
         + " -SPARK_WORKER_UI_PORT=" + Configuration.conf().getString("installer.spark.worker.ui")
         + " -p 9999:9999 "
         + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":" + Configuration.conf().getString("installer.spark.worker.ui")
-        + " cloudiator/spark-worker-docker:latest ");
+        + " cloudiator/spark-worker:latest ");
 
     startSparkWorkerContainer.call();
     LOGGER.debug(String.format("Successfully started Spark Worker container  on node %s", node.id()));
