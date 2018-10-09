@@ -34,7 +34,9 @@ public class SecurityGroupPorts {
   private static String toolPorts = "8080," + //kairos
       "31415," +  //visor
       "1099," +  //lance rmi registry
-      "33033"; // lance rmi
+      "33033," + // lance rmi
+      "8081," + //spark worker ui
+      "9999"; //spark worker ports
 
   private SecurityGroupPorts() {
     throw new AssertionError("static only");
