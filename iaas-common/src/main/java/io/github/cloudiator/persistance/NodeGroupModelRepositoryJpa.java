@@ -37,7 +37,7 @@ public class NodeGroupModelRepositoryJpa extends BaseModelRepositoryJpa<NodeGrou
     checkNotNull(userId, "userId is null");
     String queryString = String
         .format(
-            "from %s nodeGroup inner join nodeGroup.tenantModel tenant where tenant.userId = :userId",
+            "select nodeGroup from %s nodeGroup inner join nodeGroup.tenantModel tenant where tenant.userId = :userId",
             type.getName());
     Query query = em().createQuery(queryString).setParameter("userId", userId);
     //noinspection unchecked

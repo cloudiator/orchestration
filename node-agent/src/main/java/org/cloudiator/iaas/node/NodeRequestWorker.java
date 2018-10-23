@@ -134,14 +134,16 @@ public class NodeRequestWorker implements Runnable {
           //create node group
           final NodeGroup nodeGroup = NodeGroups
               .of(nodes);
-          LOGGER.debug("%s is grouping the nodes of request %s to node group %s.", this,
-              userNodeRequest, nodeGroup);
+          LOGGER
+              .debug(String.format("%s is grouping the nodes of request %s to node group %s.", this,
+                  userNodeRequest, nodeGroup));
 
           //persist the node group
           persistNodeGroup(nodeGroup, userId);
 
-          LOGGER.debug("%s is replying success for request %s with node group %s.", this,
-              userNodeRequest, nodeGroup);
+          LOGGER.debug(
+              String.format("%s is replying success for request %s with node group %s.", this,
+                  userNodeRequest, nodeGroup));
           messageInterface.reply(messageId,
               NodeRequestResponse.newBuilder()
                   .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
