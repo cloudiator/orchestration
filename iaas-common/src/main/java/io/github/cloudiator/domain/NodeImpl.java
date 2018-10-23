@@ -3,11 +3,9 @@ package io.github.cloudiator.domain;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public class NodeImpl implements Node {
@@ -18,15 +16,22 @@ public class NodeImpl implements Node {
   private final NodeType nodeType;
   private final Set<IpAddress> ipAddresses;
   private final String id;
+  private final String name;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id) {
+      Set<IpAddress> ipAddresses, String id, String name) {
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
     this.ipAddresses = ipAddresses;
     this.id = id;
+    this.name = name;
+  }
+
+  @Override
+  public String name() {
+    return name;
   }
 
   @Override

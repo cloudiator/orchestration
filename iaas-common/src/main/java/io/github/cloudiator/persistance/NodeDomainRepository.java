@@ -140,7 +140,7 @@ public class NodeDomainRepository {
       ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
     }
 
-    return new NodeModel(domain.id(), tenantModel, nodePropertiesModel,
+    return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
         loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel);
 
   }

@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 public interface Node extends Identifiable {
 
+  String name();
+
   NodeProperties nodeProperties();
 
   Optional<LoginCredential> loginCredential();

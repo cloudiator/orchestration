@@ -21,6 +21,9 @@ class NodeModel extends Model {
   @Column(nullable = false, unique = true)
   private String domainId;
 
+  @Column(nullable = false)
+  private String name;
+
   @ManyToOne(optional = false)
   private TenantModel tenantModel;
 
@@ -50,16 +53,19 @@ class NodeModel extends Model {
 
   }
 
-  NodeModel(String domainId, TenantModel tenantModel, NodePropertiesModel nodeProperties,
+  NodeModel(String domainId, String name, TenantModel tenantModel,
+      NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
       @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel) {
 
     checkNotNull(domainId, "domainId is null");
+    checkNotNull(name, "name is null");
     checkNotNull(tenantModel, "tenantModel is null");
     checkNotNull(nodeProperties, "nodeProperties is null");
     checkNotNull(nodeType, "nodeType is null");
 
     this.domainId = domainId;
+    this.name = name;
     this.tenantModel = tenantModel;
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
@@ -107,5 +113,9 @@ class NodeModel extends Model {
     checkState(this.nodeGroupModel == null, "Node Group was already assigned.");
     this.nodeGroupModel = nodeGroupModel;
     return this;
+  }
+
+  public String getName() {
+    return name;
   }
 }

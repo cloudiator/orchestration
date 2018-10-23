@@ -20,7 +20,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
   @Override
   public Node applyBack(NodeEntities.Node node) {
 
-    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder().id(node.getId())
+    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder().id(node.getId()).name(node.getName())
         .nodeProperties(nodePropertiesConverter.apply(node.getNodeProperties()))
         .nodeType(nodeTypeConverter.applyBack(node.getNodeType())).ipAddresses(
             node.getIpAddressesList().stream().map(ipAddressConverter::apply)
@@ -37,6 +37,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
   public NodeEntities.Node apply(Node node) {
 
     final NodeEntities.Node.Builder builder = NodeEntities.Node.newBuilder().setId(node.id())
+        .setName(node.name())
         .addAllIpAddresses(
             node.ipAddresses().stream().map(ipAddressConverter::applyBack)
                 .collect(Collectors.toList()))
