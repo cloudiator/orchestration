@@ -1,5 +1,8 @@
 package io.github.cloudiator.persistance;
 
+
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
@@ -9,10 +12,6 @@ import javax.annotation.Nullable;
 
 public class VirtualMachineDomainRepository {
 
-  private final CloudDomainRepository cloudDomainRepository;
-  private final LocationDomainRepository locationDomainRepository;
-  private final ImageDomainRepository imageDomainRepository;
-  private final HardwareDomainRepository hardwareDomainRepository;
   private final LoginCredentialDomainRepository loginCredentialDomainRepository;
   private final IpAddressDomainRepository ipAddressDomainRepository;
   private final VirtualMachineModelRepository virtualMachineModelRepository;
@@ -21,19 +20,11 @@ public class VirtualMachineDomainRepository {
 
   @Inject
   public VirtualMachineDomainRepository(
-      CloudDomainRepository cloudDomainRepository,
-      LocationDomainRepository locationDomainRepository,
-      ImageDomainRepository imageDomainRepository,
-      HardwareDomainRepository hardwareDomainRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository,
       VirtualMachineModelRepository virtualMachineModelRepository,
       VirtualMachineConverter virtualMachineConverter,
       TenantModelRepository tenantModelRepository) {
-    this.cloudDomainRepository = cloudDomainRepository;
-    this.locationDomainRepository = locationDomainRepository;
-    this.imageDomainRepository = imageDomainRepository;
-    this.hardwareDomainRepository = hardwareDomainRepository;
     this.loginCredentialDomainRepository = loginCredentialDomainRepository;
     this.ipAddressDomainRepository = ipAddressDomainRepository;
     this.virtualMachineModelRepository = virtualMachineModelRepository;
@@ -64,6 +55,13 @@ public class VirtualMachineDomainRepository {
 
   public void save(VirtualMachine virtualMachine, String userId) {
     saveAndGet(virtualMachine, userId);
+  }
+
+  public void delete(String vmId, String userId) {
+    VirtualMachineModel vm = virtualMachineModelRepository
+        .findByCloudUniqueIdAndTenant(userId, vmId);
+    checkState(vm != null, String.format("VM with id %s does not exist.", vmId));
+    virtualMachineModelRepository.delete(vm);
   }
 
   VirtualMachineModel saveAndGet(VirtualMachine virtualMachine, String userId) {

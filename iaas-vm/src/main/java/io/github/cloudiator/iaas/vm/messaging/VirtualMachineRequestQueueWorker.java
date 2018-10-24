@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.vm;
+package io.github.cloudiator.iaas.vm.messaging;
 
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
@@ -6,9 +6,11 @@ import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
-import io.github.cloudiator.iaas.vm.VirtualMachineRequestQueue.UserCreateVirtualMachineRequest;
+import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
+import io.github.cloudiator.iaas.vm.VirtualMachineRequestToTemplateConverter;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue.UserCreateVirtualMachineRequest;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
-import io.github.cloudiator.iaas.vm.workflow.VirtualMachineWorkflow;
+import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
 import javax.inject.Inject;
@@ -71,12 +73,12 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
           LOGGER.debug(String.format("Using virtual machine template %s to start virtual machine.",
               virtualMachineTemplate));
 
-          VirtualMachineWorkflow virtualMachineWorkflow = new VirtualMachineWorkflow(
+          CreateVirtualMachineWorkflow createVirtualMachineWorkflow = new CreateVirtualMachineWorkflow(
               computeService);
 
           LOGGER.debug("Starting execution of workflow for virtual machine.");
 
-          Exchange result = virtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
+          Exchange result = createVirtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
 
           VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
 

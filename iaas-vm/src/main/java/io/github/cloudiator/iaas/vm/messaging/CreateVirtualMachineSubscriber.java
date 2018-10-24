@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.vm;
+package io.github.cloudiator.iaas.vm.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

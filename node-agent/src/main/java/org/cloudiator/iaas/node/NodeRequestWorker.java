@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import org.cloudiator.iaas.node.NodeCandidateIncarnation.NodeCandidateIncarnationFactory;
+import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;

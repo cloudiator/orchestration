@@ -14,7 +14,7 @@ import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VirtualMachineNodeIncarnation implements NodeCandidateIncarnation {
+public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncarnationStrategy {
 
   public static class VirtualMachineNodeIncarnationFactory implements
       NodeCandidateIncarnationFactory {
@@ -35,13 +35,13 @@ public class VirtualMachineNodeIncarnation implements NodeCandidateIncarnation {
     }
 
     @Override
-    public NodeCandidateIncarnation create(String groupName, String userId) {
-      return new VirtualMachineNodeIncarnation(groupName, userId, virtualMachineService);
+    public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
+      return new VirtualMachineNodeIncarnationStrategy(groupName, userId, virtualMachineService);
     }
   }
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(VirtualMachineNodeIncarnation.class);
+      .getLogger(VirtualMachineNodeIncarnationStrategy.class);
   private final String groupName;
   private final String userId;
   private final VirtualMachineService virtualMachineService;
@@ -50,7 +50,7 @@ public class VirtualMachineNodeIncarnation implements NodeCandidateIncarnation {
   private static final VirtualMachineToNode VIRTUAL_MACHINE_TO_NODE = VirtualMachineToNode.INSTANCE;
 
 
-  public VirtualMachineNodeIncarnation(String groupName,
+  public VirtualMachineNodeIncarnationStrategy(String groupName,
       String userId, VirtualMachineService virtualMachineService) {
     this.groupName = groupName;
     this.userId = userId;

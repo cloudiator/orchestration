@@ -5,11 +5,11 @@ import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 /**
  * Created by daniel on 30.06.17.
  */
-public class VirtualMachineWorkflow extends AbstractWorkflow {
+public class CreateVirtualMachineWorkflow extends AbstractWorkflow {
 
   private final ComputeService computeService;
 
-  public VirtualMachineWorkflow(
+  public CreateVirtualMachineWorkflow(
       ComputeService computeService) {
     this.computeService = computeService;
   }
