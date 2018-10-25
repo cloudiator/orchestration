@@ -75,7 +75,8 @@ abstract class AbstractInstaller implements InstallApi {
   protected static final String ALLUXIO_DOWNLOAD = "http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz";
   protected static final String ALLUXIO_ARCHIVE = "alluxio.tar.gz";
   
-  
+  protected static final String DLMS_AGENT_JAR = "dlmsagent.jar";
+
   
 
   public AbstractInstaller(RemoteConnection remoteConnection, Node node, String userId) {
