@@ -54,6 +54,10 @@ public interface InstallApi extends AutoCloseable {
    */
   void installDocker() throws RemoteException;
 
+  /**
+   * Download and install Alluxio
+   */
+  void installAlluxio() throws RemoteException;
 
   @Override
   void close() throws RemoteException;
