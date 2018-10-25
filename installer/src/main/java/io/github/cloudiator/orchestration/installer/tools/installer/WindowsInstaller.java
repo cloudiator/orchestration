@@ -290,12 +290,14 @@ public class WindowsInstaller extends AbstractInstaller {
 
   @Override
   public void installDocker() throws RemoteException {
-    LOGGER.warn("Docker installation is currently not supported for Windows!");
+    throw new UnsupportedOperationException(
+        "Docker installation is currently not supported for Windows!");
   }
 
   @Override
   public void installSparkWorker() throws RemoteException {
-    LOGGER.warn("Spark Worker installation is currently not supported for Windows as this tool requires Docker!");
+    throw new UnsupportedOperationException(
+        "Spark Worker installation is currently not supported for Windows as this tool requires Docker!");
   }
 
 
