@@ -247,5 +247,14 @@ public class UnixInstaller extends AbstractInstaller {
 	    LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));	    
   }
   
+  
+  @Override 
+public void installDlmsAgent() throws RemoteException {
+	  LOGGER.debug(String.format("Installing and start DLMS agent= on node %s", node.id()));
+
+	  LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));	
+  }
+  
+  
 }
 

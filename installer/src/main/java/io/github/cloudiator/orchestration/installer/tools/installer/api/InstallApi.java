@@ -58,6 +58,11 @@ public interface InstallApi extends AutoCloseable {
    * Download and install Alluxio
    */
   void installAlluxio() throws RemoteException;
+  
+  /**
+   * Download and install DLMSAgent
+   */
+  void installDlmsAgent() throws RemoteException;
 
   @Override
   void close() throws RemoteException;
