@@ -295,13 +295,13 @@ public class WindowsInstaller extends AbstractInstaller {
 
 @Override
 public void installAlluxio() throws RemoteException {
-	throw new RemoteException("unsupported installation method alluxio for windows");
+	throw new UnsupportedOperationException("unsupported installation method alluxio for windows");
 	
 }
 
 @Override
 public void installDlmsAgent() throws RemoteException {
-	throw new RemoteException("unsupported installation method alluxio for windows");
+	throw new UnsupportedOperationException("unsupported installation method alluxio for windows");
 	
 }
 
