@@ -1,5 +1,6 @@
 package io.github.cloudiator.iaas.vm.messaging;
 
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.workflow.DeleteVirtualMachineWorkflow;
@@ -48,6 +49,10 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
               final String userId = content.getUserId();
               final String vmId = content.getVmId();
 
+              LOGGER.debug(String
+                  .format("%s retrieved request to delete vm with id %s for user %s.", this, vmId,
+                      userId));
+
               VirtualMachine byTenantAndId = virtualMachineDomainRepository
                   .findByTenantAndId(userId, vmId);
 
@@ -58,9 +63,19 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
                 return;
               }
 
+              LOGGER.info(String
+                  .format("%s is executing the delete virtual machine workflow for vm %s.", this,
+                      byTenantAndId));
+
               new DeleteVirtualMachineWorkflow(computeService).execute(Exchange.of(vmId));
 
               deleteVm(vmId, userId);
+
+              LOGGER.info(String
+                  .format("%s successfully deleted vm %s.", this,
+                      byTenantAndId));
+
+              messageInterface.reply(id, VirtualMachineDeletedResponse.newBuilder().build());
 
 
             } catch (Exception e) {
@@ -75,5 +90,10 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
 
           }
         });
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).toString();
   }
 }
