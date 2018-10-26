@@ -120,6 +120,10 @@ public class InstallEventSubscriber implements Runnable {
       } else if (tool.equals(Tool.VISOR)) {
         installApi.installVisor();
         installedTools.add(tool);
+      } else if (tool.equals(Tool.DLMS_AGENT)) {
+    	 installApi.installDlmsAgent();
+      } else if (tool.equals(Tool.ALLUXIO_CLIENT)) {
+     	 installApi.installAlluxio();      
       } else {
         throw new IllegalStateException("Unsupported toolName: " + tool.name());
       }
