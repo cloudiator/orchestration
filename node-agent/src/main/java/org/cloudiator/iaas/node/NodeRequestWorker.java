@@ -57,7 +57,7 @@ public class NodeRequestWorker implements Runnable {
     final String errorFormat = "%s Error(s) occurred during provisioning of nodes: %s";
     return String.format(errorFormat, exceptions.size(),
         exceptions.stream().map(Throwable::getMessage)
-            .collect(Collectors.toList()));
+            .collect(Collectors.joining("/n")));
   }
 
   @Transactional
@@ -151,7 +151,6 @@ public class NodeRequestWorker implements Runnable {
           messageInterface.reply(messageId,
               NodeRequestResponse.newBuilder()
                   .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
-
         } else {
           LOGGER.error(String.format(
               "%s received error messages %s while starting virtual machines for node request %s. Replying with failure.",

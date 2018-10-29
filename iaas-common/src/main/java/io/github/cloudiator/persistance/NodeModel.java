@@ -7,13 +7,7 @@ import io.github.cloudiator.domain.NodeType;
 import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nullable;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @Entity
 class NodeModel extends Model {

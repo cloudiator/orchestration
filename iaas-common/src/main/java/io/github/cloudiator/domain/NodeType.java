@@ -5,6 +5,7 @@ public enum NodeType {
   UNKOWN,
   VM,
   BYON,
-  CONTAINER;
+  CONTAINER,
+  FAAS
 
 }

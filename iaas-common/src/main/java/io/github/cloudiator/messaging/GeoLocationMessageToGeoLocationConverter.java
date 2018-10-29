@@ -12,6 +12,9 @@ public class GeoLocationMessageToGeoLocationConverter implements
 
   @Override
   public IaasEntities.GeoLocation applyBack(GeoLocation geoLocation) {
+    if (geoLocation == null) {
+      return null;
+    }
     final Builder builder = IaasEntities.GeoLocation.newBuilder();
 
     if (geoLocation.city().isPresent()) {
@@ -32,6 +35,9 @@ public class GeoLocationMessageToGeoLocationConverter implements
 
   @Override
   public GeoLocation apply(IaasEntities.GeoLocation geoLocation) {
+    if (geoLocation == null) {
+      return null;
+    }
     final GeoLocationBuilder geoLocationBuilder = GeoLocationBuilder.newBuilder();
 
     if (!geoLocation.getCity().equals("")) {

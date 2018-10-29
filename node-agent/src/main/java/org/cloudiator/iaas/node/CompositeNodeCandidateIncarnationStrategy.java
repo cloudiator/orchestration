@@ -47,8 +47,7 @@ public class CompositeNodeCandidateIncarnationStrategy implements NodeCandidateI
   @Override
   public Node apply(NodeCandidate nodeCandidate) throws ExecutionException {
 
-    for (NodeCandidateIncarnationFactory factory :
-        factories) {
+    for (NodeCandidateIncarnationFactory factory : factories) {
       if (factory.canIncarnate(nodeCandidate)) {
         return factory.create(groupName, userId).apply(nodeCandidate);
       }

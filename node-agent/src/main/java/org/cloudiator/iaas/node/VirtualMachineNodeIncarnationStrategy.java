@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeCandidate;
+import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
@@ -29,9 +30,7 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
 
     @Override
     public boolean canIncarnate(NodeCandidate nodeCandidate) {
-      //we currently only have virtual machines, so we can always incarnate
-      //todo: adopt logic when this is no longer the case
-      return true;
+      return NodeCandidateType.IAAS.equals(nodeCandidate.type());
     }
 
     @Override

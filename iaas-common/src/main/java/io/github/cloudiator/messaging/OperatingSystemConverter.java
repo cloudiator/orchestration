@@ -19,6 +19,9 @@ public class OperatingSystemConverter implements
 
   @Override
   public CommonEntities.OperatingSystem applyBack(OperatingSystem operatingSystem) {
+    if (operatingSystem == null) {
+      return null;
+    }
     return CommonEntities.OperatingSystem.newBuilder()
         .setOperatingSystemArchitecture(
             osArchConverter.applyBack(operatingSystem.operatingSystemArchitecture()))
@@ -30,6 +33,10 @@ public class OperatingSystemConverter implements
 
   @Override
   public OperatingSystem apply(CommonEntities.OperatingSystem operatingSystem) {
+    if (operatingSystem == null) {
+      return null;
+    }
+
     return OperatingSystemBuilder.newBuilder().architecture(
         osArchConverter.apply(operatingSystem.getOperatingSystemArchitecture()))
         .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily())).version(

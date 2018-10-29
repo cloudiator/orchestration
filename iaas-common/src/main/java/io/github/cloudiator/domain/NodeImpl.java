@@ -109,8 +109,12 @@ public class NodeImpl implements Node {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", id).add("properties", nodeProperties)
-        .add("loginCredential", loginCredential).add("type", nodeType).add("ipAddresses",
-            Joiner.on(",").join(ipAddresses)).toString();
+    String ipList = ipAddresses == null ? "null" :  Joiner.on(",").join(ipAddresses);
+    return MoreObjects.toStringHelper(this)
+        .add("id", id)
+        .add("properties", nodeProperties)
+        .add("loginCredential", loginCredential)
+        .add("type", nodeType)
+        .add("ipAddresses", ipAddresses).toString();
   }
 }

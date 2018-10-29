@@ -6,23 +6,37 @@ import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import java.util.Objects;
+import java.util.Set;
 
 public class NodeCandidateImpl implements NodeCandidate {
 
+  private final NodeCandidateType type;
   private final Cloud cloud;
   private final Image image;
   private final HardwareFlavor hardwareFlavor;
   private final Location location;
   private final double price;
+  private final double pricePerInvocation;
+  private final double memoryPrice;
+  private final Environment environment;
 
-
-  public NodeCandidateImpl(Cloud cloud, Image image,
-      HardwareFlavor hardwareFlavor, Location location, double price) {
+  public NodeCandidateImpl(NodeCandidateType type, Cloud cloud, Image image,
+      HardwareFlavor hardwareFlavor, Location location, double price,
+      double pricePerInvocation, double memoryPrice, Environment environment) {
+    this.type = type;
     this.cloud = cloud;
     this.image = image;
     this.hardwareFlavor = hardwareFlavor;
     this.location = location;
     this.price = price;
+    this.pricePerInvocation = pricePerInvocation;
+    this.memoryPrice = memoryPrice;
+    this.environment = environment;
+  }
+
+  @Override
+  public NodeCandidateType type() {
+    return type;
   }
 
   @Override
@@ -51,6 +65,21 @@ public class NodeCandidateImpl implements NodeCandidate {
   }
 
   @Override
+  public double pricePerInvocation() {
+    return pricePerInvocation;
+  }
+
+  @Override
+  public double memoryPrice() {
+    return memoryPrice;
+  }
+
+  @Override
+  public Environment environment() {
+    return environment;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -63,17 +92,31 @@ public class NodeCandidateImpl implements NodeCandidate {
         Objects.equals(cloud, that.cloud) &&
         Objects.equals(image, that.image) &&
         Objects.equals(hardwareFlavor, that.hardwareFlavor) &&
-        Objects.equals(location, that.location);
+        Objects.equals(location, that.location) &&
+        Objects.equals(type, that.type) &&
+        Objects.equals(pricePerInvocation, that.pricePerInvocation) &&
+        Objects.equals(memoryPrice, that.memoryPrice) &&
+        Objects.equals(environment, that.environment);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(cloud, image, hardwareFlavor, location, price);
+    return Objects.hash(type, cloud, image, hardwareFlavor, location,
+        price, pricePerInvocation, memoryPrice, environment);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("cloud", cloud).add("image", image)
-        .add("hardware", hardwareFlavor).add("location", location).add("price", price).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("type", type)
+        .add("cloud", cloud)
+        .add("image", image)
+        .add("hardware", hardwareFlavor)
+        .add("location", location)
+        .add("price", price)
+        .add("pricePerInvocation", pricePerInvocation)
+        .add("memoryPrice", memoryPrice)
+        .add("environment", environment)
+        .toString();
   }
 }
