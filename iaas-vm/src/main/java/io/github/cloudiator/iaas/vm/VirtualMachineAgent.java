@@ -10,6 +10,11 @@ import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import io.github.cloudiator.iaas.vm.config.VmAgentModule;
+import io.github.cloudiator.iaas.vm.messaging.CloudCreatedSubscriber;
+import io.github.cloudiator.iaas.vm.messaging.CreateVirtualMachineSubscriber;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineDeleteRequestSubscriber;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineQuerySubscriber;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueueWorker;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +75,9 @@ public class VirtualMachineAgent {
     LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
         VirtualMachineQuerySubscriber.class.getName()));
     injector.getInstance(VirtualMachineQuerySubscriber.class).run();
+    LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
+        VirtualMachineDeleteRequestSubscriber.class.getName()));
+    injector.getInstance(VirtualMachineDeleteRequestSubscriber.class).run();
 
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override

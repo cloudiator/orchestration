@@ -11,6 +11,7 @@ public class NodeBuilder {
   private NodeType nodeType;
   private Set<IpAddress> ipAddresses;
   private String id;
+  private String name;
 
   private NodeBuilder() {
   }
@@ -47,8 +48,13 @@ public class NodeBuilder {
     return this;
   }
 
+  public NodeBuilder name(String name) {
+    this.name = name;
+    return this;
+  }
+
   public Node build() {
-    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id);
+    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name);
   }
 
 

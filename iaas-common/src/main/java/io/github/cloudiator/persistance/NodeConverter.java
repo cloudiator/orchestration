@@ -21,6 +21,7 @@ class NodeConverter implements OneWayConverter<NodeModel, Node> {
 
     NodeBuilder nodeBuilder = NodeBuilder.newBuilder()
         .id(nodeModel.getDomainId())
+        .name(nodeModel.getName())
         .loginCredential(loginCredentialConverter.apply(nodeModel.getLoginCredential()))
         .nodeProperties(nodePropertiesConverter.apply(nodeModel.getNodeProperties()))
         .nodeType(nodeModel.getType());

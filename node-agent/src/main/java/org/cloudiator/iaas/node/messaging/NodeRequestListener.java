@@ -1,6 +1,7 @@
-package org.cloudiator.iaas.node;
+package org.cloudiator.iaas.node.messaging;
 
 import com.google.inject.Inject;
+import org.cloudiator.iaas.node.NodeRequestQueue;
 import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messaging.MessageInterface;

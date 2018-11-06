@@ -1,4 +1,4 @@
-package org.cloudiator.iaas.node;
+package org.cloudiator.iaas.node.messaging;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;

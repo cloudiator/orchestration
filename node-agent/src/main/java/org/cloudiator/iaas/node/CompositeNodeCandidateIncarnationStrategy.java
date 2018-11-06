@@ -7,7 +7,7 @@ import io.github.cloudiator.domain.NodeCandidate;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-public class CompositeNodeCandidateIncarnation implements NodeCandidateIncarnation {
+public class CompositeNodeCandidateIncarnationStrategy implements NodeCandidateIncarnationStrategy {
 
   public static class CompositeNodeCandidateIncarnationFactory implements
       NodeCandidateIncarnationFactory {
@@ -28,8 +28,8 @@ public class CompositeNodeCandidateIncarnation implements NodeCandidateIncarnati
     }
 
     @Override
-    public NodeCandidateIncarnation create(String groupName, String userId) {
-      return new CompositeNodeCandidateIncarnation(groupName, userId, factories);
+    public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
+      return new CompositeNodeCandidateIncarnationStrategy(groupName, userId, factories);
     }
   }
 
@@ -37,7 +37,7 @@ public class CompositeNodeCandidateIncarnation implements NodeCandidateIncarnati
   private final String groupName;
   private final String userId;
 
-  public CompositeNodeCandidateIncarnation(String groupName, String userId,
+  public CompositeNodeCandidateIncarnationStrategy(String groupName, String userId,
       Set<NodeCandidateIncarnationFactory> factories) {
     this.groupName = groupName;
     this.userId = userId;

@@ -1,4 +1,4 @@
-package org.cloudiator.iaas.node;
+package org.cloudiator.iaas.node.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

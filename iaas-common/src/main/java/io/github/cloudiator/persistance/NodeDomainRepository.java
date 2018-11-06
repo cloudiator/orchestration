@@ -1,6 +1,7 @@
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
@@ -101,6 +102,15 @@ public class NodeDomainRepository {
     saveAndGet(domain, userId);
   }
 
+  public void delete(String id, String userId) {
+    checkNotNull(id, "id is null");
+    checkNotNull(userId, "userId is null");
+
+    NodeModel byTenantAndDomainId = nodeModelRepository.getByTenantAndDomainId(userId, id);
+    checkState(byTenantAndDomainId != null, "Node with the id %s does not exist.", id);
+    nodeModelRepository.delete(byTenantAndDomainId);
+  }
+
   private NodeModel updateModel(Node domain, NodeModel nodeModel, String userId) {
     return null;
   }
@@ -140,7 +150,7 @@ public class NodeDomainRepository {
       ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
     }
 
-    return new NodeModel(domain.id(), tenantModel, nodePropertiesModel,
+    return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
         loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel);
 
   }

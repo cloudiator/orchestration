@@ -6,13 +6,13 @@ import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeCandidate;
 
 
-public interface NodeCandidateIncarnation extends ThrowingFunction<NodeCandidate, Node> {
+public interface NodeCandidateIncarnationStrategy extends ThrowingFunction<NodeCandidate, Node> {
 
   interface NodeCandidateIncarnationFactory {
 
     boolean canIncarnate(NodeCandidate nodeCandidate);
 
-    NodeCandidateIncarnation create(String groupName, String userId);
+    NodeCandidateIncarnationStrategy create(String groupName, String userId);
   }
 
 }

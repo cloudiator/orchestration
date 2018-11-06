@@ -47,6 +47,6 @@ public class VirtualMachineToNode implements Function<VirtualMachine, Node> {
 
     return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
         .loginCredential(loginCredential)
-        .nodeProperties(nodeProperties).id(virtualMachine.id()).build();
+        .nodeProperties(nodeProperties).id(virtualMachine.id()).name(virtualMachine.name()).build();
   }
 }

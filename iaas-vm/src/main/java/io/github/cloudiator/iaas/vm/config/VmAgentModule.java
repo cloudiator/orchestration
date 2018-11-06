@@ -10,7 +10,7 @@ import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
-import io.github.cloudiator.iaas.vm.VirtualMachineRequestQueue;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
 import io.github.cloudiator.iaas.vm.VmAgentContext;
 
 public class VmAgentModule extends AbstractModule {

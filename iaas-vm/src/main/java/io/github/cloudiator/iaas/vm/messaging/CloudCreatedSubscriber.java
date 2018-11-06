@@ -1,4 +1,4 @@
-package io.github.cloudiator.iaas.vm;
+package io.github.cloudiator.iaas.vm.messaging;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;

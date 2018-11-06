@@ -9,17 +9,20 @@ import io.github.cloudiator.messaging.NodeCandidateConverter;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import org.cloudiator.iaas.node.NodeCandidateIncarnation.NodeCandidateIncarnationFactory;
+import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingRequest;
 import org.cloudiator.messages.entities.Matchmaking.MatchmakingResponse;
+import org.cloudiator.messages.entities.MatchmakingEntities.NodeCandidate;
 import org.cloudiator.messaging.MessageInterface;
+import org.cloudiator.messaging.ResponseException;
 import org.cloudiator.messaging.services.MatchmakingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,32 +83,33 @@ public class NodeRequestWorker implements Runnable {
         final String messageId = userNodeRequest.getId();
         final String groupName = userNodeRequest.getNodeRequestMessage().getGroupName();
 
+        List<NodeCandidate> nodeCandidates;
+        switch (userNodeRequest.getNodeRequestMessage().getRequestCase()) {
+          case REQUIREMENTS:
+            nodeCandidates = matchmaking(userNodeRequest, userId);
+            break;
+          case NODECANDIDATE:
+            nodeCandidates = Collections
+                .singletonList(userNodeRequest.getNodeRequestMessage().getNodeCandidate());
+            break;
+          case REQUEST_NOT_SET:
+          default:
+            throw new AssertionError(
+                "Illegal request case " + userNodeRequest.getNodeRequestMessage().getRequestCase());
+        }
+
         List<Node> nodes = new ArrayList<>();
         List<Throwable> exceptions = new ArrayList<>();
 
-        LOGGER.debug(String
-            .format("%s is calling matchmaking engine to derive configuration for request %s.",
-                this, userNodeRequest));
-
-        final MatchmakingResponse matchmakingResponse = matchmakingService.requestMatch(
-            MatchmakingRequest.newBuilder()
-                .setNodeRequirements(userNodeRequest.getNodeRequestMessage().getNodeRequest())
-                .setUserId(userId)
-                .build());
-
-        LOGGER.debug(String
-            .format("%s received matchmaking response for node request %s. Selected offer is %s.",
-                this, userNodeRequest, matchmakingResponse));
-
         CountDownLatch countDownLatch = new CountDownLatch(
-            matchmakingResponse.getCandidatesCount());
+            nodeCandidates.size());
 
         LOGGER.debug(
             String.format(
                 "%s is starting to start virtual machines to fulfill node request %s. Number of nodes is %s.",
-                this, userNodeRequest, matchmakingResponse.getCandidatesCount()));
+                this, userNodeRequest, nodeCandidates.size()));
 
-        matchmakingResponse.getCandidatesList().parallelStream().forEach(
+        nodeCandidates.parallelStream().forEach(
             nodeCandidate -> {
 
               //incarnate node candidate to a new
@@ -134,14 +138,16 @@ public class NodeRequestWorker implements Runnable {
           //create node group
           final NodeGroup nodeGroup = NodeGroups
               .of(nodes);
-          LOGGER.debug("%s is grouping the nodes of request %s to node group %s.", this,
-              userNodeRequest, nodeGroup);
+          LOGGER
+              .debug(String.format("%s is grouping the nodes of request %s to node group %s.", this,
+                  userNodeRequest, nodeGroup));
 
           //persist the node group
           persistNodeGroup(nodeGroup, userId);
 
-          LOGGER.debug("%s is replying success for request %s with node group %s.", this,
-              userNodeRequest, nodeGroup);
+          LOGGER.debug(
+              String.format("%s is replying success for request %s with node group %s.", this,
+                  userNodeRequest, nodeGroup));
           messageInterface.reply(messageId,
               NodeRequestResponse.newBuilder()
                   .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
@@ -161,6 +167,25 @@ public class NodeRequestWorker implements Runnable {
             Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
       }
     }
+  }
+
+  private List<NodeCandidate> matchmaking(NodeRequest userNodeRequest, String userId)
+      throws ResponseException {
+    LOGGER.debug(String
+        .format("%s is calling matchmaking engine to derive configuration for request %s.",
+            this, userNodeRequest));
+
+    final MatchmakingResponse matchmakingResponse = matchmakingService.requestMatch(
+        MatchmakingRequest.newBuilder()
+            .setNodeRequirements(userNodeRequest.getNodeRequestMessage().getRequirements())
+            .setUserId(userId)
+            .build());
+
+    LOGGER.debug(String
+        .format("%s received matchmaking response for node request %s. Selected offer is %s.",
+            this, userNodeRequest, matchmakingResponse));
+
+    return matchmakingResponse.getCandidatesList();
   }
 
   @Override
