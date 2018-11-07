@@ -7,6 +7,7 @@ import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import org.cloudiator.messages.Cloud.CloudEvent;
+import org.cloudiator.messages.entities.IaasEntities.CloudState;
 import org.cloudiator.messaging.MessageCallback;
 import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
@@ -37,13 +38,28 @@ public class CloudEventSubscriber implements Runnable {
 
             final Cloud cloud = cloudMessageToCloudConverter.apply(content.getCloud());
             LOGGER.info(String
-                .format("%s is receiving new cloud created event for cloud %s.", this, cloud));
+                .format("%s is receiving event for cloud %s.", this, cloud));
 
-            if (!cloudRegistry.isRegistered(cloud)) {
+            if (content.getCloud().getState().equals(CloudState.CLOUD_STATE_OK) && !cloudRegistry
+                .isRegistered(cloud)) {
               LOGGER.debug(
                   String.format("%s is registering new cloud %s to cloud registry", this, cloud));
               cloudRegistry.register(cloud);
             }
+
+            if (content.getCloud().getState().equals(CloudState.CLOUD_STATE_DELETED) || content
+                .getCloud().getState().equals(CloudState.CLOUD_STATE_ERROR)) {
+              if (cloudRegistry.isRegistered(cloud)) {
+                LOGGER.debug(
+                    String
+                        .format("%s is removing failed or deleted cloud %s from cloud registry",
+                            this,
+                            cloud));
+                cloudRegistry.unregister(cloud);
+              }
+            }
+
+
           }
         });
   }
