@@ -49,6 +49,10 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
             TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.OK).to(CloudState.DELETED)
                 .action(delete())
                 .build())
+        .addTransition(
+            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.OK).to(CloudState.ERROR)
+                .action(error())
+                .build())
         .addHook(new StateMachineHook<ExtendedCloud>() {
           @Override
           public void pre(ExtendedCloud cloud, State to) {
@@ -105,7 +109,7 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
     return extendedCloud -> {
 
-      final ExtendedCloudImpl ok = ExtendedCloudBuilder.of(extendedCloud)
+      final ExtendedCloudImpl deleted = ExtendedCloudBuilder.of(extendedCloud)
           .state(CloudState.DELETED)
           .build();
 
@@ -113,8 +117,26 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
       cloudRegistry.unregister(extendedCloud.id());
 
-      return ok;
+      return deleted;
     };
 
   }
+
+  private ThrowingFunction<ExtendedCloud, ExtendedCloud> error() {
+
+    return extendedCloud -> {
+
+      final ExtendedCloudImpl error = ExtendedCloudBuilder.of(extendedCloud)
+          .state(CloudState.ERROR)
+          .build();
+
+      save(error);
+      cloudRegistry.unregister(extendedCloud.id());
+
+      return error;
+    };
+
+  }
+
+
 }

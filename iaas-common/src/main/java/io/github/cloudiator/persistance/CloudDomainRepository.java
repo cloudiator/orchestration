@@ -107,6 +107,7 @@ public class CloudDomainRepository {
         "updating api not allowed");
 
     model.setCloudType(domain.cloudType());
+    model.setCloudState(domain.state());
 
     cloudCredentialDomainRepository.update(domain.credential(), model.getCloudCredential());
     cloudConfigurationDomainRepository

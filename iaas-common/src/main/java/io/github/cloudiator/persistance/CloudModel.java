@@ -71,7 +71,8 @@ class CloudModel extends Model {
   private CloudState cloudState;
 
   @Column(nullable = true)
-  @Nullable private String diagnostic;
+  @Nullable
+  private String diagnostic;
 
 
   /**
@@ -131,6 +132,11 @@ class CloudModel extends Model {
 
   public CloudState getCloudState() {
     return cloudState;
+  }
+
+  public CloudModel setCloudState(CloudState cloudState) {
+    this.cloudState = cloudState;
+    return this;
   }
 
   @Nullable
