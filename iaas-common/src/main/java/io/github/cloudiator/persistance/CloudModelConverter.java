@@ -2,21 +2,21 @@ package io.github.cloudiator.persistance;
 
 import de.uniulm.omi.cloudiator.sword.domain.Api;
 import de.uniulm.omi.cloudiator.sword.domain.ApiBuilder;
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import de.uniulm.omi.cloudiator.sword.domain.CloudBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.CloudCredential;
 import de.uniulm.omi.cloudiator.sword.domain.Configuration;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.domain.ExtendedCloudBuilder;
 import javax.annotation.Nullable;
 
-class CloudConverter implements OneWayConverter<CloudModel, Cloud> {
+class CloudModelConverter implements OneWayConverter<CloudModel, ExtendedCloud> {
 
   private final static CloudCredentialConverter CLOUD_CREDENTIAL_CONVERTER = new CloudCredentialConverter();
   private final static CloudConfigurationConverter CLOUD_CONFIGURATION_CONVERTER = new CloudConfigurationConverter();
 
   @Nullable
   @Override
-  public Cloud apply(@Nullable CloudModel cloudModel) {
+  public ExtendedCloud apply(@Nullable CloudModel cloudModel) {
 
     if (cloudModel == null) {
       return null;
@@ -30,8 +30,10 @@ class CloudConverter implements OneWayConverter<CloudModel, Cloud> {
     final Configuration configuration = CLOUD_CONFIGURATION_CONVERTER
         .apply(cloudModel.getCloudConfiguration());
 
-    return CloudBuilder.newBuilder().api(api).cloudType(cloudModel.getCloudType())
+    return ExtendedCloudBuilder.newBuilder().api(api).cloudType(cloudModel.getCloudType())
         .configuration(configuration).credentials(cloudCredential)
-        .endpoint(cloudModel.getEndpoint()).build();
+        .endpoint(cloudModel.getEndpoint()).state(cloudModel.getCloudState())
+        .diagnostic(cloudModel.getDiagnostic()).userId(cloudModel.getTenantModel().getUserId())
+        .build();
   }
 }

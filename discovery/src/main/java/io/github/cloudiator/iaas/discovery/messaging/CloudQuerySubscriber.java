@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
+import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.stream.Collectors;
@@ -72,7 +73,7 @@ public class CloudQuerySubscriber implements Runnable {
 
   @Transactional
   private void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
-    final Cloud cloud = cloudDomainRepository
+    final ExtendedCloud cloud = cloudDomainRepository
         .findByUserAndId(userId, cloudId);
     if (cloud == null) {
       messageInterface.reply(CloudQueryResponse.class, requestId,

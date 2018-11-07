@@ -6,23 +6,23 @@ import com.google.inject.Singleton;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
-import org.cloudiator.messages.Cloud.CloudCreatedEvent;
+import org.cloudiator.messages.Cloud.CloudEvent;
 import org.cloudiator.messaging.MessageCallback;
 import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class CloudCreatedSubscriber implements Runnable {
+public class CloudEventSubscriber implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(CloudCreatedSubscriber.class);
+      .getLogger(CloudEventSubscriber.class);
   private final MessageInterface messageInterface;
   private final CloudRegistry cloudRegistry;
   private final CloudMessageToCloudConverter cloudMessageToCloudConverter = CloudMessageToCloudConverter.INSTANCE;
 
   @Inject
-  public CloudCreatedSubscriber(MessageInterface messageInterface,
+  public CloudEventSubscriber(MessageInterface messageInterface,
       CloudRegistry cloudRegistry) {
     this.messageInterface = messageInterface;
     this.cloudRegistry = cloudRegistry;
@@ -30,10 +30,10 @@ public class CloudCreatedSubscriber implements Runnable {
 
   @Override
   public void run() {
-    messageInterface.subscribe(CloudCreatedEvent.class, CloudCreatedEvent.parser(),
-        new MessageCallback<CloudCreatedEvent>() {
+    messageInterface.subscribe(CloudEvent.class, CloudEvent.parser(),
+        new MessageCallback<CloudEvent>() {
           @Override
-          public void accept(String id, CloudCreatedEvent content) {
+          public void accept(String id, CloudEvent content) {
 
             final Cloud cloud = cloudMessageToCloudConverter.apply(content.getCloud());
             LOGGER.info(String

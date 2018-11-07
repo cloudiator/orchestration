@@ -2,11 +2,13 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
+import io.github.cloudiator.domain.CloudState;
+import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.iaas.discovery.CloudStateMachine;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
-import io.github.cloudiator.messaging.NewCloudMessageToCloud;
+import io.github.cloudiator.messaging.InitializeCloudFromNewCloud;
 import io.github.cloudiator.persistance.CloudDomainRepository;
-import org.cloudiator.messages.Cloud.CloudCreatedEvent;
+import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Cloud.CloudCreatedResponse;
 import org.cloudiator.messages.Cloud.CreateCloudRequest;
 import org.cloudiator.messages.General.Error;
@@ -25,17 +27,20 @@ public class CloudAddedSubscriber implements Runnable {
 
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
-  private static final NewCloudMessageToCloud newCloudConverter = NewCloudMessageToCloud.INSTANCE;
+  private static final InitializeCloudFromNewCloud INITIALIZE_CLOUD_FROM_NEW_CLOUD = InitializeCloudFromNewCloud.INSTANCE;
   private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
   private final CloudService cloudService;
+  private final CloudStateMachine cloudStateMachine;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
       CloudDomainRepository cloudDomainRepository,
-      CloudService cloudService) {
+      CloudService cloudService,
+      CloudStateMachine cloudStateMachine) {
     this.messageInterface = messageInterface;
     this.cloudDomainRepository = cloudDomainRepository;
     this.cloudService = cloudService;
+    this.cloudStateMachine = cloudStateMachine;
   }
 
   @Override
@@ -49,45 +54,45 @@ public class CloudAddedSubscriber implements Runnable {
   private void doWork(String messageId, CreateCloudRequest createCloudRequest) {
 
     try {
-      importCloud(messageId, createCloudRequest);
+
+      ExtendedCloud cloudToBeCreated = INITIALIZE_CLOUD_FROM_NEW_CLOUD
+          .apply(createCloudRequest.getCloud(), createCloudRequest.getUserId());
+
+      if (exists(cloudToBeCreated)) {
+        messageInterface.reply(CloudCreatedResponse.class, messageId,
+            Error.newBuilder().setCode(409).setMessage(String
+                .format("The cloud %s is already registered",
+                    cloudToBeCreated)).build());
+      }
+
+      try {
+        cloudStateMachine.apply(cloudToBeCreated, CloudState.OK);
+      } catch (ExecutionException e) {
+        if (e.getCause() instanceof Exception) {
+          throw (Exception) e.getCause();
+        }
+        throw e;
+      }
+
+
     } catch (Exception e) {
-      LOGGER.error(String.format("Exception occurred during handling of message %s.",
+      LOGGER.error(String.format("Unexpected exception occurred during handling of request %s.",
           createCloudRequest), e);
       messageInterface.reply(CloudCreatedResponse.class, messageId, Error.newBuilder()
           .setMessage(String
-              .format("Could not understand request %s. An %s exception occurred: %s.",
-                  createCloudRequest, e.getClass().getName(), e.getMessage()))
+              .format("Unexpected exception occurred during handling of request %s: %s.",
+                  createCloudRequest, e.getMessage()))
           .setCode(500).build());
     }
   }
 
+
   @Transactional
-  void importCloud(String messageId, CreateCloudRequest createCloudRequest) {
-    //create the cloud object from the message
-    Cloud cloudToBeCreated = newCloudConverter.apply(createCloudRequest.getCloud());
-
-    //check if the cloud already exists
-    if (cloudDomainRepository.findById(cloudToBeCreated.id()) != null) {
-      //reply with error
-      messageInterface.reply(CloudCreatedResponse.class, messageId,
-          Error.newBuilder().setCode(409).setMessage(String
-              .format("The cloud %s is already registered",
-                  cloudToBeCreated)).build());
-    } else {
-
-      //create the cloud
-      cloudDomainRepository.save(cloudToBeCreated, createCloudRequest.getUserId());
-
-      //reply
-      messageInterface.reply(messageId,
-          CloudCreatedResponse.newBuilder()
-              .setCloud(CLOUD_CONVERTER.applyBack(cloudToBeCreated)).build());
-      //emit event
-      cloudService.cloudCreatedEvent(
-          CloudCreatedEvent.newBuilder().setCloud(CLOUD_CONVERTER.applyBack(cloudToBeCreated))
-              .setUserId(createCloudRequest.getUserId()).build());
-
+  private boolean exists(ExtendedCloud extendedCloud) {
+    if (cloudDomainRepository.findById(extendedCloud.id()) != null) {
+      return true;
     }
+    return false;
   }
 
 }

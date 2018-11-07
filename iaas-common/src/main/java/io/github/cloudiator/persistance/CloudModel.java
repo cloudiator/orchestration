@@ -19,10 +19,12 @@
 package io.github.cloudiator.persistance;
 
 import de.uniulm.omi.cloudiator.sword.domain.CloudType;
+import io.github.cloudiator.domain.CloudState;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -60,9 +62,16 @@ class CloudModel extends Model {
   @OneToMany(mappedBy = "cloudModel", orphanRemoval = true)
   private List<ResourceModel> resources;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private CloudType cloudType;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private CloudState cloudState;
+
+  @Column(nullable = true)
+  @Nullable private String diagnostic;
 
 
   /**
@@ -74,7 +83,7 @@ class CloudModel extends Model {
   public CloudModel(String cloudId, TenantModel tenantModel, ApiModel apiModel,
       @Nullable String endpoint,
       CloudCredentialModel cloudCredentialModel, CloudConfigurationModel cloudConfiguration,
-      CloudType cloudType) {
+      CloudType cloudType, CloudState cloudState, @Nullable String diagnostic) {
     this.cloudId = cloudId;
     this.tenantModel = tenantModel;
     this.apiModel = apiModel;
@@ -82,6 +91,8 @@ class CloudModel extends Model {
     this.cloudCredential = cloudCredentialModel;
     this.cloudConfiguration = cloudConfiguration;
     this.cloudType = cloudType;
+    this.cloudState = cloudState;
+    this.diagnostic = diagnostic;
   }
 
   public String getCloudId() {
@@ -116,5 +127,14 @@ class CloudModel extends Model {
   public CloudModel setCloudType(CloudType cloudType) {
     this.cloudType = cloudType;
     return this;
+  }
+
+  public CloudState getCloudState() {
+    return cloudState;
+  }
+
+  @Nullable
+  public String getDiagnostic() {
+    return diagnostic;
   }
 }
