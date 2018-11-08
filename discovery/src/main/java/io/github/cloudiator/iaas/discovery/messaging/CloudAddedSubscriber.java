@@ -5,6 +5,7 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.iaas.discovery.CloudStateMachine;
+import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.messaging.InitializeCloudFromNewCloud;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.concurrent.ExecutionException;
@@ -60,15 +61,20 @@ public class CloudAddedSubscriber implements Runnable {
       }
 
       try {
-        cloudStateMachine.apply(cloudToBeCreated, CloudState.OK);
+        final ExtendedCloud createdCloud = cloudStateMachine
+            .apply(cloudToBeCreated, CloudState.OK);
+
+        final CloudCreatedResponse cloudCreatedResponse = CloudCreatedResponse.newBuilder()
+            .setCloud(
+                CloudMessageToCloudConverter.INSTANCE.applyBack(createdCloud)).build();
+        messageInterface.reply(messageId, cloudCreatedResponse);
+
       } catch (ExecutionException e) {
         if (e.getCause() instanceof Exception) {
           throw (Exception) e.getCause();
         }
         throw e;
       }
-
-      messageInterface.reply();
 
     } catch (Exception e) {
       LOGGER.error(String.format("Unexpected exception occurred during handling of request %s.",
