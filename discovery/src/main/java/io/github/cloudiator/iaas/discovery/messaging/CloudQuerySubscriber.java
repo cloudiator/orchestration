@@ -71,8 +71,9 @@ public class CloudQuerySubscriber implements Runnable {
             .build());
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
+  void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
     final ExtendedCloud cloud = cloudDomainRepository
         .findByUserAndId(userId, cloudId);
     if (cloud == null) {
@@ -88,8 +89,9 @@ public class CloudQuerySubscriber implements Runnable {
 
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void replyForUserId(String requestId, String userId) {
+  void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
         .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(
             CLOUD_CONVERTER::applyBack).collect(Collectors.toList())).build();

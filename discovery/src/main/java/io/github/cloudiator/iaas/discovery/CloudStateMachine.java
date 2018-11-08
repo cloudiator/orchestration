@@ -40,6 +40,7 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
     this.cloudRegistry = cloudRegistry;
     this.cloudService = cloudService;
 
+    //noinspection unchecked
     stateMachine = StateMachineBuilder.<ExtendedCloud>builder().errorState(CloudState.ERROR)
         .addTransition(
             TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.NEW).to(CloudState.OK)
@@ -66,8 +67,8 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
                 .setFrom(CloudStateConverter.INSTANCE.applyBack(
                     (CloudState) from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
                 .build();
-            LOGGER.debug(String.format("Executing post hook to announce cloud changed event %s."),
-                cloudEvent);
+            LOGGER.debug(String
+                .format("Executing post hook to announce cloud changed event %s.", cloudEvent));
             CloudStateMachine.this.cloudService.announceEvent(cloudEvent);
           }
         })
@@ -75,11 +76,13 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
   void save(ExtendedCloud extendedCloud) {
     cloudDomainRepository.save(extendedCloud);
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
   void delete(ExtendedCloud extendedCloud) {
     cloudDomainRepository.delete(extendedCloud.id(), extendedCloud.userId());

@@ -61,6 +61,7 @@ public class DeleteCloudSubscriber implements Runnable {
         });
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
   Optional<ExtendedCloud> retrieveCloud(String userId, String cloudId) {
     return Optional.ofNullable(cloudDomainRepository.findByUserAndId(userId, cloudId));

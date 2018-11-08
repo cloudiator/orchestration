@@ -5,7 +5,6 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.iaas.discovery.CloudStateMachine;
-import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.messaging.InitializeCloudFromNewCloud;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.concurrent.ExecutionException;
@@ -14,7 +13,6 @@ import org.cloudiator.messages.Cloud.CreateCloudRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
-import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,18 +26,14 @@ public class CloudAddedSubscriber implements Runnable {
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
   private static final InitializeCloudFromNewCloud INITIALIZE_CLOUD_FROM_NEW_CLOUD = InitializeCloudFromNewCloud.INSTANCE;
-  private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
-  private final CloudService cloudService;
   private final CloudStateMachine cloudStateMachine;
 
   @Inject
   public CloudAddedSubscriber(MessageInterface messageInterface,
       CloudDomainRepository cloudDomainRepository,
-      CloudService cloudService,
       CloudStateMachine cloudStateMachine) {
     this.messageInterface = messageInterface;
     this.cloudDomainRepository = cloudDomainRepository;
-    this.cloudService = cloudService;
     this.cloudStateMachine = cloudStateMachine;
   }
 
@@ -87,12 +81,10 @@ public class CloudAddedSubscriber implements Runnable {
   }
 
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private boolean exists(ExtendedCloud extendedCloud) {
-    if (cloudDomainRepository.findById(extendedCloud.id()) != null) {
-      return true;
-    }
-    return false;
+  boolean exists(ExtendedCloud extendedCloud) {
+    return cloudDomainRepository.findById(extendedCloud.id()) != null;
   }
 
 }
