@@ -120,7 +120,11 @@ public class InstallEventSubscriber implements Runnable {
       } else if (tool.equals(Tool.VISOR)) {
         installApi.installVisor();
         installedTools.add(tool);
-      } else {
+      } else if (tool.equals(Tool.SPARK_WORKER)) {
+      installApi.installSparkWorker();
+      installedTools.add(tool);
+    }
+      else {
         throw new IllegalStateException("Unsupported toolName: " + tool.name());
       }
     }
