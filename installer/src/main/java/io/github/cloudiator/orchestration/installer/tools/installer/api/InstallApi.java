@@ -54,6 +54,12 @@ public interface InstallApi extends AutoCloseable {
    */
   void installDocker() throws RemoteException;
 
+  /**
+   * Fetch and start Cloudiator Spark Worker container
+   * @throws RemoteException
+   */
+  void installSparkWorker() throws RemoteException;
+
 
   @Override
   void close() throws RemoteException;
