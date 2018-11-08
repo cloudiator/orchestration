@@ -4,8 +4,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.sword.multicloud.exception.MultiCloudException;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
+import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
@@ -20,13 +22,17 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
 
   private final DiscoveryQueue discoveryQueue;
   private final DiscoveryService discoveryService;
+  private final DiscoveryErrorHandler discoveryErrorHandler;
 
   @Inject
-  public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService) {
+  public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService,
+      DiscoveryErrorHandler discoveryErrorHandler) {
     checkNotNull(discoveryQueue, "discoveryQueue is null");
     this.discoveryQueue = discoveryQueue;
     checkNotNull(discoveryService, "discoveryService is null");
     this.discoveryService = discoveryService;
+    checkNotNull(discoveryErrorHandler, "discoveryErrorHandler is null");
+    this.discoveryErrorHandler = discoveryErrorHandler;
   }
 
   protected abstract Iterable<T> resources(DiscoveryService discoveryService);
@@ -55,6 +61,11 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));
             discoveryQueue.add(discovery);
           });
+    } catch (MultiCloudException e) {
+      LOGGER.error(String.format(
+          "%s caught multi cloud exception %s during discovery run. Exception was caught and send to error handler %s.",
+          this, e.getMessage(), discoveryErrorHandler), e);
+      discoveryErrorHandler.report(e);
     } catch (Exception e) {
       LOGGER.error(String.format(
           "%s reported exception %s during discovery run. Exception was caught to allow further executions.",

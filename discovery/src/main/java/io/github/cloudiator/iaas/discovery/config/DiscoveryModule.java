@@ -21,6 +21,8 @@ import io.github.cloudiator.iaas.discovery.ImageDiscoveryWorker;
 import io.github.cloudiator.iaas.discovery.Init;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryListener;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryWorker;
+import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandlerImpl;
 import org.cloudiator.meta.cloudharmony.config.CloudHarmonyMetaModule;
 
 /**
@@ -40,6 +42,7 @@ public class DiscoveryModule extends AbstractModule {
             new LoggingScheduledThreadPoolExecutor(10)));
     bind(Init.class).asEagerSingleton();
     bind(DiscoveryQueue.class).in(Singleton.class);
+    bind(DiscoveryErrorHandler.class).to(DiscoveryErrorHandlerImpl.class);
 
     Multibinder<AbstractDiscoveryWorker> discoveryWorkerBinder = Multibinder
         .newSetBinder(binder(), AbstractDiscoveryWorker.class);

@@ -10,7 +10,7 @@ import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import io.github.cloudiator.iaas.vm.config.VmAgentModule;
-import io.github.cloudiator.iaas.vm.messaging.CloudCreatedSubscriber;
+import io.github.cloudiator.iaas.vm.messaging.CloudEventSubscriber;
 import io.github.cloudiator.iaas.vm.messaging.CreateVirtualMachineSubscriber;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineDeleteRequestSubscriber;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineQuerySubscriber;
@@ -67,8 +67,8 @@ public class VirtualMachineAgent {
     }
 
     LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
-        CloudCreatedSubscriber.class.getName()));
-    injector.getInstance(CloudCreatedSubscriber.class).run();
+        CloudEventSubscriber.class.getName()));
+    injector.getInstance(CloudEventSubscriber.class).run();
     LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
         CreateVirtualMachineSubscriber.class.getName()));
     injector.getInstance(CreateVirtualMachineSubscriber.class).run();
