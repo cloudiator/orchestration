@@ -51,6 +51,11 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
                 .action(delete())
                 .build())
         .addTransition(
+            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.ERROR)
+                .to(CloudState.DELETED)
+                .action(delete())
+                .build())
+        .addTransition(
             TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.OK).to(CloudState.ERROR)
                 .action(error())
                 .build())
@@ -68,7 +73,8 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
                     (CloudState) from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
                 .build();
             LOGGER.debug(String
-                .format("Executing post hook to announce cloud changed event %s.", cloudEvent));
+                .format("Executing post hook to announce cloud changed event: %s.", cloudEvent));
+            cloudService.announceEvent(cloudEvent);
             CloudStateMachine.this.cloudService.announceEvent(cloudEvent);
           }
         })
