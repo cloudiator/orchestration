@@ -68,6 +68,7 @@ public class CloudAddedSubscriber implements Runnable {
         throw e;
       }
 
+      messageInterface.reply();
 
     } catch (Exception e) {
       LOGGER.error(String.format("Unexpected exception occurred during handling of request %s.",
