@@ -8,7 +8,6 @@ import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
-import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineImpl;
 import de.uniulm.omi.cloudiator.util.stateMachine.TransitionBuilder;
 import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
@@ -94,11 +93,6 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
     cloudDomainRepository.delete(extendedCloud.id(), extendedCloud.userId());
   }
 
-  @Override
-  public ExtendedCloud apply(ExtendedCloud object, State to)
-      throws ExecutionException {
-    return stateMachine.apply(object, to);
-  }
 
   private ThrowingFunction<ExtendedCloud, ExtendedCloud> newToOk() {
 
@@ -147,5 +141,9 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
   }
 
-
+  @Override
+  public ExtendedCloud apply(ExtendedCloud object, State to)
+      throws ExecutionException {
+    return stateMachine.apply(object, to);
+  }
 }
