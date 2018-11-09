@@ -1,5 +1,6 @@
 package io.github.cloudiator.domain;
 
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.Api;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.domain.CloudCredential;
@@ -68,5 +69,11 @@ public class ExtendedCloudImpl implements ExtendedCloud {
   @Override
   public CloudType cloudType() {
     return delegate.cloudType();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("cloud", delegate).add("userId", userId)
+        .add("state", cloudState).add("diagnostic", diagnostic).toString();
   }
 }

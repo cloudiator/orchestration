@@ -38,7 +38,8 @@ public class CloudEventSubscriber implements Runnable {
 
             final Cloud cloud = cloudMessageToCloudConverter.apply(content.getCloud());
             LOGGER.info(String
-                .format("%s is receiving event for cloud %s.", this, cloud));
+                .format("%s is receiving event for cloud %s. State changed from %s to %s.", this,
+                    cloud, content.getFrom(), content.getTo()));
 
             if (content.getCloud().getState().equals(CloudState.CLOUD_STATE_OK) && !cloudRegistry
                 .isRegistered(cloud)) {

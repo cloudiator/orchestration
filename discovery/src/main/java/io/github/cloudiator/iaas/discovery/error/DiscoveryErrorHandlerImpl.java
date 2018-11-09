@@ -33,6 +33,11 @@ public class DiscoveryErrorHandlerImpl implements DiscoveryErrorHandler {
   @Override
   public void report(String cloudId, Exception e) {
 
+    LOGGER
+        .debug(
+            String.format("%s received exception %s for cloud %s", this, e.getMessage(), cloudId),
+            e);
+
     final ExtendedCloud cloud = cloudDomainRepository.findById(cloudId);
 
     if (cloud == null) {
@@ -44,8 +49,12 @@ public class DiscoveryErrorHandlerImpl implements DiscoveryErrorHandler {
 
     ExtendedCloud cloudWithError = ExtendedCloudBuilder.of(cloud)
         .diagnostic(e.getMessage()).build();
-    //set cloud to error state
+
     try {
+      //set cloud to error state
+      LOGGER.info(String
+          .format("%s is setting cloud with id %s to error state due to error %s.", this, cloudId,
+              e.getMessage()), e);
       cloudStateMachine.apply(cloudWithError, CloudState.ERROR);
     } catch (ExecutionException ex) {
       LOGGER.error(

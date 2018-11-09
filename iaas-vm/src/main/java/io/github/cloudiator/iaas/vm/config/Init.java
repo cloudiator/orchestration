@@ -2,8 +2,9 @@ package io.github.cloudiator.iaas.vm.config;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import io.github.cloudiator.domain.CloudState;
+import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.messaging.CloudMessageRepository;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -72,13 +73,14 @@ class Init {
           .collect(
               Collectors
                   .toSet())) {
-        for (Cloud cloud : cloudMessageRepository.getAll(tenant)) {
+        for (ExtendedCloud cloud : cloudMessageRepository.getAll(tenant)) {
 
-          if (!cloudRegistry.isRegistered(cloud)) {
+          if (cloud.state().equals(CloudState.OK) && !cloudRegistry.isRegistered(cloud)) {
             cloudRegistry.register(cloud);
             LOGGER.debug(String.format("Adding cloud %s to the cloud registry.", cloud));
           } else {
-            LOGGER.trace(String.format("Cloud %s was already registered. Skipping", cloud));
+            LOGGER.trace(String
+                .format("Cloud %s was already registered or is not on OK state. Skipping", cloud));
           }
         }
       }
