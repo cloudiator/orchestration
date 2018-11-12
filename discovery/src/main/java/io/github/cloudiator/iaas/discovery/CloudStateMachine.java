@@ -74,7 +74,9 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
                     (CloudState) from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
                 .build();
             LOGGER.debug(String
-                .format("Executing post hook to announce cloud changed event: %s.", cloudEvent));
+                .format(
+                    "Executing post hook to announce cloud changed event for cloud %s. Previous state was %s, new state is %s.",
+                    cloud, from, cloud.state()));
             cloudService.announceEvent(cloudEvent);
             CloudStateMachine.this.cloudService.announceEvent(cloudEvent);
           }
