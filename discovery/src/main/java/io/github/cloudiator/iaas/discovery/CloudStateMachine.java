@@ -1,6 +1,7 @@
 package io.github.cloudiator.iaas.discovery;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.util.function.ThrowingFunction;
@@ -22,6 +23,7 @@ import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
   private final StateMachine<ExtendedCloud> stateMachine;
