@@ -8,9 +8,10 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
 import io.github.cloudiator.iaas.vm.VirtualMachineRequestToTemplateConverter;
+import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue.UserCreateVirtualMachineRequest;
-import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
+import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
   private VirtualMachineRequestToTemplateConverter virtualMachineRequestToTemplateConverter = new VirtualMachineRequestToTemplateConverter();
   private final ComputeService computeService;
   private final VirtualMachineDomainRepository virtualMachineDomainRepository;
+  private final VirtualMachineStatistics virtualMachineStatistics;
 
   @Inject
   public VirtualMachineRequestQueueWorker(
@@ -38,12 +40,14 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
       MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,
       ComputeService computeService,
-      VirtualMachineDomainRepository virtualMachineDomainRepository) {
+      VirtualMachineDomainRepository virtualMachineDomainRepository,
+      VirtualMachineStatistics virtualMachineStatistics) {
     this.virtualMachineRequestQueue = virtualMachineRequestQueue;
     this.messageInterface = messageInterface;
     this.enrichVirtualMachine = enrichVirtualMachine;
     this.computeService = computeService;
     this.virtualMachineDomainRepository = virtualMachineDomainRepository;
+    this.virtualMachineStatistics = virtualMachineStatistics;
   }
 
   @Override
@@ -78,7 +82,10 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
 
           LOGGER.debug("Starting execution of workflow for virtual machine.");
 
-          Exchange result = createVirtualMachineWorkflow.execute(Exchange.of(virtualMachineTemplate));
+          final long startTime = System.currentTimeMillis();
+
+          Exchange result = createVirtualMachineWorkflow
+              .execute(Exchange.of(virtualMachineTemplate));
 
           VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
 
@@ -86,6 +93,10 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
           final VirtualMachine update = enrichVirtualMachine
               .update(userCreateVirtualMachineRequest.userId(), virtualMachineTemplate,
                   virtualMachine);
+
+          final long stopTime = System.currentTimeMillis();
+
+          virtualMachineStatistics.virtualMachineStartTime(virtualMachine, stopTime - startTime);
 
           //persist the vm
           persistVirtualMachine(update, userCreateVirtualMachineRequest.userId());

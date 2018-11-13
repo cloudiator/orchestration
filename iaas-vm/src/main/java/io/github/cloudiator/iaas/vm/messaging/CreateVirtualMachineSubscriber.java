@@ -35,9 +35,13 @@ public class CreateVirtualMachineSubscriber implements Runnable {
     Subscription subscription = messageInterface.subscribe(CreateVirtualMachineRequestMessage.class,
         CreateVirtualMachineRequestMessage.parser(),
         (requestId, request) -> {
+
           LOGGER.info(String
               .format("%s is receiving new request for virtual machine %s. Adding to queue.", this,
                   request));
+
+          //todo: validate request
+
           virtualMachineRequestQueue.add(requestId, request);
         });
   }

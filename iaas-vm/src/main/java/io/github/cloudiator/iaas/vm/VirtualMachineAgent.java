@@ -9,6 +9,8 @@ import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
+import de.uniulm.omi.cloudiator.util.statistics.StatisticsContext;
+import de.uniulm.omi.cloudiator.util.statistics.StatisticsModule;
 import io.github.cloudiator.iaas.vm.config.VmAgentModule;
 import io.github.cloudiator.iaas.vm.messaging.CloudEventSubscriber;
 import io.github.cloudiator.iaas.vm.messaging.CreateVirtualMachineSubscriber;
@@ -35,7 +37,9 @@ public class VirtualMachineAgent {
           new MessageServiceModule(),
           new JpaModule("defaultPersistenceUnit", new JpaContext(
               Configuration.conf())),
-          new VmAgentModule(new VmAgentContext()));
+          new VmAgentModule(new VmAgentContext()),
+          new StatisticsModule(new StatisticsContext())
+      );
 
   private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
       new LoggingScheduledThreadPoolExecutor(numberOfWorkers()));
