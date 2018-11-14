@@ -29,7 +29,13 @@ public class VirtualMachineStatistics {
   public void virtualMachineStartTime(String user, VirtualMachine virtualMachine, long time) {
 
     final String cloudId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
-    final Cloud cloud = cloudMessageRepository.getById(cloudId, user);
+
+    Cloud cloud = null;
+    try {
+      cloud = cloudMessageRepository.getById(user, cloudId);
+    } catch (Exception e) {
+      LOGGER.warn("Could not retrieve cloud due to exception", e);
+    }
 
     if (cloud == null) {
       //if we can't find the cloud, we skip the reporting
