@@ -28,7 +28,7 @@ class CloudModelRepositoryJpa extends BaseModelRepositoryJpa<CloudModel> impleme
   public CloudModel getByCloudId(String cloudId) {
     checkNotNull(cloudId, "cloudId is null");
     String queryString = String
-        .format("from %s where cloudId=:cloudId", type.getName());
+        .format("select cloud from %s cloud where cloud.cloudId = :cloudId", type.getName());
     Query query = em().createQuery(queryString).setParameter("cloudId", cloudId);
     try {
       //noinspection unchecked
