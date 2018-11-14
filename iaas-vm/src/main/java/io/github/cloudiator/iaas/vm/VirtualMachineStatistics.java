@@ -7,7 +7,7 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import de.uniulm.omi.cloudiator.util.statistics.Metric;
 import de.uniulm.omi.cloudiator.util.statistics.MetricBuilder;
 import de.uniulm.omi.cloudiator.util.statistics.StatisticInterface;
-import io.github.cloudiator.persistance.CloudDomainRepository;
+import io.github.cloudiator.messaging.CloudMessageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,20 +16,20 @@ public class VirtualMachineStatistics {
   private static final Logger LOGGER = LoggerFactory.getLogger(VirtualMachineStatistics.class);
 
   private final StatisticInterface statisticInterface;
-  private final CloudDomainRepository cloudDomainRepository;
+  private final CloudMessageRepository cloudMessageRepository;
 
   @Inject
   public VirtualMachineStatistics(
       StatisticInterface statisticInterface,
-      CloudDomainRepository cloudDomainRepository) {
+      CloudMessageRepository cloudMessageRepository) {
     this.statisticInterface = statisticInterface;
-    this.cloudDomainRepository = cloudDomainRepository;
+    this.cloudMessageRepository = cloudMessageRepository;
   }
 
-  public void virtualMachineStartTime(VirtualMachine virtualMachine, long time) {
+  public void virtualMachineStartTime(String user, VirtualMachine virtualMachine, long time) {
 
     final String cloudId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
-    final Cloud cloud = cloudDomainRepository.findById(cloudId);
+    final Cloud cloud = cloudMessageRepository.getById(cloudId, user);
 
     if (cloud == null) {
       //if we can't find the cloud, we skip the reporting
@@ -41,7 +41,8 @@ public class VirtualMachineStatistics {
 
     final MetricBuilder metricBuilder = MetricBuilder.create().name("vm-start-time").value(time)
         .now().addTag("cloud", cloud.id())
-        .addTag("api", cloud.api().providerName());
+        .addTag("api", cloud.api().providerName())
+        .addTag("user", user);
 
     if (virtualMachine.hardwareId().isPresent()) {
       metricBuilder.addTag("hardware", virtualMachine.hardwareId().get());

@@ -96,7 +96,9 @@ public class VirtualMachineRequestQueueWorker implements Runnable {
 
           final long stopTime = System.currentTimeMillis();
 
-          virtualMachineStatistics.virtualMachineStartTime(virtualMachine, stopTime - startTime);
+          virtualMachineStatistics
+              .virtualMachineStartTime(userCreateVirtualMachineRequest.userId(), virtualMachine,
+                  stopTime - startTime);
 
           //persist the vm
           persistVirtualMachine(update, userCreateVirtualMachineRequest.userId());
