@@ -60,6 +60,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     @Override
     public NodeEntities.NodeProperties applyBack(NodeProperties nodeProperties) {
       final Builder builder = NodeEntities.NodeProperties.newBuilder()
+          .setProviderId(nodeProperties.providerId())
           .setNumberOfCores(nodeProperties.numberOfCores()).setMemory(nodeProperties.memory());
 
       if (nodeProperties.geoLocation().isPresent()) {
@@ -81,7 +82,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
 
     @Override
     public NodeProperties apply(NodeEntities.NodeProperties nodeProperties) {
-      return NodePropertiesBuilder.newBuilder().numberOfCores(nodeProperties.getNumberOfCores())
+      return NodePropertiesBuilder.newBuilder().providerId(nodeProperties.getProviderId())
+          .numberOfCores(nodeProperties.getNumberOfCores())
           .disk(nodeProperties.getDisk())
           .geoLocation(geoLocationConverter.apply(nodeProperties.getGeoLocation()))
           .memory(nodeProperties.getMemory())

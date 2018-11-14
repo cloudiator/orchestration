@@ -16,7 +16,8 @@ class NodePropertiesConverter implements OneWayConverter<NodePropertiesModel, No
       return null;
     }
 
-    return NodePropertiesBuilder.newBuilder().disk(nodePropertiesModel.getDisk())
+    return NodePropertiesBuilder.newBuilder().providerId(nodePropertiesModel.getProviderId())
+        .disk(nodePropertiesModel.getDisk())
         .geoLocation(geoLocationConverter.apply(nodePropertiesModel.getGeoLocation()))
         .memory(nodePropertiesModel.getMemory())
         .numberOfCores(nodePropertiesModel.getNumberOfCores())

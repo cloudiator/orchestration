@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 public class NodePropertiesImpl implements NodeProperties {
 
+  private final String providerId;
   private final int numberOfCores;
   private final long memory;
   @Nullable
@@ -16,14 +17,20 @@ public class NodePropertiesImpl implements NodeProperties {
   @Nullable
   private final GeoLocation geoLocation;
 
-  NodePropertiesImpl(int numberOfCores, long memory, @Nullable Double disk,
+  NodePropertiesImpl(String providerId, int numberOfCores, long memory, @Nullable Double disk,
       @Nullable OperatingSystem operatingSystem,
       @Nullable GeoLocation geoLocation) {
+    this.providerId = providerId;
     this.numberOfCores = numberOfCores;
     this.memory = memory;
     this.disk = disk;
     this.operatingSystem = operatingSystem;
     this.geoLocation = geoLocation;
+  }
+
+  @Override
+  public String providerId() {
+    return providerId;
   }
 
   @Override

@@ -7,10 +7,12 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 
 
 public class NodePropertiesBuilder {
 
+  private String providerId;
   private int numberOfCores;
   private long memory;
   private Double disk;
@@ -27,7 +29,10 @@ public class NodePropertiesBuilder {
     checkNotNull(image, "image is null");
     checkNotNull(location, "location is null");
 
-    return newBuilder().numberOfCores(hardwareFlavor.numberOfCores()).memory(hardwareFlavor.mbRam())
+    final String providerId = IdScopedByClouds.from(hardwareFlavor.id()).cloudId();
+
+    return newBuilder().providerId(providerId).numberOfCores(hardwareFlavor.numberOfCores())
+        .memory(hardwareFlavor.mbRam())
         .disk(hardwareFlavor.gbDisk().orElse(null)).os(image.operatingSystem())
         .geoLocation(location.geoLocation().orElse(null));
   }
@@ -61,8 +66,14 @@ public class NodePropertiesBuilder {
     return this;
   }
 
+  public NodePropertiesBuilder providerId(String providerId) {
+    this.providerId = providerId;
+    return this;
+  }
+
   public NodeProperties build() {
-    return new NodePropertiesImpl(numberOfCores, memory, disk, operatingSystem, geoLocation);
+    return new NodePropertiesImpl(providerId, numberOfCores, memory, disk, operatingSystem,
+        geoLocation);
   }
 
 

@@ -9,6 +9,9 @@ import javax.persistence.OneToOne;
 class NodePropertiesModel extends Model {
 
   @Column(nullable = false)
+  private String providerId;
+
+  @Column(nullable = false)
   private int numberOfCores;
 
   @Column(nullable = false)
@@ -33,9 +36,10 @@ class NodePropertiesModel extends Model {
 
   }
 
-  NodePropertiesModel(int numberOfCores, long memory, @Nullable Double disk,
+  NodePropertiesModel(String providerId, int numberOfCores, long memory, @Nullable Double disk,
       @Nullable OperatingSystemModel operatingSystem, @Nullable GeoLocationModel geoLocation) {
 
+    this.providerId = providerId;
     this.numberOfCores = numberOfCores;
     this.memory = memory;
     this.disk = disk;
@@ -65,5 +69,9 @@ class NodePropertiesModel extends Model {
   @Nullable
   public GeoLocationModel getGeoLocation() {
     return geoLocation;
+  }
+
+  public String getProviderId() {
+    return providerId;
   }
 }

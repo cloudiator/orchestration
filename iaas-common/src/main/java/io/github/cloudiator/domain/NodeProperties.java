@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public interface NodeProperties {
 
+  String providerId();
+
   int numberOfCores();
 
   long memory();
