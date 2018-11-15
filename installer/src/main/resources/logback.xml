@@ -61,6 +61,7 @@
 
   <logger name="io.github.cloudiator.orchestration.installer" level="DEBUG"/>
   <logger name="org.cloudiator.messaging" level="DEBUG"/>
+  <logger name="de.uniulm.omi.cloudiator.sword" level="DEBUG"/>
 
 
   <root level="WARN">
