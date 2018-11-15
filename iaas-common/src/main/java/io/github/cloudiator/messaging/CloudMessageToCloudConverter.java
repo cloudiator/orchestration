@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.messaging;
 
 import com.google.common.base.Strings;
@@ -23,6 +41,48 @@ public class CloudMessageToCloudConverter implements
   public static CloudMessageToCloudConverter INSTANCE = new CloudMessageToCloudConverter();
 
   private CloudMessageToCloudConverter() {
+  }
+
+  @Override
+  public ExtendedCloud apply(IaasEntities.Cloud cloud) {
+    ExtendedCloudBuilder cloudBuilder = ExtendedCloudBuilder.newBuilder()
+        .credentials(CREDENTIAL_CONVERTER.apply(cloud.getCredential()))
+        .api(API_CONVERTER.apply(cloud.getApi()))
+        .configuration(CONFIGURATION_CONVERTER.apply(cloud.getConfiguration()))
+        .cloudType(CLOUD_TYPE_CONVERTER.apply(cloud.getCloudType()))
+        .state(CloudStateConverter.INSTANCE.apply(cloud.getState()));
+
+    if (!Strings.isNullOrEmpty(cloud.getEndpoint())) {
+      cloudBuilder.endpoint(cloud.getEndpoint());
+    }
+
+    if (!Strings.isNullOrEmpty(cloud.getDiagnostic())) {
+      cloudBuilder.diagnostic(cloud.getDiagnostic());
+    }
+
+    return cloudBuilder.build();
+  }
+
+  @Override
+  public IaasEntities.Cloud applyBack(ExtendedCloud cloud) {
+    final Builder cloudBuilder = IaasEntities.Cloud.newBuilder()
+        .setId(cloud.id())
+        .setCredential(CREDENTIAL_CONVERTER.applyBack(cloud.credential()))
+        .setApi(API_CONVERTER.applyBack(cloud.api()))
+        .setConfiguration(CONFIGURATION_CONVERTER.applyBack(cloud.configuration()))
+        .setCloudType(CLOUD_TYPE_CONVERTER.applyBack(cloud.cloudType()))
+        .setState(CloudStateConverter.INSTANCE.applyBack(cloud.state()));
+
+    if (cloud.endpoint().isPresent()) {
+      cloudBuilder.setEndpoint(cloud.endpoint().get());
+    }
+
+    if (cloud.diagnostic().isPresent()) {
+      cloudBuilder.setDiagnostic(cloud.diagnostic().get());
+    }
+
+    return cloudBuilder.build();
+
   }
 
   public static class CloudStateConverter implements
@@ -67,48 +127,5 @@ public class CloudMessageToCloudConverter implements
 
       }
     }
-  }
-
-
-  @Override
-  public ExtendedCloud apply(IaasEntities.Cloud cloud) {
-    ExtendedCloudBuilder cloudBuilder = ExtendedCloudBuilder.newBuilder()
-        .credentials(CREDENTIAL_CONVERTER.apply(cloud.getCredential()))
-        .api(API_CONVERTER.apply(cloud.getApi()))
-        .configuration(CONFIGURATION_CONVERTER.apply(cloud.getConfiguration()))
-        .cloudType(CLOUD_TYPE_CONVERTER.apply(cloud.getCloudType()))
-        .state(CloudStateConverter.INSTANCE.apply(cloud.getState()));
-
-    if (!Strings.isNullOrEmpty(cloud.getEndpoint())) {
-      cloudBuilder.endpoint(cloud.getEndpoint());
-    }
-
-    if (!Strings.isNullOrEmpty(cloud.getDiagnostic())) {
-      cloudBuilder.diagnostic(cloud.getDiagnostic());
-    }
-
-    return cloudBuilder.build();
-  }
-
-  @Override
-  public IaasEntities.Cloud applyBack(ExtendedCloud cloud) {
-    final Builder cloudBuilder = IaasEntities.Cloud.newBuilder()
-        .setId(cloud.id())
-        .setCredential(CREDENTIAL_CONVERTER.applyBack(cloud.credential()))
-        .setApi(API_CONVERTER.applyBack(cloud.api()))
-        .setConfiguration(CONFIGURATION_CONVERTER.applyBack(cloud.configuration()))
-        .setCloudType(CLOUD_TYPE_CONVERTER.applyBack(cloud.cloudType()))
-        .setState(CloudStateConverter.INSTANCE.applyBack(cloud.state()));
-
-    if (cloud.endpoint().isPresent()) {
-      cloudBuilder.setEndpoint(cloud.endpoint().get());
-    }
-
-    if (cloud.diagnostic().isPresent()) {
-      cloudBuilder.setDiagnostic(cloud.diagnostic().get());
-    }
-
-    return cloudBuilder.build();
-
   }
 }
