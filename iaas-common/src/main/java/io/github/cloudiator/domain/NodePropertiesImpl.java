@@ -1,5 +1,6 @@
 package io.github.cloudiator.domain;
 
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import java.util.Optional;
@@ -57,5 +58,12 @@ public class NodePropertiesImpl implements NodeProperties {
   @Override
   public Optional<GeoLocation> geoLocation() {
     return Optional.ofNullable(geoLocation);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("providerId", providerId)
+        .add("numberOfCores", numberOfCores).add("memory", memory).add("disk", disk)
+        .add("os", operatingSystem).add("geoLocation", geoLocation).toString();
   }
 }
