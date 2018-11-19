@@ -18,14 +18,8 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.base.MoreObjects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
-import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,60 +30,24 @@ public class VirtualMachineRequestQueue {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestQueue.class);
-  private final BlockingQueue<UserCreateVirtualMachineRequest> pendingRequests;
+  private final BlockingQueue<VirtualMachineRequest> pendingRequests;
 
   public VirtualMachineRequestQueue() {
     this.pendingRequests = new LinkedBlockingQueue<>();
   }
 
-  UserCreateVirtualMachineRequest take() throws InterruptedException {
+  VirtualMachineRequest take() throws InterruptedException {
     return pendingRequests.take();
   }
 
-  void add(String requestId, CreateVirtualMachineRequestMessage request) {
+  void add(VirtualMachineRequest virtualMachineRequest) {
     LOGGER.debug(String
-        .format("New request %s was added to %s. Currently %s requests pending.", request, this,
+        .format("New request %s was added to %s. Currently %s requests pending.",
+            virtualMachineRequest, this,
             pendingRequests.size()));
     pendingRequests
-        .add(new UserCreateVirtualMachineRequest(requestId, request.getVirtualMachineRequest(),
-            request.getUserId()));
+        .add(virtualMachineRequest);
   }
 
-  static class UserCreateVirtualMachineRequest {
 
-    private final String requestId;
-    private final VirtualMachineRequest virtualMachineRequest;
-    private final String userId;
-
-    private UserCreateVirtualMachineRequest(String requestId,
-        VirtualMachineRequest virtualMachineRequest, String userId) {
-      checkNotNull(requestId, "requestId is null");
-      checkArgument(!requestId.isEmpty(), "requestId is empty");
-      this.requestId = requestId;
-      checkNotNull(virtualMachineRequest, "virtualMachineRequest is null");
-      this.virtualMachineRequest = virtualMachineRequest;
-      checkNotNull(userId, "userId is null");
-      checkArgument(!userId.isEmpty(), "userId is empty");
-      this.userId = userId;
-    }
-
-    String requestId() {
-      return requestId;
-    }
-
-    VirtualMachineRequest virtualMachineRequest() {
-      return virtualMachineRequest;
-    }
-
-    String userId() {
-      return userId;
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this).add("requestId", requestId)
-          .add("virtualMachineRequest", virtualMachineRequest).add("userId", userId).toString();
-    }
-
-  }
 }

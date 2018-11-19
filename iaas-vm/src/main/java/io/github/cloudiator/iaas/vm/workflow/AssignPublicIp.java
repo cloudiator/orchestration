@@ -40,6 +40,7 @@ public class AssignPublicIp implements Activity {
 
   @Override
   public Exchange execute(Exchange input) {
+
     final VirtualMachine virtualMachine = input.getData(VirtualMachine.class).orElseThrow(
         () -> new IllegalStateException("Expected a virtual machine to be provided."));
 
@@ -49,7 +50,10 @@ public class AssignPublicIp implements Activity {
 
     checkState(computeService.publicIpExtension().isPresent(),
         String.format(NO_PUBLIC_IP, virtualMachine, computeService));
-    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addIpString(
-        computeService.publicIpExtension().get().addPublicIp(virtualMachine.id())).build());
+
+    final String publicIp = computeService.publicIpExtension().get()
+        .addPublicIp(virtualMachine.id());
+
+    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addIpString(publicIp).build());
   }
 }

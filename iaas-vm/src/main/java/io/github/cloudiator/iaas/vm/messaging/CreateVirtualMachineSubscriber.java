@@ -60,7 +60,7 @@ public class CreateVirtualMachineSubscriber implements Runnable {
 
           //todo: validate request
 
-          virtualMachineRequestQueue.add(requestId, request);
+          virtualMachineRequestQueue.add(VirtualMachineRequest.of(requestId, request));
         });
   }
 

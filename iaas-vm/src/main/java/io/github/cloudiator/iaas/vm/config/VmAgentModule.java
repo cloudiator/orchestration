@@ -18,8 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.config;
 
-import static io.github.cloudiator.iaas.vm.Constants.VM_PARALLEL_STARTS;
-
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
@@ -28,12 +27,21 @@ import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
+import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
+import io.github.cloudiator.iaas.vm.VirtualMachineAgent;
 import io.github.cloudiator.iaas.vm.VmAgentContext;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VmAgentModule extends AbstractModule {
 
   private final VmAgentContext vmAgentContext;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(VirtualMachineAgent.class);
 
   public VmAgentModule(VmAgentContext vmAgentContext) {
     this.vmAgentContext = vmAgentContext;
@@ -48,7 +56,22 @@ public class VmAgentModule extends AbstractModule {
     bind(DiscoveryService.class).toInstance(multiCloudService.computeService().discoveryService());
     bind(Init.class).asEagerSingleton();
     bind(VirtualMachineRequestQueue.class).in(Singleton.class);
-    bindConstant().annotatedWith(Names.named(VM_PARALLEL_STARTS))
-        .to(vmAgentContext.parallelVMStarts());
+
+    final int parallelVMStarts = vmAgentContext.parallelVMStarts();
+
+    final LoggingThreadPoolExecutor vmExecutor = new LoggingThreadPoolExecutor(
+        parallelVMStarts, parallelVMStarts, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
+
+    bind(ExecutorService.class).annotatedWith(Names.named("VM_WORKERS")).toInstance(
+        vmExecutor
+    );
+
+    LOGGER.info(String
+        .format("Allowing parallel execution of %s virtual machine requests", parallelVMStarts));
+
+    LOGGER.info(String.format("Registering shutdown hook for virtual machine execution service %s",
+        vmExecutor));
+    MoreExecutors.addDelayedShutdownHook(vmExecutor, 5, TimeUnit.MINUTES);
+
   }
 }
