@@ -19,18 +19,21 @@
 package io.github.cloudiator.iaas.vm.messaging;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
 import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
+import javax.persistence.EntityManager;
 import org.cloudiator.messaging.MessageInterface;
 
 @Singleton
 public class VirtualMachineRequestWorkerFactory {
 
   private final UnitOfWork unitOfWork;
+  private final Provider<EntityManager> entityManagerProvider;
   private final MessageInterface messageInterface;
   private final EnrichVirtualMachine enrichVirtualMachine;
   private final ComputeService computeService;
@@ -39,12 +42,15 @@ public class VirtualMachineRequestWorkerFactory {
 
   @Inject
   public VirtualMachineRequestWorkerFactory(
-      UnitOfWork unitOfWork, MessageInterface messageInterface,
+      UnitOfWork unitOfWork,
+      Provider<EntityManager> entityManagerProvider,
+      MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,
       ComputeService computeService,
       VirtualMachineDomainRepository virtualMachineDomainRepository,
       VirtualMachineStatistics virtualMachineStatistics) {
     this.unitOfWork = unitOfWork;
+    this.entityManagerProvider = entityManagerProvider;
     this.messageInterface = messageInterface;
     this.enrichVirtualMachine = enrichVirtualMachine;
     this.computeService = computeService;
@@ -53,7 +59,8 @@ public class VirtualMachineRequestWorkerFactory {
   }
 
   public VirtualMachineRequestWorker create(VirtualMachineRequest virtualMachineRequest) {
-    return new VirtualMachineRequestWorker(virtualMachineRequest, unitOfWork, messageInterface,
+    return new VirtualMachineRequestWorker(virtualMachineRequest, unitOfWork, entityManagerProvider,
+        messageInterface,
         enrichVirtualMachine, computeService, virtualMachineDomainRepository,
         virtualMachineStatistics);
   }
