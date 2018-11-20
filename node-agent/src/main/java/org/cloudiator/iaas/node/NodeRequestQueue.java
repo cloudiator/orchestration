@@ -44,7 +44,7 @@ public class NodeRequestQueue {
     this.pendingRequests.add(nodeRequest);
   }
 
-  public NodeRequest takeRequest() throws InterruptedException {
+  NodeRequest takeRequest() throws InterruptedException {
     return this.pendingRequests.take();
   }
 
@@ -62,11 +62,11 @@ public class NodeRequestQueue {
       return new NodeRequest(nodeRequestMessage, id);
     }
 
-    public NodeRequestMessage getNodeRequestMessage() {
+    NodeRequestMessage getNodeRequestMessage() {
       return nodeRequestMessage;
     }
 
-    public String getId() {
+    String getId() {
       return id;
     }
 

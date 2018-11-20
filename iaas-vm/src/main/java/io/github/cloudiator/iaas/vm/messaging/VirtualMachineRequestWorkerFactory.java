@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
@@ -34,6 +35,7 @@ public class VirtualMachineRequestWorkerFactory {
   private final VirtualMachineDomainRepository virtualMachineDomainRepository;
   private final VirtualMachineStatistics virtualMachineStatistics;
 
+  @Inject
   public VirtualMachineRequestWorkerFactory(
       MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,

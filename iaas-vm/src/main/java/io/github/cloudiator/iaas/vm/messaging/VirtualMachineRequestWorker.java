@@ -31,7 +31,6 @@ import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
-import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -54,8 +53,7 @@ public class VirtualMachineRequestWorker implements Runnable {
   private static final VirtualMachineRequestToTemplateConverter VIRTUAL_MACHINE_REQUEST_TO_TEMPLATE_CONVERTER = new VirtualMachineRequestToTemplateConverter();
   private static final VirtualMachineMessageToVirtualMachine VM_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
 
-  @Inject
-  public VirtualMachineRequestWorker(
+  VirtualMachineRequestWorker(
       VirtualMachineRequest virtualMachineRequest,
       MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,
