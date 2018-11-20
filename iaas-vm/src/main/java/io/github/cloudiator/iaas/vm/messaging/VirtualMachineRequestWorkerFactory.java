@@ -18,51 +18,8 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.UnitOfWork;
-import de.uniulm.omi.cloudiator.sword.service.ComputeService;
-import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
-import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
-import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
-import javax.persistence.EntityManager;
-import org.cloudiator.messaging.MessageInterface;
+public interface VirtualMachineRequestWorkerFactory {
 
-@Singleton
-public class VirtualMachineRequestWorkerFactory {
-
-  private final UnitOfWork unitOfWork;
-  private final Provider<EntityManager> entityManagerProvider;
-  private final MessageInterface messageInterface;
-  private final EnrichVirtualMachine enrichVirtualMachine;
-  private final ComputeService computeService;
-  private final VirtualMachineDomainRepository virtualMachineDomainRepository;
-  private final VirtualMachineStatistics virtualMachineStatistics;
-
-  @Inject
-  public VirtualMachineRequestWorkerFactory(
-      UnitOfWork unitOfWork,
-      Provider<EntityManager> entityManagerProvider,
-      MessageInterface messageInterface,
-      EnrichVirtualMachine enrichVirtualMachine,
-      ComputeService computeService,
-      VirtualMachineDomainRepository virtualMachineDomainRepository,
-      VirtualMachineStatistics virtualMachineStatistics) {
-    this.unitOfWork = unitOfWork;
-    this.entityManagerProvider = entityManagerProvider;
-    this.messageInterface = messageInterface;
-    this.enrichVirtualMachine = enrichVirtualMachine;
-    this.computeService = computeService;
-    this.virtualMachineDomainRepository = virtualMachineDomainRepository;
-    this.virtualMachineStatistics = virtualMachineStatistics;
-  }
-
-  public VirtualMachineRequestWorker create(VirtualMachineRequest virtualMachineRequest) {
-    return new VirtualMachineRequestWorker(virtualMachineRequest, unitOfWork, entityManagerProvider,
-        messageInterface,
-        enrichVirtualMachine, computeService, virtualMachineDomainRepository,
-        virtualMachineStatistics);
-  }
+  VirtualMachineRequestWorker create(VirtualMachineRequest virtualMachineRequest);
 
 }

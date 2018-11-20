@@ -21,6 +21,7 @@ package io.github.cloudiator.iaas.vm.config;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
@@ -31,6 +32,7 @@ import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
 import io.github.cloudiator.iaas.vm.VirtualMachineAgent;
 import io.github.cloudiator.iaas.vm.VmAgentContext;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
+import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestWorkerFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +58,8 @@ public class VmAgentModule extends AbstractModule {
     bind(DiscoveryService.class).toInstance(multiCloudService.computeService().discoveryService());
     bind(Init.class).asEagerSingleton();
     bind(VirtualMachineRequestQueue.class).in(Singleton.class);
+
+    install(new FactoryModuleBuilder().build(VirtualMachineRequestWorkerFactory.class));
 
     final int parallelVMStarts = vmAgentContext.parallelVMStarts();
 

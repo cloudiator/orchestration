@@ -20,8 +20,9 @@ package io.github.cloudiator.iaas.vm.messaging;
 
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.inject.Provider;
-import com.google.inject.persist.UnitOfWork;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
@@ -32,8 +33,6 @@ import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -47,8 +46,6 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   private final VirtualMachineRequest virtualMachineRequest;
 
-  private final UnitOfWork unitOfWork;
-  private final Provider<EntityManager> entityManagerProvider;
   private final MessageInterface messageInterface;
   private final EnrichVirtualMachine enrichVirtualMachine;
   private final ComputeService computeService;
@@ -58,18 +55,15 @@ public class VirtualMachineRequestWorker implements Runnable {
   private static final VirtualMachineRequestToTemplateConverter VIRTUAL_MACHINE_REQUEST_TO_TEMPLATE_CONVERTER = new VirtualMachineRequestToTemplateConverter();
   private static final VirtualMachineMessageToVirtualMachine VM_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
 
+  @Inject
   VirtualMachineRequestWorker(
-      VirtualMachineRequest virtualMachineRequest,
-      UnitOfWork unitOfWork,
-      Provider<EntityManager> entityManagerProvider,
+      @Assisted VirtualMachineRequest virtualMachineRequest,
       MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,
       ComputeService computeService,
       VirtualMachineDomainRepository virtualMachineDomainRepository,
       VirtualMachineStatistics virtualMachineStatistics) {
     this.virtualMachineRequest = virtualMachineRequest;
-    this.unitOfWork = unitOfWork;
-    this.entityManagerProvider = entityManagerProvider;
     this.messageInterface = messageInterface;
     this.enrichVirtualMachine = enrichVirtualMachine;
     this.computeService = computeService;
@@ -137,18 +131,10 @@ public class VirtualMachineRequestWorker implements Runnable {
     }
   }
 
-  private void persistVirtualMachine(VirtualMachine vm, String userId) {
-    unitOfWork.begin();
-    final EntityTransaction transaction = entityManagerProvider.get().getTransaction();
-    transaction.begin();
-    try {
-      virtualMachineDomainRepository.save(vm, userId);
-    } catch (Exception e) {
-      transaction.rollback();
-    } finally {
-      transaction.commit();
-      unitOfWork.end();
-    }
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  void persistVirtualMachine(VirtualMachine vm, String userId) {
+    virtualMachineDomainRepository.save(vm, userId);
   }
 
   @Override
