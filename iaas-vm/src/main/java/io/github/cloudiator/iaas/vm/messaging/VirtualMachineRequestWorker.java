@@ -20,7 +20,7 @@ package io.github.cloudiator.iaas.vm.messaging;
 
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
@@ -44,6 +44,7 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   private final VirtualMachineRequest virtualMachineRequest;
 
+  private final UnitOfWork unitOfWork;
   private final MessageInterface messageInterface;
   private final EnrichVirtualMachine enrichVirtualMachine;
   private final ComputeService computeService;
@@ -55,12 +56,14 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   VirtualMachineRequestWorker(
       VirtualMachineRequest virtualMachineRequest,
+      UnitOfWork unitOfWork,
       MessageInterface messageInterface,
       EnrichVirtualMachine enrichVirtualMachine,
       ComputeService computeService,
       VirtualMachineDomainRepository virtualMachineDomainRepository,
       VirtualMachineStatistics virtualMachineStatistics) {
     this.virtualMachineRequest = virtualMachineRequest;
+    this.unitOfWork = unitOfWork;
     this.messageInterface = messageInterface;
     this.enrichVirtualMachine = enrichVirtualMachine;
     this.computeService = computeService;
@@ -128,9 +131,13 @@ public class VirtualMachineRequestWorker implements Runnable {
     }
   }
 
-  @Transactional
-  void persistVirtualMachine(VirtualMachine vm, String userId) {
-    virtualMachineDomainRepository.save(vm, userId);
+  private void persistVirtualMachine(VirtualMachine vm, String userId) {
+    unitOfWork.begin();
+    try {
+      virtualMachineDomainRepository.save(vm, userId);
+    } finally {
+      unitOfWork.end();
+    }
   }
 
   @Override
