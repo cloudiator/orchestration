@@ -28,6 +28,6 @@ public class InstallAgentModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(InstallEventSubscriber.class).in(Singleton.class);
+
   }
 }

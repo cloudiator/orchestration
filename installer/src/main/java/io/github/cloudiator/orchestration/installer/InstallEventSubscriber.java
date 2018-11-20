@@ -51,7 +51,6 @@ public class InstallEventSubscriber implements Runnable {
   private static final int SERVER_ERROR = 500;
   private final MessageInterface messagingService;
   private final NodeToNodeMessageConverter nodeToNodeMessageConverter = new NodeToNodeMessageConverter();
-  private volatile Subscription subscription;
 
 
   @Inject
@@ -62,23 +61,23 @@ public class InstallEventSubscriber implements Runnable {
   @Override
   public void run() {
 
-    subscription = messagingService.subscribe(InstallationRequest.class,
+    final Subscription subscribe = messagingService.subscribe(InstallationRequest.class,
         InstallationRequest.parser(), (requestId, InstallationRequest) -> {
 
           try {
-            List<Tool> installedTools = InstallEventSubscriber.this.handleRequest(requestId,
+            List<Tool> installedTools = handleRequest(requestId,
                 InstallationRequest);
-            InstallEventSubscriber.this.sendInstallResponse(requestId, installedTools);
+            sendInstallResponse(requestId, installedTools);
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
-            InstallEventSubscriber.this.sendErrorResponse(requestId,
+            sendErrorResponse(requestId,
                 "exception occurred: " + ex.getMessage(), SERVER_ERROR);
           }
         });
 
   }
 
-  final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
+  private final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
       throws RemoteException {
     //TODO: implement queue + worker as done for NodeEvent to enable mutlipe installations in parallel
 
@@ -86,10 +85,6 @@ public class InstallEventSubscriber implements Runnable {
 
     Node node = nodeToNodeMessageConverter
         .applyBack(installationRequest.getInstallation().getNode());
-
-    //checkState(!node.getId().isEmpty(),"No nodeId set for node: " + node.getId() + " !");
-
-    LOGGER.debug("Received installRequest with requestId: " + requestId);
 
     RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
         Sets.newHashSet(
@@ -148,12 +143,12 @@ public class InstallEventSubscriber implements Runnable {
   }
 
 
-  final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
+  private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
     messagingService.reply(InstallationResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 
-  final void sendInstallResponse(String messageId, List<Tool> installedTools) {
+  private final void sendInstallResponse(String messageId, List<Tool> installedTools) {
     messagingService
         .reply(messageId, InstallationResponse.newBuilder().addAllTool(installedTools).build());
   }
