@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.discovery.config;
 
 import com.google.inject.AbstractModule;
@@ -21,6 +39,8 @@ import io.github.cloudiator.iaas.discovery.ImageDiscoveryWorker;
 import io.github.cloudiator.iaas.discovery.Init;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryListener;
 import io.github.cloudiator.iaas.discovery.LocationDiscoveryWorker;
+import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandlerImpl;
 import org.cloudiator.meta.cloudharmony.config.CloudHarmonyMetaModule;
 
 /**
@@ -40,6 +60,7 @@ public class DiscoveryModule extends AbstractModule {
             new LoggingScheduledThreadPoolExecutor(10)));
     bind(Init.class).asEagerSingleton();
     bind(DiscoveryQueue.class).in(Singleton.class);
+    bind(DiscoveryErrorHandler.class).to(DiscoveryErrorHandlerImpl.class);
 
     Multibinder<AbstractDiscoveryWorker> discoveryWorkerBinder = Multibinder
         .newSetBinder(binder(), AbstractDiscoveryWorker.class);

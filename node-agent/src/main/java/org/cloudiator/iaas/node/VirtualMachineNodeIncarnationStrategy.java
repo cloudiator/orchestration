@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.cloudiator.iaas.node;
 
 import com.google.inject.Inject;
@@ -17,38 +35,14 @@ import org.slf4j.LoggerFactory;
 
 public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncarnationStrategy {
 
-  public static class VirtualMachineNodeIncarnationFactory implements
-      NodeCandidateIncarnationFactory {
-
-    private final VirtualMachineService virtualMachineService;
-
-    @Inject
-    public VirtualMachineNodeIncarnationFactory(
-        VirtualMachineService virtualMachineService) {
-      this.virtualMachineService = virtualMachineService;
-    }
-
-    @Override
-    public boolean canIncarnate(NodeCandidate nodeCandidate) {
-      return NodeCandidateType.IAAS.equals(nodeCandidate.type());
-    }
-
-    @Override
-    public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
-      return new VirtualMachineNodeIncarnationStrategy(groupName, userId, virtualMachineService);
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineNodeIncarnationStrategy.class);
-  private final String groupName;
-  private final String userId;
-  private final VirtualMachineService virtualMachineService;
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
   private static final VirtualMachineToNode VIRTUAL_MACHINE_TO_NODE = VirtualMachineToNode.INSTANCE;
-
-
+  private final String groupName;
+  private final String userId;
+  private final VirtualMachineService virtualMachineService;
   public VirtualMachineNodeIncarnationStrategy(String groupName,
       String userId, VirtualMachineService virtualMachineService) {
     this.groupName = groupName;
@@ -99,6 +93,28 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
         .setLocation(nodeCandidate.location().id())
         .setName(NAME_GENERATOR.generate(this.groupName))
         .build();
+  }
+
+  public static class VirtualMachineNodeIncarnationFactory implements
+      NodeCandidateIncarnationFactory {
+
+    private final VirtualMachineService virtualMachineService;
+
+    @Inject
+    public VirtualMachineNodeIncarnationFactory(
+        VirtualMachineService virtualMachineService) {
+      this.virtualMachineService = virtualMachineService;
+    }
+
+    @Override
+    public boolean canIncarnate(NodeCandidate nodeCandidate) {
+      return NodeCandidateType.IAAS.equals(nodeCandidate.type());
+    }
+
+    @Override
+    public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
+      return new VirtualMachineNodeIncarnationStrategy(groupName, userId, virtualMachineService);
+    }
   }
 
 }

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014-2015 University of Ulm
+ * Copyright (c) 2014-2018 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -19,7 +19,6 @@
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
 
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
@@ -38,10 +37,10 @@ public class Installers {
     switch (node.nodeProperties().operatingSystem().get()
         .operatingSystemFamily().operatingSystemType()) {
 
-            case LINUX:
-                return new UnixInstaller(remoteConnection, node, userId);
-            case WINDOWS:
-                return new WindowsInstaller(remoteConnection, node, userId);
+      case LINUX:
+        return new UnixInstaller(remoteConnection, node, userId);
+      case WINDOWS:
+        return new WindowsInstaller(remoteConnection, node, userId);
 
       default:
         throw new UnsupportedOperationException(String

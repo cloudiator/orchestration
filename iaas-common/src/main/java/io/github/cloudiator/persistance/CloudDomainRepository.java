@@ -1,10 +1,27 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import io.github.cloudiator.domain.ExtendedCloud;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -14,12 +31,11 @@ import javax.inject.Inject;
  */
 public class CloudDomainRepository {
 
-  private final static CloudConverter CLOUD_CONVERTER = new CloudConverter();
+  private final static CloudModelConverter CLOUD_CONVERTER = new CloudModelConverter();
   private final ApiDomainRepository apiDomainRepository;
   private final CloudCredentialDomainRepository cloudCredentialDomainRepository;
   private final CloudModelRepository cloudModelRepository;
   private final TenantModelRepository tenantModelRepository;
-  private final CloudRegistry cloudRegistry;
   private final CloudConfigurationDomainRepository cloudConfigurationDomainRepository;
 
   @Inject
@@ -28,63 +44,37 @@ public class CloudDomainRepository {
       CloudCredentialDomainRepository cloudCredentialDomainRepository,
       CloudModelRepository cloudModelRepository,
       TenantModelRepository tenantModelRepository,
-      CloudRegistry cloudRegistry,
       CloudConfigurationDomainRepository cloudConfigurationDomainRepository) {
     this.apiDomainRepository = apiDomainRepository;
     this.cloudCredentialDomainRepository = cloudCredentialDomainRepository;
     this.cloudModelRepository = cloudModelRepository;
     this.tenantModelRepository = tenantModelRepository;
-    this.cloudRegistry = cloudRegistry;
     this.cloudConfigurationDomainRepository = cloudConfigurationDomainRepository;
   }
 
-  public void save(Cloud domain, String userId) {
+  public void save(ExtendedCloud domain) {
     checkNotNull(domain, "domain is null");
-    checkNotNull(userId, "userId is null");
 
     final CloudModel byCloudId = cloudModelRepository.getByCloudId(domain.id());
 
     if (byCloudId == null) {
-      final CloudModel cloudModel = createModel(domain, userId);
+      final CloudModel cloudModel = createModel(domain);
       cloudModelRepository.save(cloudModel);
-      onAfterAdd(domain);
     } else {
-      onBeforeUpdate(domain);
-      final CloudModel cloudModel = updateModel(domain, byCloudId, userId);
+      final CloudModel cloudModel = updateModel(domain, byCloudId);
       cloudModelRepository.save(cloudModel);
-      onAfterUpdate(domain);
     }
   }
 
   public void delete(String id, String userId) {
-    final Cloud byUserAndId = findByUserAndId(userId, id);
+    final ExtendedCloud byUserAndId = findByUserAndId(userId, id);
     if (byUserAndId == null) {
       throw new IllegalStateException(
           String.format("Cloud with id %s does not exist. Can not be deleted.", id));
     }
     cloudModelRepository.delete(cloudModelRepository.getByCloudId(id));
-    onAfterDelete(byUserAndId);
   }
 
-  private void onAfterAdd(Cloud cloud) {
-    checkState(!cloudRegistry.isRegistered(cloud), "cloud was already registered.");
-    cloudRegistry.register(cloud);
-  }
-
-  private void onBeforeUpdate(Cloud cloud) {
-    onAfterDelete(cloud);
-  }
-
-  private void onAfterUpdate(Cloud cloud) {
-    checkState(!cloudRegistry.isRegistered(cloud),
-        "cloud is already registered, expected unregistered before update");
-    cloudRegistry.register(cloud);
-  }
-
-  private void onAfterDelete(Cloud cloud) {
-    checkState(cloudRegistry.isRegistered(cloud), "cloud was never registered.");
-    cloudRegistry.unregister(cloud.id());
-  }
 
   private TenantModel createIfNotExists(String userId) {
     TenantModel tenantModel = tenantModelRepository.findByUserId(userId);
@@ -95,9 +85,9 @@ public class CloudDomainRepository {
     return tenantModel;
   }
 
-  private CloudModel createModel(Cloud domain, String userId) {
+  private CloudModel createModel(ExtendedCloud domain) {
 
-    final TenantModel tenantModel = createIfNotExists(userId);
+    final TenantModel tenantModel = createIfNotExists(domain.userId());
 
     //create or get Api
     final ApiModel apiModel = apiDomainRepository.saveOrGet(domain.api());
@@ -112,15 +102,16 @@ public class CloudDomainRepository {
 
     CloudModel cloudModel = new CloudModel(domain.id(), tenantModel, apiModel,
         domain.endpoint().orElse(null), cloudCredentialModel, cloudConfigurationModel,
-        domain.cloudType());
+        domain.cloudType(), domain.state(), domain.diagnostic().orElse(null));
     cloudModelRepository.save(cloudModel);
 
     return cloudModel;
   }
 
-  private CloudModel updateModel(Cloud domain, CloudModel model, String userId) {
+  private CloudModel updateModel(ExtendedCloud domain, CloudModel model) {
 
-    checkState(model.getTenantModel().getUserId().equals(userId), "updating userId not allowed");
+    checkState(model.getTenantModel().getUserId().equals(domain.userId()),
+        "updating userId not allowed");
 
     if (model.getEndpoint() == null) {
       checkState(!domain.endpoint().isPresent(), "updating endpoint is not allowed");
@@ -134,6 +125,7 @@ public class CloudDomainRepository {
         "updating api not allowed");
 
     model.setCloudType(domain.cloudType());
+    model.setCloudState(domain.state());
 
     cloudCredentialDomainRepository.update(domain.credential(), model.getCloudCredential());
     cloudConfigurationDomainRepository
@@ -142,21 +134,21 @@ public class CloudDomainRepository {
     return model;
   }
 
-  public Collection<Cloud> findAll(String userId) {
+  public Collection<ExtendedCloud> findAll(String userId) {
     return cloudModelRepository.getByTenant(userId).stream().map(CLOUD_CONVERTER)
         .collect(Collectors.toList());
   }
 
-  public Collection<Cloud> findAll() {
+  public Collection<ExtendedCloud> findAll() {
     return cloudModelRepository.findAll().stream().map(CLOUD_CONVERTER)
         .collect(Collectors.toList());
   }
 
-  public Cloud findByUserAndId(String user, String cloudId) {
+  public ExtendedCloud findByUserAndId(String user, String cloudId) {
     return CLOUD_CONVERTER.apply(cloudModelRepository.getByTenantAndId(user, cloudId));
   }
 
-  public Cloud findById(String cloudId) {
+  public ExtendedCloud findById(String cloudId) {
     checkNotNull(cloudId, "cloudId is null");
     return CLOUD_CONVERTER.apply(findModelById(cloudId));
   }

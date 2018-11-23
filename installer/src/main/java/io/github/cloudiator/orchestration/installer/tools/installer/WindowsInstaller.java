@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014-2015 University of Ulm
+ * Copyright (c) 2014-2018 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -290,7 +290,14 @@ public class WindowsInstaller extends AbstractInstaller {
 
   @Override
   public void installDocker() throws RemoteException {
-    LOGGER.warn("Docker installation is currently not supported for Windows!");
+    throw new UnsupportedOperationException(
+        "Docker installation is currently not supported for Windows!");
+  }
+
+  @Override
+  public void installSparkWorker() throws RemoteException {
+    throw new UnsupportedOperationException(
+        "Spark Worker installation is currently not supported for Windows as this tool requires Docker!");
   }
 
 
