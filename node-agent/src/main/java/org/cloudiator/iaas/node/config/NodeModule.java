@@ -27,6 +27,7 @@ public class NodeModule extends AbstractModule {
     Multibinder<NodeDeletionStrategy> nodeDeletionStrategyMultibinder = Multibinder
         .newSetBinder(binder(), NodeDeletionStrategy.class);
     nodeDeletionStrategyMultibinder.addBinding().to(VirtualMachineNodeDeletionStrategy.class);
+    nodeDeletionStrategyMultibinder.addBinding().to(FaasNodeDeletionStrategy.class);
 
     bind(NodeDeletionStrategy.class).to(CompositeNodeDeletionStrategy.class);
   }

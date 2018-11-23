@@ -3,6 +3,7 @@ package io.github.cloudiator.messaging;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.domain.LocationScope;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,6 +53,20 @@ public class LocationMessageRepository implements MessageRepository<Location> {
               Collectors.toList());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);
+    }
+  }
+
+  public String getRegionName(String userId, String locationId) {
+    Location location = getById(userId, locationId);
+    checkState(location != null, "Location is null");
+    while (true) {
+      checkState(location.locationScope() != null, "Location scope is null");
+      if (location.locationScope().equals(LocationScope.REGION)) {
+        return location.providerId();
+      } else {
+        checkState(location.parent().isPresent(), "Location is not REGION and doesn't have parent");
+        location = location.parent().get();
+      }
     }
   }
 }
