@@ -61,6 +61,7 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
       final Function function = callback.get();
 
       NodeProperties properties = NodePropertiesBuilder.newBuilder()
+          .providerId(nodeCandidate.cloud().id())
           .memory(function.getMemory())
           .build();
 
