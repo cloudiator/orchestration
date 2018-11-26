@@ -1,9 +1,28 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.vm.config;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import io.github.cloudiator.domain.CloudState;
+import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.messaging.CloudMessageRepository;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -72,13 +91,14 @@ class Init {
           .collect(
               Collectors
                   .toSet())) {
-        for (Cloud cloud : cloudMessageRepository.getAll(tenant)) {
+        for (ExtendedCloud cloud : cloudMessageRepository.getAll(tenant)) {
 
-          if (!cloudRegistry.isRegistered(cloud)) {
+          if (cloud.state().equals(CloudState.OK) && !cloudRegistry.isRegistered(cloud)) {
             cloudRegistry.register(cloud);
             LOGGER.debug(String.format("Adding cloud %s to the cloud registry.", cloud));
           } else {
-            LOGGER.trace(String.format("Cloud %s was already registered. Skipping", cloud));
+            LOGGER.trace(String
+                .format("Cloud %s was already registered or is not on OK state. Skipping", cloud));
           }
         }
       }

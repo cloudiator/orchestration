@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.orchestration.installer;
 
 import com.google.common.collect.Sets;
@@ -30,12 +48,8 @@ public class InstallEventSubscriber implements Runnable {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(InstallEventSubscriber.class);
-
-  private final MessageInterface messagingService;
-  private volatile Subscription subscription;
-
   private static final int SERVER_ERROR = 500;
-
+  private final MessageInterface messagingService;
   private final NodeToNodeMessageConverter nodeToNodeMessageConverter = new NodeToNodeMessageConverter();
 
 
@@ -47,23 +61,23 @@ public class InstallEventSubscriber implements Runnable {
   @Override
   public void run() {
 
-    subscription = messagingService.subscribe(InstallationRequest.class,
+    final Subscription subscribe = messagingService.subscribe(InstallationRequest.class,
         InstallationRequest.parser(), (requestId, InstallationRequest) -> {
 
           try {
-            List<Tool> installedTools = InstallEventSubscriber.this.handleRequest(requestId,
+            List<Tool> installedTools = handleRequest(requestId,
                 InstallationRequest);
-            InstallEventSubscriber.this.sendInstallResponse(requestId, installedTools);
+            sendInstallResponse(requestId, installedTools);
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
-            InstallEventSubscriber.this.sendErrorResponse(requestId,
+            sendErrorResponse(requestId,
                 "exception occurred: " + ex.getMessage(), SERVER_ERROR);
           }
         });
 
   }
 
-  final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
+  private final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
       throws RemoteException {
     //TODO: implement queue + worker as done for NodeEvent to enable mutlipe installations in parallel
 
@@ -71,10 +85,6 @@ public class InstallEventSubscriber implements Runnable {
 
     Node node = nodeToNodeMessageConverter
         .applyBack(installationRequest.getInstallation().getNode());
-
-    //checkState(!node.getId().isEmpty(),"No nodeId set for node: " + node.getId() + " !");
-
-    LOGGER.debug("Received installRequest with requestId: " + requestId);
 
     RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
         Sets.newHashSet(
@@ -121,10 +131,9 @@ public class InstallEventSubscriber implements Runnable {
         installApi.installVisor();
         installedTools.add(tool);
       } else if (tool.equals(Tool.SPARK_WORKER)) {
-      installApi.installSparkWorker();
-      installedTools.add(tool);
-    }
-      else {
+        installApi.installSparkWorker();
+        installedTools.add(tool);
+      } else {
         throw new IllegalStateException("Unsupported toolName: " + tool.name());
       }
     }
@@ -134,12 +143,12 @@ public class InstallEventSubscriber implements Runnable {
   }
 
 
-  final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
+  private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
     messagingService.reply(InstallationResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 
-  final void sendInstallResponse(String messageId, List<Tool> installedTools) {
+  private final void sendInstallResponse(String messageId, List<Tool> installedTools) {
     messagingService
         .reply(messageId, InstallationResponse.newBuilder().addAllTool(installedTools).build());
   }
