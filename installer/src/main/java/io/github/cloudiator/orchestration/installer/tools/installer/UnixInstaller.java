@@ -221,6 +221,14 @@ public class UnixInstaller extends AbstractInstaller {
   public void installSparkWorker() throws RemoteException {
 
     LOGGER.debug(
+        String.format("Fixing hostname for Spark Workers on node %s", node.id()));
+    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
+        + "sudo rm /etc/hosts "
+        + " && "
+        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
+    fixHostname.call();
+
+    LOGGER.debug(
         String.format("Fetching and starting Spark Worker container on node %s", node.id()));
 
     //download Docker install script
@@ -235,6 +243,7 @@ public class UnixInstaller extends AbstractInstaller {
             + " -p 9999:9999 "
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")
+            + " --network host "
             + " cloudiator/spark-worker:latest ");
 
     startSparkWorkerContainer.call();
