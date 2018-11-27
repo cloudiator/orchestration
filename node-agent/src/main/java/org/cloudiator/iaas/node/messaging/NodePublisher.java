@@ -23,7 +23,7 @@ import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import javax.inject.Inject;
 import org.cloudiator.iaas.node.VirtualMachineToNode;
-import org.cloudiator.messages.NodeEntities.NodeEvent;
+import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.ResponseException;
 
