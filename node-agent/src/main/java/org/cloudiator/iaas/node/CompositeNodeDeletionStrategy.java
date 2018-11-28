@@ -25,6 +25,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
 
   private static final Logger LOGGER = LoggerFactory
@@ -49,6 +51,9 @@ public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
 
   @Override
   public boolean deleteNode(Node node, String userId) {
+
+    checkNotNull(node, "node is null");
+    checkNotNull(userId, "userId is null");
 
     for (NodeDeletionStrategy nodeDeletionStrategy : nodeDeletionStrategies) {
       if (nodeDeletionStrategy.supportsNode(node)) {

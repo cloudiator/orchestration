@@ -74,6 +74,4 @@ public class NodeBuilder {
   public Node build() {
     return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name);
   }
-
-
 }
