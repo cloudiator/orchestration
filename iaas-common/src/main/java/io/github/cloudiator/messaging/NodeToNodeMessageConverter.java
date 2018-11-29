@@ -19,14 +19,11 @@
 package io.github.cloudiator.messaging;
 
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
-import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeBuilder;
-import io.github.cloudiator.domain.NodeProperties;
-import io.github.cloudiator.domain.NodePropertiesBuilder;
-import io.github.cloudiator.domain.NodeType;
-import java.util.stream.Collectors;
+import io.github.cloudiator.domain.*;
 import org.cloudiator.messages.NodeEntities;
 import org.cloudiator.messages.NodeEntities.NodeProperties.Builder;
+
+import java.util.stream.Collectors;
 
 public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEntities.Node> {
 
@@ -38,11 +35,13 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
   @Override
   public Node applyBack(NodeEntities.Node node) {
 
-    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder().id(node.getId()).name(node.getName())
+    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder()
+        .id(node.getId())
+        .name(node.getName())
         .nodeProperties(nodePropertiesConverter.apply(node.getNodeProperties()))
-        .nodeType(nodeTypeConverter.applyBack(node.getNodeType())).ipAddresses(
-            node.getIpAddressesList().stream().map(ipAddressConverter::apply)
-                .collect(Collectors.toSet()));
+        .nodeType(nodeTypeConverter.applyBack(node.getNodeType()))
+        .ipAddresses(node.getIpAddressesList().stream()
+            .map(ipAddressConverter::apply).collect(Collectors.toSet()));
 
     if (node.hasLoginCredential()) {
       nodeBuilder.loginCredential(loginCredentialConverter.apply(node.getLoginCredential()));
@@ -121,6 +120,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
           return NodeType.BYON;
         case CONTAINER:
           return NodeType.CONTAINER;
+        case FAAS:
+          return NodeType.FAAS;
         case UNKNOWN_TYPE:
           return NodeType.UNKOWN;
         case UNRECOGNIZED:
@@ -140,6 +141,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
           return NodeEntities.NodeType.UNKNOWN_TYPE;
         case CONTAINER:
           return NodeEntities.NodeType.CONTAINER;
+        case FAAS:
+          return NodeEntities.NodeType.FAAS;
         default:
           throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
       }

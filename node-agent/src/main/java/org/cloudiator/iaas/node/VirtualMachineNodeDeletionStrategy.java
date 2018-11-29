@@ -46,17 +46,11 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
 
   @Override
   public boolean supportsNode(Node node) {
-    if (node.type().equals(NodeType.VM)) {
-      return true;
-    }
-    return false;
+    return node.type().equals(NodeType.VM);
   }
 
   @Override
   public boolean deleteNode(Node node, String userId) {
-
-    checkNotNull(node, "node is null");
-    checkNotNull(userId, "userId is null");
 
     SettableFutureResponseCallback<VirtualMachineDeletedResponse, VirtualMachineDeletedResponse> future = SettableFutureResponseCallback
         .create();

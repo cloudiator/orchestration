@@ -23,7 +23,11 @@ import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 
+import java.util.Set;
+
 public interface NodeCandidate {
+
+  NodeCandidateType type();
 
   Cloud cloud();
 
@@ -34,4 +38,11 @@ public interface NodeCandidate {
   Location location();
 
   double price();
+
+  double pricePerInvocation();
+
+  double memoryPrice();
+
+  Environment environment();
+
 }
