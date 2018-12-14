@@ -2,13 +2,18 @@ package org.cloudiator.iaas.node;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import io.github.cloudiator.domain.*;
+import io.github.cloudiator.messaging.CloudMessageRepository;
+import io.github.cloudiator.messaging.RuntimeConverter;
 import org.cloudiator.messages.Function.CreateFunctionRequestMessage;
 import org.cloudiator.messages.Function.FunctionCreatedResponse;
 import org.cloudiator.messages.entities.FaasEntities.Function;
 import org.cloudiator.messages.entities.FaasEntities.FunctionRequest;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
 import org.cloudiator.messaging.services.FunctionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 
@@ -18,10 +23,13 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
       NodeCandidateIncarnationFactory {
 
     private final FunctionService functionService;
+    private final CloudMessageRepository cloudMessageRepository;
 
     @Inject
-    public FaasNodeIncarnationFactory(FunctionService functionService) {
+    public FaasNodeIncarnationFactory(FunctionService functionService,
+        CloudMessageRepository cloudMessageRepository) {
       this.functionService = functionService;
+      this.cloudMessageRepository = cloudMessageRepository;
     }
 
     @Override
@@ -31,19 +39,25 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
 
     @Override
     public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
-      return new FaasNodeIncarnationStrategy(groupName, userId, functionService);
+      return new FaasNodeIncarnationStrategy(groupName, userId,
+          functionService, cloudMessageRepository);
     }
   }
+
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(FaasNodeIncarnationFactory.class);
 
   private final String groupName;
   private final String userId;
   private final FunctionService functionService;
+  private final CloudMessageRepository cloudMessageRepository;
 
-  private FaasNodeIncarnationStrategy(String groupName,
-      String userId, FunctionService functionService) {
+  private FaasNodeIncarnationStrategy(String groupName, String userId,
+      FunctionService functionService, CloudMessageRepository cloudMessageRepository) {
     this.groupName = groupName;
     this.userId = userId;
     this.functionService = functionService;
+    this.cloudMessageRepository = cloudMessageRepository;
   }
 
   @Override
@@ -59,14 +73,18 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
 
     try {
       final Function function = callback.get();
+      final Cloud cloud = cloudMessageRepository.getById(userId, nodeCandidate.cloud().id());
 
       NodeProperties properties = NodePropertiesBuilder.newBuilder()
           .providerId(nodeCandidate.cloud().id())
           .memory(function.getMemory())
           .build();
 
-      String name = String.format("%s-faas-%s",
-          nodeCandidate.cloud().api().providerName(), function.getMemory());
+      String name = String.format("%s-%s-%s-%s",
+          cloud.api().providerName(),
+          cloud.configuration().nodeGroup(),
+          "faas",
+          groupName);
 
       return NodeBuilder.newBuilder()
           .id(function.getId())
@@ -81,12 +99,12 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
   }
 
   private FunctionRequest generateRequest(NodeCandidate nodeCandidate) {
+    RuntimeConverter runtimeConverter = RuntimeConverter.INSTANCE;
     return FunctionRequest.newBuilder()
         .setCloudId(nodeCandidate.cloud().id())
         .setLocationId(nodeCandidate.location().id())
         .setMemory((int) nodeCandidate.hardware().mbRam())
+        .setRuntime(runtimeConverter.applyBack(nodeCandidate.environment().getRuntime()))
         .build();
   }
-
-
 }
