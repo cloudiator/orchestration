@@ -10,29 +10,12 @@ public class EnvironmentConverter implements
     OneWayConverter<MatchmakingEntities.Environment, Environment> {
 
   public static final EnvironmentConverter INSTANCE = new EnvironmentConverter();
+  private final RuntimeConverter runtimeConverter = RuntimeConverter.INSTANCE;
 
   @Override
   public Environment apply(MatchmakingEntities.Environment environment) {
     return EnvironmentBuilder.newBuilder()
-        .runtime(convertRuntime(environment.getRuntime()))
+        .runtime(runtimeConverter.apply(environment.getRuntime()))
         .build();
-  }
-
-  private Runtime convertRuntime(MatchmakingEntities.Runtime runtime) {
-    switch (runtime) {
-      case NODEJS:
-        return Runtime.NODEJS;
-      case PYTHON:
-        return Runtime.PYTHON;
-      case JAVA:
-        return Runtime.JAVA;
-      case DOTNET:
-        return Runtime.DOTNET;
-      case GO:
-        return Runtime.GO;
-      case UNRECOGNIZED:
-      default:
-        throw new IllegalStateException("Runtime type not known " + runtime.toString());
-    }
   }
 }
