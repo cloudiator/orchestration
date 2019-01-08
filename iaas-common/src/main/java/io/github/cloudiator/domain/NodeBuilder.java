@@ -33,6 +33,9 @@ public class NodeBuilder {
   private String id;
   private String name;
   private NodeState state;
+  private String userId;
+  private String diagnostic;
+  private String reason;
 
   private NodeBuilder() {
   }
@@ -45,6 +48,7 @@ public class NodeBuilder {
     id = node.id();
     name = node.name();
     state = node.state();
+    userId = node.userId();
   }
 
   public static NodeBuilder newBuilder() {
@@ -95,7 +99,23 @@ public class NodeBuilder {
     return this;
   }
 
+  public NodeBuilder userId(String userId) {
+    this.userId = userId;
+    return this;
+  }
+
+  public NodeBuilder diagnostic(String diagnostic) {
+    this.diagnostic = diagnostic;
+    return this;
+  }
+
+  public NodeBuilder reason(String reason) {
+    this.reason = reason;
+    return this;
+  }
+
   public Node build() {
-    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state);
+    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state,
+        userId, diagnostic, reason);
   }
 }

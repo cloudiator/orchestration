@@ -79,8 +79,8 @@ public class NodeRequestWorker implements Runnable {
   }
 
   @Transactional
-  void persistNodeGroup(NodeGroup nodeGroup, String userId) {
-    nodeDomainRepository.save(nodeGroup, userId);
+  void persistNodeGroup(NodeGroup nodeGroup) {
+    nodeDomainRepository.save(nodeGroup);
   }
 
   @Override
@@ -155,13 +155,13 @@ public class NodeRequestWorker implements Runnable {
 
           //create node group
           final NodeGroup nodeGroup = NodeGroups
-              .of(nodes);
+              .of(userId, nodes);
           LOGGER
               .debug(String.format("%s is grouping the nodes of request %s to node group %s.", this,
                   userNodeRequest, nodeGroup));
 
           //persist the node group
-          persistNodeGroup(nodeGroup, userId);
+          persistNodeGroup(nodeGroup);
 
           LOGGER.debug(
               String.format("%s is replying success for request %s with node group %s.", this,

@@ -42,7 +42,11 @@ class NodeConverter implements OneWayConverter<NodeModel, Node> {
         .name(nodeModel.getName())
         .loginCredential(loginCredentialConverter.apply(nodeModel.getLoginCredential()))
         .nodeProperties(nodePropertiesConverter.apply(nodeModel.getNodeProperties()))
-        .nodeType(nodeModel.getType());
+        .nodeType(nodeModel.getType())
+        .userId(nodeModel.getTenantModel().getUserId())
+        .state(nodeModel.getNodeState())
+        .reason(nodeModel.getReason())
+        .diagnostic(nodeModel.getDiagnostic());
 
     nodeBuilder.ipAddresses(
         nodeModel.ipAddresses().stream().map(ipAddressConverter).collect(Collectors.toSet()));

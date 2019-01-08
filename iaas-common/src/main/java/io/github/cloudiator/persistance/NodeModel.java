@@ -21,11 +21,18 @@ package io.github.cloudiator.persistance;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nullable;
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
 class NodeModel extends Model {
@@ -58,6 +65,16 @@ class NodeModel extends Model {
   @Nullable
   private NodeGroupModel nodeGroupModel;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private NodeState nodeState;
+
+  @Nullable
+  private String diagnostic;
+
+  @Nullable
+  private String reason;
+
   /**
    * Empty constructor for hibernate
    */
@@ -68,13 +85,15 @@ class NodeModel extends Model {
   NodeModel(String domainId, String name, TenantModel tenantModel,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
-      @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel) {
+      @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel,
+      NodeState nodeState, @Nullable String diagnostic, @Nullable String reason) {
 
     checkNotNull(domainId, "domainId is null");
     checkNotNull(name, "name is null");
     checkNotNull(tenantModel, "tenantModel is null");
     checkNotNull(nodeProperties, "nodeProperties is null");
     checkNotNull(nodeType, "nodeType is null");
+    checkNotNull(nodeState, "nodeState is null");
 
     this.domainId = domainId;
     this.name = name;
@@ -84,6 +103,9 @@ class NodeModel extends Model {
     this.type = nodeType;
     this.ipGroup = ipGroup;
     this.nodeGroupModel = nodeGroupModel;
+    this.nodeState = nodeState;
+    this.diagnostic = diagnostic;
+    this.reason = reason;
 
   }
 
@@ -129,5 +151,34 @@ class NodeModel extends Model {
 
   public String getName() {
     return name;
+  }
+
+  public NodeState getNodeState() {
+    return nodeState;
+  }
+
+  public NodeModel setNodeState(NodeState nodeState) {
+    this.nodeState = nodeState;
+    return this;
+  }
+
+  @Nullable
+  public String getDiagnostic() {
+    return diagnostic;
+  }
+
+  public NodeModel setDiagnostic(@Nullable String diagnostic) {
+    this.diagnostic = diagnostic;
+    return this;
+  }
+
+  @Nullable
+  public String getReason() {
+    return reason;
+  }
+
+  public NodeModel setReason(@Nullable String reason) {
+    this.reason = reason;
+    return this;
   }
 }

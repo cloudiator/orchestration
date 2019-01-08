@@ -36,10 +36,14 @@ public class NodeImpl implements Node {
   private final String id;
   private final String name;
   private final NodeState nodeState;
+  private final String userId;
+  private final String diagnostic;
+  private final String reason;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState) {
+      Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
+      String userId, String diagnostic, String reason) {
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
@@ -47,6 +51,9 @@ public class NodeImpl implements Node {
     this.id = id;
     this.name = name;
     this.nodeState = nodeState;
+    this.userId = userId;
+    this.diagnostic = diagnostic;
+    this.reason = reason;
   }
 
   @Nullable
@@ -79,6 +86,11 @@ public class NodeImpl implements Node {
   @Override
   public String name() {
     return name;
+  }
+
+  @Override
+  public String userId() {
+    return userId;
   }
 
   @Override
@@ -123,23 +135,37 @@ public class NodeImpl implements Node {
   }
 
   @Override
+  public String diagnostic() {
+    return diagnostic;
+  }
+
+  @Override
+  public String reason() {
+    return reason;
+  }
+
+  @Override
   public String id() {
     return id;
   }
 
   @Override
   public String toString() {
-    String ipList = ipAddresses == null ? "null" :  Joiner.on(",").join(ipAddresses);
+    String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
         .add("id", id)
+        .add("userId", userId)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)
         .add("type", nodeType)
-        .add("ipAddresses", ipAddresses).toString();
+        .add("ipAddresses", ipAddresses)
+        .add("diagnostic", diagnostic)
+        .add("reason", reason)
+        .toString();
   }
 
   @Override
   public NodeState state() {
-    return null;
+    return nodeState;
   }
 }

@@ -50,7 +50,7 @@ public class InstallEventSubscriber implements Runnable {
       LoggerFactory.getLogger(InstallEventSubscriber.class);
   private static final int SERVER_ERROR = 500;
   private final MessageInterface messagingService;
-  private final NodeToNodeMessageConverter nodeToNodeMessageConverter = new NodeToNodeMessageConverter();
+  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
 
   @Inject
@@ -83,7 +83,7 @@ public class InstallEventSubscriber implements Runnable {
 
     LOGGER.debug("Received installRequest with requestId: " + requestId);
 
-    Node node = nodeToNodeMessageConverter
+    Node node = NODE_MESSAGE_CONVERTER
         .applyBack(installationRequest.getInstallation().getNode());
 
     RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(

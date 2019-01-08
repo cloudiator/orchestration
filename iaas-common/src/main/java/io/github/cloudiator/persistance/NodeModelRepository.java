@@ -28,4 +28,7 @@ interface NodeModelRepository extends ModelRepository<NodeModel> {
   @Nullable
   NodeModel getByTenantAndDomainId(String userId, String domainId);
 
+  @Nullable
+  NodeModel getByDomainId(String domainId);
+
 }

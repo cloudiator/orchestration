@@ -63,4 +63,15 @@ class NodeModelRepositoryJpa extends BaseModelRepositoryJpa<NodeModel> implement
     @SuppressWarnings("unchecked") List<NodeModel> nodes = query.getResultList();
     return nodes.stream().findFirst().orElse(null);
   }
+
+  @Nullable
+  @Override
+  public NodeModel getByDomainId(String domainId) {
+    checkNotNull(domainId, "domainId is null");
+    String queryString = String
+        .format("select node from %s node where node.domainId = :domainId", type.getName());
+    Query query = em().createQuery(queryString).setParameter("domainId", domainId);
+    @SuppressWarnings("unchecked") List<NodeModel> nodes = query.getResultList();
+    return nodes.stream().findFirst().orElse(null);
+  }
 }

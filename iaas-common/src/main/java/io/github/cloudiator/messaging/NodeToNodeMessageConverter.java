@@ -54,7 +54,10 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
         .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType())).ipAddresses(
             node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
                 .collect(Collectors.toSet()))
-        .state(NODE_STATE_CONVERTER.applyBack(node.getState()));
+        .state(NODE_STATE_CONVERTER.applyBack(node.getState()))
+        .userId(node.getUserId())
+        .diagnostic(node.getDiagnostic())
+        .reason(node.getReason());
 
     if (node.hasLoginCredential()) {
       nodeBuilder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()));
@@ -73,7 +76,10 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
                 .collect(Collectors.toList()))
         .setNodeProperties(NODE_PROPERTIES_CONVERTER.applyBack(node.nodeProperties()))
         .setNodeType(NODE_TYPE_CONVERTER.apply(node.type()))
-        .setState(NODE_STATE_CONVERTER.apply(node.state()));
+        .setState(NODE_STATE_CONVERTER.apply(node.state()))
+        .setUserId(node.userId())
+        .setDiagnostic(node.diagnostic())
+        .setReason(node.reason());
 
     if (node.loginCredential().isPresent()) {
       builder

@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface NodeGroup extends Identifiable {
 
+  String userId();
+
   List<Node> getNodes();
 
 }

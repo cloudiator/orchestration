@@ -50,8 +50,8 @@ public class NodeDeleteRequestListener implements Runnable {
   }
 
   @Transactional
-  void deleteNode(Node node, String userId) {
-    nodeDomainRepository.delete(node.id(), userId);
+  void deleteNode(Node node) {
+    nodeDomainRepository.delete(node.id());
   }
 
   @Override
@@ -97,7 +97,7 @@ public class NodeDeleteRequestListener implements Runnable {
               }
 
               LOGGER.debug(String.format("%s is deleting node %s from the database.", this, node));
-              deleteNode(node, userId);
+              deleteNode(node);
 
               LOGGER.info(String.format("%s has successfully deleted node %s.", this, node));
               messageInterface.reply(id, NodeDeleteResponseMessage.newBuilder().build());

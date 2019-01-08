@@ -31,6 +31,8 @@ public interface Node extends Identifiable, Stateful {
 
   String name();
 
+  String userId();
+
   NodeProperties nodeProperties();
 
   Optional<LoginCredential> loginCredential();
@@ -50,6 +52,10 @@ public interface Node extends Identifiable, Stateful {
   }
 
   IpAddress connectTo();
+
+  String diagnostic();
+
+  String reason();
 
   @Override
   NodeState state();

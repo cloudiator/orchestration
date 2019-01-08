@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.domain;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Joiner;
@@ -28,21 +29,42 @@ import java.util.List;
 
 public class NodeGroupImpl implements NodeGroup {
 
+  public static final String USER_ID_DOES_NOT_MATCH = "userId of group (%s) does not match userId (%s) of node %s.";
+  private final String userId;
   private final List<Node> nodes;
   private final String id;
 
-  NodeGroupImpl(String id, Collection<Node> nodes) {
+  NodeGroupImpl(String id, String userId, Collection<Node> nodes) {
+
+    checkNotNull(userId, "userId is null");
+
+    for (Node node : nodes) {
+      checkArgument(node.userId().equals(userId), String
+          .format(USER_ID_DOES_NOT_MATCH, userId,
+              node.userId(), node));
+    }
+
     checkNotNull(id, "id is null");
     checkNotNull(nodes, "nodes is null");
     this.nodes = ImmutableList.copyOf(nodes);
     this.id = id;
+    this.userId = userId;
   }
 
-  NodeGroupImpl(String id, Node node) {
+  NodeGroupImpl(String id, String userId, Node node) {
     checkNotNull(id, "id is null");
     checkNotNull(node, "node is null");
+    checkArgument(node.userId().equals(userId), String
+        .format(USER_ID_DOES_NOT_MATCH, userId,
+            node.userId(), node));
     this.nodes = ImmutableList.of(node);
     this.id = id;
+    this.userId = userId;
+  }
+
+  @Override
+  public String userId() {
+    return userId;
   }
 
   @Override
@@ -57,7 +79,8 @@ public class NodeGroupImpl implements NodeGroup {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", id).add("nodes", Joiner.on(",").join(nodes))
+    return MoreObjects.toStringHelper(this).add("id", id).add("userId", userId)
+        .add("nodes", Joiner.on(",").join(nodes))
         .toString();
   }
 }
