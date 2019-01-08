@@ -30,7 +30,7 @@ import org.cloudiator.messages.NodeEntities.NodeGroup.Builder;
 public class NodeGroupMessageToNodeGroup implements
     TwoWayConverter<NodeEntities.NodeGroup, NodeGroup> {
 
-  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = new NodeToNodeMessageConverter();
+  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
   @Override
   public NodeEntities.NodeGroup applyBack(NodeGroup nodeGroup) {

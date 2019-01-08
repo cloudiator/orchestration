@@ -19,18 +19,30 @@
 package io.github.cloudiator.messaging;
 
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
-import io.github.cloudiator.domain.*;
+import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
+import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.domain.NodeType;
+import java.util.stream.Collectors;
 import org.cloudiator.messages.NodeEntities;
 import org.cloudiator.messages.NodeEntities.NodeProperties.Builder;
 
-import java.util.stream.Collectors;
-
 public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEntities.Node> {
 
-  private final IpAddressMessageToIpAddress ipAddressConverter = new IpAddressMessageToIpAddress();
-  private final NodeTypeToNodeTypeMessage nodeTypeConverter = new NodeTypeToNodeTypeMessage();
-  private final NodePropertiesMessageToNodePropertiesConverter nodePropertiesConverter = new NodePropertiesMessageToNodePropertiesConverter();
-  private final LoginCredentialMessageToLoginCredentialConverter loginCredentialConverter = new LoginCredentialMessageToLoginCredentialConverter();
+  public static final NodeToNodeMessageConverter INSTANCE = new NodeToNodeMessageConverter();
+
+  private static final IpAddressMessageToIpAddress IP_ADDRESS_CONVERTER = new IpAddressMessageToIpAddress();
+  private static final NodeTypeToNodeTypeMessage NODE_TYPE_CONVERTER = new NodeTypeToNodeTypeMessage();
+
+  private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
+  private static final LoginCredentialMessageToLoginCredentialConverter LOGIN_CREDENTIAL_CONVERTER = LoginCredentialMessageToLoginCredentialConverter.INSTANCE;
+
+  private static final NodeStateConverter NODE_STATE_CONVERTER = new NodeStateConverter();
+
+  private NodeToNodeMessageConverter() {
+  }
 
   @Override
   public Node applyBack(NodeEntities.Node node) {
@@ -38,13 +50,14 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     final NodeBuilder nodeBuilder = NodeBuilder.newBuilder()
         .id(node.getId())
         .name(node.getName())
-        .nodeProperties(nodePropertiesConverter.apply(node.getNodeProperties()))
-        .nodeType(nodeTypeConverter.applyBack(node.getNodeType()))
-        .ipAddresses(node.getIpAddressesList().stream()
-            .map(ipAddressConverter::apply).collect(Collectors.toSet()));
+        .nodeProperties(NODE_PROPERTIES_CONVERTER.apply(node.getNodeProperties()))
+        .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType())).ipAddresses(
+            node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
+                .collect(Collectors.toSet()))
+        .state(NODE_STATE_CONVERTER.applyBack(node.getState()));
 
     if (node.hasLoginCredential()) {
-      nodeBuilder.loginCredential(loginCredentialConverter.apply(node.getLoginCredential()));
+      nodeBuilder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()));
     }
 
     return nodeBuilder.build();
@@ -56,13 +69,15 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     final NodeEntities.Node.Builder builder = NodeEntities.Node.newBuilder().setId(node.id())
         .setName(node.name())
         .addAllIpAddresses(
-            node.ipAddresses().stream().map(ipAddressConverter::applyBack)
+            node.ipAddresses().stream().map(IP_ADDRESS_CONVERTER::applyBack)
                 .collect(Collectors.toList()))
-        .setNodeProperties(nodePropertiesConverter.applyBack(node.nodeProperties()))
-        .setNodeType(nodeTypeConverter.apply(node.type()));
+        .setNodeProperties(NODE_PROPERTIES_CONVERTER.applyBack(node.nodeProperties()))
+        .setNodeType(NODE_TYPE_CONVERTER.apply(node.type()))
+        .setState(NODE_STATE_CONVERTER.apply(node.state()));
 
     if (node.loginCredential().isPresent()) {
-      builder.setLoginCredential(loginCredentialConverter.applyBack(node.loginCredential().get()));
+      builder
+          .setLoginCredential(LOGIN_CREDENTIAL_CONVERTER.applyBack(node.loginCredential().get()));
     }
 
     return builder.build();
@@ -105,6 +120,44 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
           .geoLocation(geoLocationConverter.apply(nodeProperties.getGeoLocation()))
           .memory(nodeProperties.getMemory())
           .os(operatingSystemConverter.apply(nodeProperties.getOperationSystem())).build();
+    }
+  }
+
+  private static class NodeStateConverter implements
+      TwoWayConverter<NodeState, NodeEntities.NodeState> {
+
+    @Override
+    public NodeState applyBack(NodeEntities.NodeState nodeState) {
+      switch (nodeState) {
+        case NODE_STATE_OK:
+          return NodeState.OK;
+        case NODE_STATE_NEW:
+          return NodeState.NEW;
+        case NODE_STATE_ERROR:
+          return NodeState.ERROR;
+        case NODE_STATE_DELETED:
+          return NodeState.DELETED;
+        case UNRECOGNIZED:
+        default:
+          throw new AssertionError("Unknown nodeState " + nodeState);
+      }
+    }
+
+    @Override
+    public NodeEntities.NodeState apply(NodeState nodeState) {
+
+      switch (nodeState) {
+        case NEW:
+          return NodeEntities.NodeState.NODE_STATE_NEW;
+        case ERROR:
+          return NodeEntities.NodeState.NODE_STATE_ERROR;
+        case OK:
+          return NodeEntities.NodeState.NODE_STATE_OK;
+        case DELETED:
+          return NodeEntities.NodeState.NODE_STATE_DELETED;
+        default:
+          throw new AssertionError("Unknown node state " + nodeState);
+      }
     }
   }
 

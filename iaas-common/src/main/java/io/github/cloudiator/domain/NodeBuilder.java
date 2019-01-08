@@ -18,6 +18,8 @@
 
 package io.github.cloudiator.domain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Set;
@@ -30,13 +32,30 @@ public class NodeBuilder {
   private Set<IpAddress> ipAddresses;
   private String id;
   private String name;
+  private NodeState state;
 
   private NodeBuilder() {
+  }
+
+  private NodeBuilder(Node node) {
+    nodeProperties = node.nodeProperties();
+    loginCredential = node.loginCredential().orElse(null);
+    nodeType = node.type();
+    ipAddresses = node.ipAddresses();
+    id = node.id();
+    name = node.name();
+    state = node.state();
   }
 
   public static NodeBuilder newBuilder() {
     return new NodeBuilder();
   }
+
+  public static NodeBuilder of(Node node) {
+    checkNotNull(node, "node is null");
+    return new NodeBuilder(node);
+  }
+
 
   public NodeBuilder nodeProperties(
       NodeProperties nodeProperties) {
@@ -71,7 +90,12 @@ public class NodeBuilder {
     return this;
   }
 
+  public NodeBuilder state(NodeState state) {
+    this.state = state;
+    return this;
+  }
+
   public Node build() {
-    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name);
+    return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state);
   }
 }

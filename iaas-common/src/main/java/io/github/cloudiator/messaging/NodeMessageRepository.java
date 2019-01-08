@@ -31,7 +31,7 @@ import org.cloudiator.messaging.services.NodeService;
 public class NodeMessageRepository implements MessageRepository<Node> {
 
   private final NodeService nodeService;
-  private final NodeToNodeMessageConverter nodeToNodeMessageConverter = new NodeToNodeMessageConverter();
+  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
   @Inject
   public NodeMessageRepository(NodeService nodeService) {
@@ -48,7 +48,7 @@ public class NodeMessageRepository implements MessageRepository<Node> {
 
     try {
       return nodeService.queryNodes(nodeQueryMessage).getNodesList().stream().map(
-          nodeToNodeMessageConverter::applyBack).collect(StreamUtil.getOnly()).orElse(null);
+          NODE_MESSAGE_CONVERTER::applyBack).collect(StreamUtil.getOnly()).orElse(null);
     } catch (ResponseException e) {
       throw new IllegalStateException("Could not retrieve nodes.", e);
     }
@@ -62,7 +62,7 @@ public class NodeMessageRepository implements MessageRepository<Node> {
 
     try {
       return nodeService.queryNodes(nodeQueryMessage).getNodesList().stream()
-          .map(nodeToNodeMessageConverter::applyBack).collect(Collectors
+          .map(NODE_MESSAGE_CONVERTER::applyBack).collect(Collectors
               .toList());
     } catch (ResponseException e) {
       throw new IllegalStateException("Could not retrieve nodes.", e);

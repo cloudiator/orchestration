@@ -35,16 +35,18 @@ public class NodeImpl implements Node {
   private final Set<IpAddress> ipAddresses;
   private final String id;
   private final String name;
+  private final NodeState nodeState;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id, String name) {
+      Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState) {
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
     this.ipAddresses = ipAddresses;
     this.id = id;
     this.name = name;
+    this.nodeState = nodeState;
   }
 
   @Nullable
@@ -134,5 +136,10 @@ public class NodeImpl implements Node {
         .add("loginCredential", loginCredential)
         .add("type", nodeType)
         .add("ipAddresses", ipAddresses).toString();
+  }
+
+  @Override
+  public NodeState state() {
+    return null;
   }
 }

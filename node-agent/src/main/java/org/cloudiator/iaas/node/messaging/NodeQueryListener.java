@@ -42,7 +42,7 @@ public class NodeQueryListener implements Runnable {
       .getLogger(NodeQueryListener.class);
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
-  private final NodeToNodeMessageConverter nodeToNodeMessageConverter = new NodeToNodeMessageConverter();
+  private static final NodeToNodeMessageConverter NODE_TO_NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
   @Inject
   public NodeQueryListener(MessageInterface messageInterface,
@@ -93,7 +93,7 @@ public class NodeQueryListener implements Runnable {
     if (node == null) {
       return NodeQueryResponse.newBuilder().build();
     }
-    return NodeQueryResponse.newBuilder().addNodes(nodeToNodeMessageConverter.apply(node)).build();
+    return NodeQueryResponse.newBuilder().addNodes(NODE_TO_NODE_MESSAGE_CONVERTER.apply(node)).build();
   }
 
   private NodeQueryResponse handleMultiple(String userId) {
@@ -102,7 +102,7 @@ public class NodeQueryListener implements Runnable {
 
     final Builder builder = NodeQueryResponse.newBuilder();
 
-    nodes.stream().map(nodeToNodeMessageConverter).forEach(
+    nodes.stream().map(NODE_TO_NODE_MESSAGE_CONVERTER).forEach(
         builder::addNodes);
 
     return builder.build();

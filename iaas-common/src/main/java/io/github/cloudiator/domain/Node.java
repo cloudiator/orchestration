@@ -22,11 +22,12 @@ import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface Node extends Identifiable {
+public interface Node extends Identifiable, Stateful {
 
   String name();
 
@@ -49,4 +50,7 @@ public interface Node extends Identifiable {
   }
 
   IpAddress connectTo();
+
+  @Override
+  NodeState state();
 }
