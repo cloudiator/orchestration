@@ -151,18 +151,18 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public String diagnostic() {
-    return diagnostic;
+  public Optional<String> diagnostic() {
+    return Optional.ofNullable(diagnostic);
   }
 
   @Override
-  public String reason() {
-    return reason;
+  public Optional<String> reason() {
+    return Optional.ofNullable(reason);
   }
 
   @Override
-  public String nodeCandidate() {
-    return nodeCandidate;
+  public Optional<String> nodeCandidate() {
+    return Optional.ofNullable(nodeCandidate);
   }
 
   @Override

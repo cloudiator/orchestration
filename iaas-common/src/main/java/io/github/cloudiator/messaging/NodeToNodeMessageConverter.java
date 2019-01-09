@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.messaging;
 
+import com.google.common.base.Strings;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
@@ -54,13 +55,26 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
         .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType())).ipAddresses(
             node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
                 .collect(Collectors.toSet()))
-        .state(NODE_STATE_CONVERTER.applyBack(node.getState()))
-        .userId(node.getUserId())
-        .diagnostic(node.getDiagnostic())
-        .reason(node.getReason());
+        .state(NODE_STATE_CONVERTER.applyBack(node.getState()));
 
     if (node.hasLoginCredential()) {
       nodeBuilder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()));
+    }
+
+    if (!Strings.isNullOrEmpty(node.getReason())) {
+      nodeBuilder.reason(node.getReason());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getDiagnostic())) {
+      nodeBuilder.diagnostic(node.getDiagnostic());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getNodeCandidate())) {
+      nodeBuilder.nodeCandidate(node.getNodeCandidate());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getUserId())) {
+      nodeBuilder.userId(node.getUserId());
     }
 
     return nodeBuilder.build();
@@ -77,9 +91,19 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
         .setNodeProperties(NODE_PROPERTIES_CONVERTER.applyBack(node.nodeProperties()))
         .setNodeType(NODE_TYPE_CONVERTER.apply(node.type()))
         .setState(NODE_STATE_CONVERTER.apply(node.state()))
-        .setUserId(node.userId())
-        .setDiagnostic(node.diagnostic())
-        .setReason(node.reason());
+        .setUserId(node.userId());
+
+    if (node.diagnostic().isPresent()) {
+      builder.setDiagnostic(node.diagnostic().get());
+    }
+
+    if (node.reason().isPresent()) {
+      builder.setReason(node.reason().get());
+    }
+
+    if (node.nodeCandidate().isPresent()) {
+      builder.setNodeCandidate(node.nodeCandidate().get());
+    }
 
     if (node.loginCredential().isPresent()) {
       builder

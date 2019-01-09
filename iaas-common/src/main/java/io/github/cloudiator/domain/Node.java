@@ -53,11 +53,11 @@ public interface Node extends Identifiable, Stateful {
 
   IpAddress connectTo();
 
-  String diagnostic();
+  Optional<String> diagnostic();
 
-  String reason();
+  Optional<String> reason();
 
-  String nodeCandidate();
+  Optional<String> nodeCandidate();
 
   @Override
   NodeState state();
