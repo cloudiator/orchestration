@@ -21,8 +21,10 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
@@ -39,10 +41,10 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
       .getLogger(VirtualMachineNodeIncarnationStrategy.class);
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
-  private static final VirtualMachineToNode VIRTUAL_MACHINE_TO_NODE = VirtualMachineToNode.INSTANCE;
   private final String groupName;
   private final String userId;
   private final VirtualMachineService virtualMachineService;
+
   public VirtualMachineNodeIncarnationStrategy(String groupName,
       String userId, VirtualMachineService virtualMachineService) {
     this.groupName = groupName;
@@ -77,7 +79,8 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
           .format("%s incarnated nodeCandidate %s as virtual machine %s.", this, nodeCandidate,
               virtualMachine));
 
-      return VIRTUAL_MACHINE_TO_NODE.apply(virtualMachine);
+      return NodeBuilder.of(virtualMachine).state(NodeState.OK).userId(userId)
+          .nodeCandidate(nodeCandidate.id()).build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",

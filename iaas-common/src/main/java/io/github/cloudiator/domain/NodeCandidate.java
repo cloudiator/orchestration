@@ -23,9 +23,9 @@ import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 
-import java.util.Set;
-
 public interface NodeCandidate {
+
+  String id();
 
   NodeCandidateType type();
 

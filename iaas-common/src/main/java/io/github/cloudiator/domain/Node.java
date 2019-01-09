@@ -57,6 +57,8 @@ public interface Node extends Identifiable, Stateful {
 
   String reason();
 
+  String nodeCandidate();
+
   @Override
   NodeState state();
 }

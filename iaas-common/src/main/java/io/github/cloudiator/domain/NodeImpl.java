@@ -18,6 +18,8 @@
 
 package io.github.cloudiator.domain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
@@ -37,13 +39,26 @@ public class NodeImpl implements Node {
   private final String name;
   private final NodeState nodeState;
   private final String userId;
+  @Nullable
   private final String diagnostic;
+  @Nullable
   private final String reason;
+  @Nullable
+  private final String nodeCandidate;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
-      String userId, String diagnostic, String reason) {
+      String userId, @Nullable String diagnostic, @Nullable String reason,
+      @Nullable String nodeCandidate) {
+
+    checkNotNull(nodeProperties, "nodeProperties is null");
+    checkNotNull(nodeType, "nodeType is null");
+    checkNotNull(ipAddresses, "ipAddresses is null");
+    checkNotNull(id, "id is null");
+    checkNotNull(nodeState, "nodeState is null");
+    checkNotNull(userId, "userId is null");
+
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
@@ -54,6 +69,7 @@ public class NodeImpl implements Node {
     this.userId = userId;
     this.diagnostic = diagnostic;
     this.reason = reason;
+    this.nodeCandidate = nodeCandidate;
   }
 
   @Nullable
@@ -145,6 +161,11 @@ public class NodeImpl implements Node {
   }
 
   @Override
+  public String nodeCandidate() {
+    return nodeCandidate;
+  }
+
+  @Override
   public String id() {
     return id;
   }
@@ -161,6 +182,7 @@ public class NodeImpl implements Node {
         .add("ipAddresses", ipAddresses)
         .add("diagnostic", diagnostic)
         .add("reason", reason)
+        .add("nodeCandidate", nodeCandidate)
         .toString();
   }
 

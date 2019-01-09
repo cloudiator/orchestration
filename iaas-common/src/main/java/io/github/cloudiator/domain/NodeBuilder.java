@@ -20,8 +20,12 @@ package io.github.cloudiator.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import de.uniulm.omi.cloudiator.domain.LoginNameSupplier.UnknownLoginNameException;
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import java.util.Set;
 
 public class NodeBuilder {
@@ -36,6 +40,7 @@ public class NodeBuilder {
   private String userId;
   private String diagnostic;
   private String reason;
+  private String nodeCandidate;
 
   private NodeBuilder() {
   }
@@ -49,6 +54,9 @@ public class NodeBuilder {
     name = node.name();
     state = node.state();
     userId = node.userId();
+    diagnostic = node.diagnostic();
+    reason = node.reason();
+    nodeCandidate = node.nodeCandidate();
   }
 
   public static NodeBuilder newBuilder() {
@@ -58,6 +66,35 @@ public class NodeBuilder {
   public static NodeBuilder of(Node node) {
     checkNotNull(node, "node is null");
     return new NodeBuilder(node);
+  }
+
+  public static NodeBuilder of(VirtualMachine virtualMachine) {
+    NodeProperties nodeProperties = NodePropertiesBuilder
+        .of(virtualMachine.hardware().get(), virtualMachine.image().get(),
+            virtualMachine.location().get())
+        .build();
+
+    LoginCredential loginCredential = null;
+
+    if (virtualMachine.loginCredential().isPresent()) {
+      loginCredential = virtualMachine.loginCredential().get();
+      if (!loginCredential.username().isPresent()) {
+        if (virtualMachine.image().isPresent()) {
+          final OperatingSystem operatingSystem = virtualMachine.image().get().operatingSystem();
+          try {
+            final String loginName = operatingSystem.operatingSystemFamily().loginName();
+            loginCredential = LoginCredentialBuilder.of(loginCredential).username(loginName)
+                .build();
+          } catch (UnknownLoginNameException ignored) {
+            //left empty
+          }
+        }
+      }
+    }
+
+    return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
+        .loginCredential(loginCredential)
+        .nodeProperties(nodeProperties).id(virtualMachine.id()).name(virtualMachine.name());
   }
 
 
@@ -114,8 +151,13 @@ public class NodeBuilder {
     return this;
   }
 
+  public NodeBuilder nodeCandidate(String nodeCandidate) {
+    this.nodeCandidate = nodeCandidate;
+    return this;
+  }
+
   public Node build() {
     return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state,
-        userId, diagnostic, reason);
+        userId, diagnostic, reason, nodeCandidate);
   }
 }

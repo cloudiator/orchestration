@@ -28,6 +28,7 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocationBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddresses;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.Test;
 
 public class NodeTest {
@@ -46,7 +47,8 @@ public class NodeTest {
     Set<IpAddress> ipAddresses = Sets
         .newHashSet(publicIp, privateIp);
 
-    final Node node = NodeBuilder.newBuilder().nodeType(NodeType.VM).nodeProperties(nodeProperties)
+    final Node node = NodeBuilder.newBuilder().id(UUID.randomUUID().toString()).state(NodeState.OK).userId("userId")
+        .nodeType(NodeType.VM).nodeProperties(nodeProperties)
         .ipAddresses(ipAddresses).build();
 
     assertThat(node.publicIpAddresses(), contains(publicIp));

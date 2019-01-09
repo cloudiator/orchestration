@@ -26,9 +26,9 @@ public interface NodeProperties {
 
   String providerId();
 
-  int numberOfCores();
+  Optional<Integer> numberOfCores();
 
-  long memory();
+  Optional<Long> memory();
 
   Optional<Double> disk();
 

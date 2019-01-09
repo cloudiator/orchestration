@@ -86,7 +86,7 @@ public class NodeDeleteRequestListener implements Runnable {
 
               LOGGER.info(String.format("%s is requests deletion of node %s.", this, node));
 
-              boolean b = nodeDeletionStrategy.deleteNode(node, userId);
+              boolean b = nodeDeletionStrategy.deleteNode(node);
 
               if (!b) {
                 LOGGER.error(String.format("%s was not able to delete node %s", this, node));

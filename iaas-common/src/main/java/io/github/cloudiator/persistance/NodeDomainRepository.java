@@ -162,7 +162,8 @@ public class NodeDomainRepository {
 
     final NodePropertiesModel nodePropertiesModel = new NodePropertiesModel(
         nodeProperties.providerId(),
-        nodeProperties.numberOfCores(), nodeProperties.memory(), nodeProperties.disk().orElse(null),
+        nodeProperties.numberOfCores().orElse(null), nodeProperties.memory().orElse(null),
+        nodeProperties.disk().orElse(null),
         operatingSystemModel, geoLocationModel);
 
     nodePropertiesModelRepository.save(nodePropertiesModel);

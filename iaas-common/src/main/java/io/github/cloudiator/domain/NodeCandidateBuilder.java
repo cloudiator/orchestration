@@ -23,10 +23,9 @@ import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 
-import java.util.Set;
-
 public class NodeCandidateBuilder {
 
+  private String id;
   private NodeCandidateType type;
   private Cloud cloud;
   private Image image;
@@ -42,6 +41,11 @@ public class NodeCandidateBuilder {
 
   public static NodeCandidateBuilder create() {
     return new NodeCandidateBuilder();
+  }
+
+  public NodeCandidateBuilder id(String id) {
+    this.id = id;
+    return this;
   }
 
   public NodeCandidateBuilder type(NodeCandidateType type) {
@@ -90,6 +94,7 @@ public class NodeCandidateBuilder {
   }
 
   public NodeCandidate build() {
-    return new NodeCandidateImpl(type, cloud, image, hardwareFlavor, location, price, pricePerInvocation, memoryPrice, environment);
+    return new NodeCandidateImpl(id, type, cloud, image, hardwareFlavor, location, price,
+        pricePerInvocation, memoryPrice, environment);
   }
 }

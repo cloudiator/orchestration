@@ -39,7 +39,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
   private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
   private static final LoginCredentialMessageToLoginCredentialConverter LOGIN_CREDENTIAL_CONVERTER = LoginCredentialMessageToLoginCredentialConverter.INSTANCE;
 
-  private static final NodeStateConverter NODE_STATE_CONVERTER = new NodeStateConverter();
+  public static final NodeStateConverter NODE_STATE_CONVERTER = new NodeStateConverter();
 
   private NodeToNodeMessageConverter() {
   }
@@ -98,8 +98,15 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     @Override
     public NodeEntities.NodeProperties applyBack(NodeProperties nodeProperties) {
       final Builder builder = NodeEntities.NodeProperties.newBuilder()
-          .setProviderId(nodeProperties.providerId())
-          .setNumberOfCores(nodeProperties.numberOfCores()).setMemory(nodeProperties.memory());
+          .setProviderId(nodeProperties.providerId());
+
+      if (nodeProperties.numberOfCores().isPresent()) {
+        builder.setNumberOfCores(nodeProperties.numberOfCores().get());
+      }
+
+      if (nodeProperties.memory().isPresent()) {
+        builder.setMemory(nodeProperties.numberOfCores().get());
+      }
 
       if (nodeProperties.geoLocation().isPresent()) {
         builder.setGeoLocation(geoLocationConverter.applyBack(nodeProperties.geoLocation().get()));
@@ -129,8 +136,11 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     }
   }
 
-  private static class NodeStateConverter implements
+  public static class NodeStateConverter implements
       TwoWayConverter<NodeState, NodeEntities.NodeState> {
+
+    private NodeStateConverter() {
+    }
 
     @Override
     public NodeState applyBack(NodeEntities.NodeState nodeState) {

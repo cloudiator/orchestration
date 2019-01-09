@@ -24,10 +24,10 @@ import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import java.util.Objects;
-import java.util.Set;
 
 public class NodeCandidateImpl implements NodeCandidate {
 
+  private final String id;
   private final NodeCandidateType type;
   private final Cloud cloud;
   private final Image image;
@@ -38,9 +38,10 @@ public class NodeCandidateImpl implements NodeCandidate {
   private final double memoryPrice;
   private final Environment environment;
 
-  public NodeCandidateImpl(NodeCandidateType type, Cloud cloud, Image image,
+  NodeCandidateImpl(String id, NodeCandidateType type, Cloud cloud, Image image,
       HardwareFlavor hardwareFlavor, Location location, double price,
       double pricePerInvocation, double memoryPrice, Environment environment) {
+    this.id = id;
     this.type = type;
     this.cloud = cloud;
     this.image = image;
@@ -50,6 +51,11 @@ public class NodeCandidateImpl implements NodeCandidate {
     this.pricePerInvocation = pricePerInvocation;
     this.memoryPrice = memoryPrice;
     this.environment = environment;
+  }
+
+  @Override
+  public String id() {
+    return id;
   }
 
   @Override

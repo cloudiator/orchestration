@@ -27,8 +27,10 @@ import javax.annotation.Nullable;
 public class NodePropertiesImpl implements NodeProperties {
 
   private final String providerId;
-  private final int numberOfCores;
-  private final long memory;
+  @Nullable
+  private final Integer numberOfCores;
+  @Nullable
+  private final Long memory;
   @Nullable
   private final Double disk;
   @Nullable
@@ -36,7 +38,8 @@ public class NodePropertiesImpl implements NodeProperties {
   @Nullable
   private final GeoLocation geoLocation;
 
-  NodePropertiesImpl(String providerId, int numberOfCores, long memory, @Nullable Double disk,
+  NodePropertiesImpl(String providerId, @Nullable Integer numberOfCores, @Nullable Long memory,
+      @Nullable Double disk,
       @Nullable OperatingSystem operatingSystem,
       @Nullable GeoLocation geoLocation) {
     this.providerId = providerId;
@@ -53,13 +56,13 @@ public class NodePropertiesImpl implements NodeProperties {
   }
 
   @Override
-  public int numberOfCores() {
-    return numberOfCores;
+  public Optional<Integer> numberOfCores() {
+    return Optional.ofNullable(numberOfCores);
   }
 
   @Override
-  public long memory() {
-    return memory;
+  public Optional<Long> memory() {
+    return Optional.ofNullable(memory);
   }
 
   @Override
