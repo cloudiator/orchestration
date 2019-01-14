@@ -100,6 +100,7 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
           .nodeType(NodeType.FAAS)
           .nodeProperties(properties)
           .ipAddresses(ImmutableSet.of())
+          .nodeCandidate(nodeCandidate.id())
           .build();
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);

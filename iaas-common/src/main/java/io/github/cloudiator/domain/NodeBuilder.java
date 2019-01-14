@@ -54,9 +54,9 @@ public class NodeBuilder {
     name = node.name();
     state = node.state();
     userId = node.userId();
-    diagnostic = node.diagnostic();
-    reason = node.reason();
-    nodeCandidate = node.nodeCandidate();
+    diagnostic = node.diagnostic().orElse(null);
+    reason = node.reason().orElse(null);
+    nodeCandidate = node.nodeCandidate().orElse(null);
   }
 
   public static NodeBuilder newBuilder() {

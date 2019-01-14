@@ -175,7 +175,7 @@ public class NodeDomainRepository {
 
     return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
         loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
-        domain.diagnostic(), domain.reason());
+        domain.diagnostic().orElse(null), domain.reason().orElse(null));
 
   }
 
