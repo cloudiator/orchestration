@@ -35,7 +35,7 @@ class NodeGroupConverter implements OneWayConverter<NodeGroupModel, NodeGroup> {
       return null;
     }
 
-    return NodeGroups.of(nodeGroupModel.getDomainId(),
+    return NodeGroups.of(nodeGroupModel.getDomainId(), nodeGroupModel.getTenant().getUserId(),
         nodeGroupModel.getNodes().stream().map(nodeConverter).collect(
             Collectors.toList()));
   }

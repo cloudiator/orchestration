@@ -71,4 +71,8 @@ class NodeGroupModel extends Model {
     nodes.add(node);
     return this;
   }
+
+  public TenantModel getTenant() {
+    return this.tenantModel;
+  }
 }
