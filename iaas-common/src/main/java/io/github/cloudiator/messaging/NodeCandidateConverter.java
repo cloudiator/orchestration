@@ -19,8 +19,8 @@
 package io.github.cloudiator.messaging;
 
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
-import io.github.cloudiator.domain.*;
-import io.github.cloudiator.domain.Runtime;
+import io.github.cloudiator.domain.NodeCandidate;
+import io.github.cloudiator.domain.NodeCandidateBuilder;
 import org.cloudiator.messages.entities.MatchmakingEntities;
 
 public class NodeCandidateConverter implements
@@ -49,12 +49,14 @@ public class NodeCandidateConverter implements
       case NC_BYON:
       case UNRECOGNIZED:
       default:
-        throw new IllegalStateException("Unsupported node candidate type: " + nodeCandidate.getType());
+        throw new IllegalStateException(
+            "Unsupported node candidate type: " + nodeCandidate.getType());
     }
   }
 
   private NodeCandidate applyIaas(MatchmakingEntities.NodeCandidate nodeCandidate) {
     return NodeCandidateBuilder.create()
+        .id(nodeCandidate.getId())
         .type(TYPE_CONVERTER.apply(nodeCandidate.getType()))
         .cloud(CLOUD_CONVERTER.apply(nodeCandidate.getCloud()))
         .image(IMAGE_CONVERTER.apply(nodeCandidate.getImage()))
@@ -66,6 +68,7 @@ public class NodeCandidateConverter implements
 
   private NodeCandidate applyFaas(MatchmakingEntities.NodeCandidate nodeCandidate) {
     return NodeCandidateBuilder.create()
+        .id(nodeCandidate.getId())
         .type(TYPE_CONVERTER.apply(nodeCandidate.getType()))
         .cloud(CLOUD_CONVERTER.apply(nodeCandidate.getCloud()))
         .location(LOCATION_CONVERTER.apply(nodeCandidate.getLocation()))

@@ -31,20 +31,20 @@ public class NodeGroups {
     return UUID.randomUUID().toString();
   }
 
-  public static NodeGroup of(Collection<Node> nodes) {
-    return new NodeGroupImpl(generateId(), nodes);
+  public static NodeGroup of(String userId, Collection<Node> nodes) {
+    return new NodeGroupImpl(generateId(), userId, nodes);
   }
 
-  public static NodeGroup of(String id, Collection<Node> nodes) {
-    return new NodeGroupImpl(id, nodes);
+  public static NodeGroup of(String id, String userId, Collection<Node> nodes) {
+    return new NodeGroupImpl(id, userId, nodes);
   }
 
   public static NodeGroup ofSingle(Node node) {
-    return new NodeGroupImpl(generateId(), node);
+    return new NodeGroupImpl(generateId(), node.userId(), node);
   }
 
   public static NodeGroup ofSingle(String id, Node node) {
-    return new NodeGroupImpl(id, node);
+    return new NodeGroupImpl(id, node.userId(), node);
   }
 
 }

@@ -18,14 +18,14 @@
 
 package org.cloudiator.iaas.node;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
 import io.github.cloudiator.domain.Node;
 import java.util.Set;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
 
@@ -50,17 +50,16 @@ public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
   }
 
   @Override
-  public boolean deleteNode(Node node, String userId) {
+  public boolean deleteNode(Node node) {
 
     checkNotNull(node, "node is null");
-    checkNotNull(userId, "userId is null");
 
     for (NodeDeletionStrategy nodeDeletionStrategy : nodeDeletionStrategies) {
       if (nodeDeletionStrategy.supportsNode(node)) {
         LOGGER.debug(String
             .format("%s is using strategy %s to delete node %s.", this, nodeDeletionStrategy,
                 node));
-        return nodeDeletionStrategy.deleteNode(node, userId);
+        return nodeDeletionStrategy.deleteNode(node);
       }
     }
 

@@ -81,17 +81,16 @@ public class NodeDomainRepository {
         .collect(Collectors.toList());
   }
 
-  public void save(NodeGroup nodeGroup, String userId) {
+  public void save(NodeGroup nodeGroup) {
     checkNotNull(nodeGroup, "nodeGroup is null");
-    checkNotNull(userId, "userId is null");
 
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(nodeGroup.userId());
 
     final NodeGroupModel nodeGroupModel = new NodeGroupModel(nodeGroup.id(), tenantModel);
     nodeGroupModelRepository.save(nodeGroupModel);
 
     for (Node node : nodeGroup.getNodes()) {
-      final NodeModel nodeModel = saveAndGet(node, userId);
+      final NodeModel nodeModel = saveAndGet(node);
       nodeGroupModel.addNode(nodeModel);
       nodeModel.assignGroup(nodeGroupModel);
       nodeModelRepository.save(nodeModel);
@@ -100,43 +99,47 @@ public class NodeDomainRepository {
     nodeGroupModelRepository.save(nodeGroupModel);
   }
 
-  NodeModel saveAndGet(Node domain, String userId) {
-    NodeModel nodeModel = nodeModelRepository.getByTenantAndDomainId(userId, domain.id());
+  NodeModel saveAndGet(Node domain) {
+    NodeModel nodeModel = nodeModelRepository.getByTenantAndDomainId(domain.userId(), domain.id());
 
     if (nodeModel == null) {
-      nodeModel = createModel(domain, userId, null);
+      nodeModel = createModel(domain, null);
     } else {
-      nodeModel = updateModel(domain, nodeModel, userId);
+      nodeModel = updateModel(domain, nodeModel);
     }
     nodeModelRepository.save(nodeModel);
 
     return nodeModel;
   }
 
-  public void save(Node domain, String userId) {
+  public void save(Node domain) {
     checkNotNull(domain, "domain is null");
-    checkNotNull(userId, "userId is null");
-
-    saveAndGet(domain, userId);
+    saveAndGet(domain);
   }
 
-  public void delete(String id, String userId) {
+  public void delete(String id) {
     checkNotNull(id, "id is null");
-    checkNotNull(userId, "userId is null");
 
-    NodeModel byTenantAndDomainId = nodeModelRepository.getByTenantAndDomainId(userId, id);
-    checkState(byTenantAndDomainId != null, "Node with the id %s does not exist.", id);
-    nodeModelRepository.delete(byTenantAndDomainId);
+    NodeModel byDomainId = nodeModelRepository.getByDomainId(id);
+    checkState(byDomainId != null, "Node with the id %s does not exist.", id);
+    nodeModelRepository.delete(byDomainId);
   }
 
-  private NodeModel updateModel(Node domain, NodeModel nodeModel, String userId) {
-    return null;
+  private NodeModel updateModel(Node domain, NodeModel nodeModel) {
+
+    checkState(domain.id().equals(nodeModel.getDomainId()), "domain id does not match");
+    checkState(
+        domain.userId().equals(nodeModel.getTenantModel().getUserId()), "user id does not match");
+
+    //todo implement state persistence
+    //todo update reason and diagnostic
+    throw new UnsupportedOperationException("Updating node model is currently not supported");
   }
 
-  private NodeModel createModel(Node domain, String userId,
+  private NodeModel createModel(Node domain,
       @Nullable NodeGroupModel nodeGroupModel) {
 
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(domain.userId());
 
     final NodeProperties nodeProperties = domain.nodeProperties();
 
@@ -159,7 +162,8 @@ public class NodeDomainRepository {
 
     final NodePropertiesModel nodePropertiesModel = new NodePropertiesModel(
         nodeProperties.providerId(),
-        nodeProperties.numberOfCores(), nodeProperties.memory(), nodeProperties.disk().orElse(null),
+        nodeProperties.numberOfCores().orElse(null), nodeProperties.memory().orElse(null),
+        nodeProperties.disk().orElse(null),
         operatingSystemModel, geoLocationModel);
 
     nodePropertiesModelRepository.save(nodePropertiesModel);
@@ -170,7 +174,8 @@ public class NodeDomainRepository {
     }
 
     return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
-        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel);
+        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
+        domain.diagnostic().orElse(null), domain.reason().orElse(null));
 
   }
 

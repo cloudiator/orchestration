@@ -24,6 +24,6 @@ public interface NodeDeletionStrategy {
 
   boolean supportsNode(Node node);
 
-  boolean deleteNode(Node node, String userId);
+  boolean deleteNode(Node node);
 
 }

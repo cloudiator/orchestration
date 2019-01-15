@@ -16,19 +16,15 @@
  * under the License.
  */
 
-package io.github.cloudiator.persistance;
+package io.github.cloudiator.domain;
 
-import java.util.List;
-import javax.annotation.Nullable;
+import de.uniulm.omi.cloudiator.util.stateMachine.State;
 
-interface NodeModelRepository extends ModelRepository<NodeModel> {
+public enum NodeState implements State {
 
-  List<NodeModel> getByTenant(String userId);
-
-  @Nullable
-  NodeModel getByTenantAndDomainId(String userId, String domainId);
-
-  @Nullable
-  NodeModel getByDomainId(String domainId);
+  NEW,
+  OK,
+  ERROR,
+  DELETED
 
 }

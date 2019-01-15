@@ -3,9 +3,17 @@ package org.cloudiator.iaas.node;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import io.github.cloudiator.domain.*;
+import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeCandidate;
+import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
+import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.CloudMessageRepository;
 import io.github.cloudiator.messaging.RuntimeConverter;
+import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Function.CreateFunctionRequestMessage;
 import org.cloudiator.messages.Function.FunctionCreatedResponse;
 import org.cloudiator.messages.entities.FaasEntities.Function;
@@ -14,8 +22,6 @@ import org.cloudiator.messaging.SettableFutureResponseCallback;
 import org.cloudiator.messaging.services.FunctionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ExecutionException;
 
 public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStrategy {
 
@@ -77,7 +83,7 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
 
       NodeProperties properties = NodePropertiesBuilder.newBuilder()
           .providerId(nodeCandidate.cloud().id())
-          .memory(function.getMemory())
+          .memory((long) function.getMemory())
           .build();
 
       String name = String.format("%s-%s-%s-%s",
@@ -88,10 +94,13 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
 
       return NodeBuilder.newBuilder()
           .id(function.getId())
+          .userId(userId)
+          .state(NodeState.OK)
           .name(name)
           .nodeType(NodeType.FAAS)
           .nodeProperties(properties)
           .ipAddresses(ImmutableSet.of())
+          .nodeCandidate(nodeCandidate.id())
           .build();
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);

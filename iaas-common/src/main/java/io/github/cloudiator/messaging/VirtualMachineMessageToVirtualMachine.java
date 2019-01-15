@@ -32,7 +32,7 @@ public class VirtualMachineMessageToVirtualMachine implements
 
   public static final VirtualMachineMessageToVirtualMachine INSTANCE = new VirtualMachineMessageToVirtualMachine();
 
-  private LoginCredentialMessageToLoginCredentialConverter loginCredentialConverter = new LoginCredentialMessageToLoginCredentialConverter();
+  private static final LoginCredentialMessageToLoginCredentialConverter LOGIN_CREDENTIAL_CONVERTER = LoginCredentialMessageToLoginCredentialConverter.INSTANCE;
   private ImageMessageToImageConverter imageConverter = ImageMessageToImageConverter.INSTANCE;
   private HardwareMessageToHardwareConverter hardwareConverter = HardwareMessageToHardwareConverter.INSTANCE;
   private LocationMessageToLocationConverter locationConverter = LocationMessageToLocationConverter.INSTANCE;
@@ -64,7 +64,7 @@ public class VirtualMachineMessageToVirtualMachine implements
 
     if (virtualMachine.loginCredential().isPresent()) {
       builder.setLoginCredential(
-          loginCredentialConverter.applyBack(virtualMachine.loginCredential().get()));
+          LOGIN_CREDENTIAL_CONVERTER.applyBack(virtualMachine.loginCredential().get()));
     }
 
     virtualMachine.ipAddresses().forEach(
@@ -92,7 +92,7 @@ public class VirtualMachineMessageToVirtualMachine implements
     }
 
     if (virtualMachine.hasLoginCredential()) {
-      builder.loginCredential(loginCredentialConverter.apply(virtualMachine.getLoginCredential()));
+      builder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(virtualMachine.getLoginCredential()));
     }
 
     virtualMachine.getIpAddressesList().forEach(

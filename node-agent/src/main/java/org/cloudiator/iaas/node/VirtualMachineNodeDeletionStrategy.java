@@ -18,8 +18,6 @@
 
 package org.cloudiator.iaas.node;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.MoreObjects;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeType;
@@ -50,12 +48,12 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
   }
 
   @Override
-  public boolean deleteNode(Node node, String userId) {
+  public boolean deleteNode(Node node) {
 
     SettableFutureResponseCallback<VirtualMachineDeletedResponse, VirtualMachineDeletedResponse> future = SettableFutureResponseCallback
         .create();
     virtualMachineService.deleteVirtualMachineAsync(
-        DeleteVirtualMachineRequestMessage.newBuilder().setVmId(node.id()).setUserId(userId)
+        DeleteVirtualMachineRequestMessage.newBuilder().setVmId(node.id()).setUserId(node.userId())
             .build(), future);
 
     try {

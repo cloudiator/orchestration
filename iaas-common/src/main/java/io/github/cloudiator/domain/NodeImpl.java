@@ -18,6 +18,8 @@
 
 package io.github.cloudiator.domain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
@@ -35,16 +37,39 @@ public class NodeImpl implements Node {
   private final Set<IpAddress> ipAddresses;
   private final String id;
   private final String name;
+  private final NodeState nodeState;
+  private final String userId;
+  @Nullable
+  private final String diagnostic;
+  @Nullable
+  private final String reason;
+  @Nullable
+  private final String nodeCandidate;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id, String name) {
+      Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
+      String userId, @Nullable String diagnostic, @Nullable String reason,
+      @Nullable String nodeCandidate) {
+
+    checkNotNull(nodeProperties, "nodeProperties is null");
+    checkNotNull(nodeType, "nodeType is null");
+    checkNotNull(ipAddresses, "ipAddresses is null");
+    checkNotNull(id, "id is null");
+    checkNotNull(nodeState, "nodeState is null");
+    checkNotNull(userId, "userId is null");
+
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
     this.ipAddresses = ipAddresses;
     this.id = id;
     this.name = name;
+    this.nodeState = nodeState;
+    this.userId = userId;
+    this.diagnostic = diagnostic;
+    this.reason = reason;
+    this.nodeCandidate = nodeCandidate;
   }
 
   @Nullable
@@ -77,6 +102,11 @@ public class NodeImpl implements Node {
   @Override
   public String name() {
     return name;
+  }
+
+  @Override
+  public String userId() {
+    return userId;
   }
 
   @Override
@@ -121,18 +151,43 @@ public class NodeImpl implements Node {
   }
 
   @Override
+  public Optional<String> diagnostic() {
+    return Optional.ofNullable(diagnostic);
+  }
+
+  @Override
+  public Optional<String> reason() {
+    return Optional.ofNullable(reason);
+  }
+
+  @Override
+  public Optional<String> nodeCandidate() {
+    return Optional.ofNullable(nodeCandidate);
+  }
+
+  @Override
   public String id() {
     return id;
   }
 
   @Override
   public String toString() {
-    String ipList = ipAddresses == null ? "null" :  Joiner.on(",").join(ipAddresses);
+    String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
         .add("id", id)
+        .add("userId", userId)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)
         .add("type", nodeType)
-        .add("ipAddresses", ipAddresses).toString();
+        .add("ipAddresses", ipAddresses)
+        .add("diagnostic", diagnostic)
+        .add("reason", reason)
+        .add("nodeCandidate", nodeCandidate)
+        .toString();
+  }
+
+  @Override
+  public NodeState state() {
+    return nodeState;
   }
 }

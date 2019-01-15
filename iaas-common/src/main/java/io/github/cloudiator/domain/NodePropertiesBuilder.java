@@ -31,8 +31,8 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 public class NodePropertiesBuilder {
 
   private String providerId;
-  private int numberOfCores;
-  private long memory;
+  private Integer numberOfCores;
+  private Long memory;
   private Double disk;
   private OperatingSystem operatingSystem;
   private GeoLocation geoLocation;
@@ -59,12 +59,12 @@ public class NodePropertiesBuilder {
     return new NodePropertiesBuilder();
   }
 
-  public NodePropertiesBuilder numberOfCores(int numberOfCores) {
+  public NodePropertiesBuilder numberOfCores(Integer numberOfCores) {
     this.numberOfCores = numberOfCores;
     return this;
   }
 
-  public NodePropertiesBuilder memory(long memory) {
+  public NodePropertiesBuilder memory(Long memory) {
     this.memory = memory;
     return this;
   }

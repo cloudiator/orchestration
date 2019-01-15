@@ -30,7 +30,7 @@ import org.cloudiator.messages.NodeEntities.NodeGroup.Builder;
 public class NodeGroupMessageToNodeGroup implements
     TwoWayConverter<NodeEntities.NodeGroup, NodeGroup> {
 
-  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = new NodeToNodeMessageConverter();
+  private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
   @Override
   public NodeEntities.NodeGroup applyBack(NodeGroup nodeGroup) {
@@ -40,6 +40,7 @@ public class NodeGroupMessageToNodeGroup implements
       builder.addNodes(NODE_MESSAGE_CONVERTER.apply(node));
     }
     builder.setId(nodeGroup.id());
+    builder.setUserId(nodeGroup.userId());
 
     return builder.build();
   }
@@ -52,6 +53,6 @@ public class NodeGroupMessageToNodeGroup implements
       nodes.add(NODE_MESSAGE_CONVERTER.applyBack(node));
     }
 
-    return NodeGroups.of(nodeGroup.getId(), nodes);
+    return NodeGroups.of(nodeGroup.getId(), nodeGroup.getUserId(), nodes);
   }
 }

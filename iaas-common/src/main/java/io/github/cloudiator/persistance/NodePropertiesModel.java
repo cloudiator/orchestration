@@ -29,11 +29,11 @@ class NodePropertiesModel extends Model {
   @Column(nullable = false)
   private String providerId;
 
-  @Column(nullable = false)
-  private int numberOfCores;
+  @Nullable
+  private Integer numberOfCores;
 
-  @Column(nullable = false)
-  private long memory;
+  @Nullable
+  private Long memory;
 
   @Column(nullable = true)
   @Nullable
@@ -54,7 +54,8 @@ class NodePropertiesModel extends Model {
 
   }
 
-  NodePropertiesModel(String providerId, int numberOfCores, long memory, @Nullable Double disk,
+  NodePropertiesModel(String providerId, @Nullable Integer numberOfCores, @Nullable Long memory,
+      @Nullable Double disk,
       @Nullable OperatingSystemModel operatingSystem, @Nullable GeoLocationModel geoLocation) {
 
     this.providerId = providerId;
@@ -66,11 +67,13 @@ class NodePropertiesModel extends Model {
 
   }
 
-  public int getNumberOfCores() {
+  @Nullable
+  public Integer getNumberOfCores() {
     return numberOfCores;
   }
 
-  public long getMemory() {
+  @Nullable
+  public Long getMemory() {
     return memory;
   }
 

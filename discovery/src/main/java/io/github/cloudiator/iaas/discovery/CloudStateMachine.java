@@ -95,7 +95,6 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
                     "Executing post hook to announce cloud changed event for cloud %s. Previous state was %s, new state is %s.",
                     cloud, from, cloud.state()));
             cloudService.announceEvent(cloudEvent);
-            CloudStateMachine.this.cloudService.announceEvent(cloudEvent);
           }
         })
         .build();

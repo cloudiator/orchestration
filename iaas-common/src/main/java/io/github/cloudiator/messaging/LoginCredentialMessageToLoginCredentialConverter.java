@@ -27,6 +27,11 @@ import org.cloudiator.messages.entities.IaasEntities.LoginCredential.Builder;
 public class LoginCredentialMessageToLoginCredentialConverter implements
     TwoWayConverter<IaasEntities.LoginCredential, LoginCredential> {
 
+  public static final LoginCredentialMessageToLoginCredentialConverter INSTANCE = new LoginCredentialMessageToLoginCredentialConverter();
+
+  private LoginCredentialMessageToLoginCredentialConverter() {
+  }
+
   @Override
   public IaasEntities.LoginCredential applyBack(LoginCredential loginCredential) {
     Builder builder = IaasEntities.LoginCredential.newBuilder();

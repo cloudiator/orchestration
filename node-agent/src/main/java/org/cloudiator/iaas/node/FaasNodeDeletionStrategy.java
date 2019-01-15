@@ -3,14 +3,13 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeType;
+import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Function;
 import org.cloudiator.messages.Function.FunctionDeletedResponse;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
 import org.cloudiator.messaging.services.FunctionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ExecutionException;
 
 public class FaasNodeDeletionStrategy implements NodeDeletionStrategy {
 
@@ -30,13 +29,13 @@ public class FaasNodeDeletionStrategy implements NodeDeletionStrategy {
   }
 
   @Override
-  public boolean deleteNode(Node node, String userId) {
+  public boolean deleteNode(Node node) {
 
     SettableFutureResponseCallback<FunctionDeletedResponse, FunctionDeletedResponse> future =
         SettableFutureResponseCallback.create();
     functionService.deleteFuntionAsync(
         Function.DeleteFunctionRequestMessage.newBuilder()
-            .setFunctionId(node.id()).setUserId(userId).build(), future);
+            .setFunctionId(node.id()).setUserId(node.userId()).build(), future);
 
     try {
       future.get();
