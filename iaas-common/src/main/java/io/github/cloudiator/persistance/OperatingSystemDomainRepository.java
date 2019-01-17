@@ -53,14 +53,14 @@ public class OperatingSystemDomainRepository {
 
     return new OperatingSystemModel(
         domain.operatingSystemArchitecture(), domain.operatingSystemFamily(),
-        String.valueOf(domain.operatingSystemVersion().version()));
+        domain.operatingSystemVersion().version());
   }
 
   private void updateModel(OperatingSystem domain, OperatingSystemModel model) {
 
     model.setOperatingSystemArchitecture(domain.operatingSystemArchitecture());
     model.setOperatingSystemFamily(domain.operatingSystemFamily());
-    model.setVersion(String.valueOf(domain.operatingSystemVersion().version()));
+    model.setVersion(domain.operatingSystemVersion().version());
 
   }
 }

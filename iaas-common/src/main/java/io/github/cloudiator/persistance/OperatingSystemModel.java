@@ -49,7 +49,7 @@ class OperatingSystemModel extends Model
       operatingSystemFamily;
 
   @Nullable
-  private String version;
+  private Integer version;
 
   /**
    * Empty constructor for hibernate.
@@ -58,7 +58,7 @@ class OperatingSystemModel extends Model
   }
 
   public OperatingSystemModel(OperatingSystemArchitecture operatingSystemArchitecture,
-      OperatingSystemFamily operatingSystemFamily, @Nullable String version) {
+      OperatingSystemFamily operatingSystemFamily, @Nullable Integer version) {
 
     checkNotNull(operatingSystemArchitecture);
     checkNotNull(operatingSystemFamily);
@@ -72,7 +72,7 @@ class OperatingSystemModel extends Model
     checkNotNull(operatingSystem);
     this.operatingSystemArchitecture = operatingSystem.operatingSystemArchitecture();
     this.operatingSystemFamily = operatingSystem.operatingSystemFamily();
-    this.version = operatingSystem.operatingSystemVersion().name().orElse(null);
+    this.version = operatingSystem.operatingSystemVersion().version();
   }
 
   @Override
@@ -91,7 +91,7 @@ class OperatingSystemModel extends Model
       return OperatingSystemVersions.unknown();
     }
     return OperatingSystemVersions
-        .of(version, operatingSystemFamily.operatingSystemVersionFormat());
+        .of(version, null);
   }
 
   public OperatingSystemModel setOperatingSystemArchitecture(
@@ -106,7 +106,7 @@ class OperatingSystemModel extends Model
     return this;
   }
 
-  public OperatingSystemModel setVersion(@Nullable String version) {
+  public OperatingSystemModel setVersion(@Nullable Integer version) {
     this.version = version;
     return this;
   }
