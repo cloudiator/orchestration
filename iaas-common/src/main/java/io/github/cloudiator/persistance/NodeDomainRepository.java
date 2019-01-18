@@ -173,7 +173,8 @@ public class NodeDomainRepository {
       ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
     }
 
-    return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
+    return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
+        nodePropertiesModel,
         loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
 

@@ -93,7 +93,8 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
           groupName);
 
       return NodeBuilder.newBuilder()
-          .id(function.getId())
+          .generateId()
+          .originId(function.getId())
           .userId(userId)
           .state(NodeState.OK)
           .name(name)

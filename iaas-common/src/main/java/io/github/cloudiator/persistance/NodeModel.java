@@ -40,6 +40,9 @@ class NodeModel extends Model {
   @Column(nullable = false, unique = true)
   private String domainId;
 
+  @Nullable
+  private String originId;
+
   @Column(nullable = false)
   private String name;
 
@@ -82,7 +85,7 @@ class NodeModel extends Model {
 
   }
 
-  NodeModel(String domainId, String name, TenantModel tenantModel,
+  NodeModel(String domainId, @Nullable String originId, String name, TenantModel tenantModel,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
       @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel,
@@ -96,6 +99,7 @@ class NodeModel extends Model {
     checkNotNull(nodeState, "nodeState is null");
 
     this.domainId = domainId;
+    this.originId = originId;
     this.name = name;
     this.tenantModel = tenantModel;
     this.nodeProperties = nodeProperties;
@@ -180,5 +184,10 @@ class NodeModel extends Model {
   public NodeModel setReason(@Nullable String reason) {
     this.reason = reason;
     return this;
+  }
+
+  @Nullable
+  public String getOriginId() {
+    return originId;
   }
 }

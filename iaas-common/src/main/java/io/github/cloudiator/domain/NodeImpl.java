@@ -45,12 +45,14 @@ public class NodeImpl implements Node {
   private final String reason;
   @Nullable
   private final String nodeCandidate;
+  @Nullable
+  private final String originId;
 
   NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
       String userId, @Nullable String diagnostic, @Nullable String reason,
-      @Nullable String nodeCandidate) {
+      @Nullable String nodeCandidate, @Nullable String originId) {
 
     checkNotNull(nodeProperties, "nodeProperties is null");
     checkNotNull(nodeType, "nodeType is null");
@@ -70,6 +72,7 @@ public class NodeImpl implements Node {
     this.diagnostic = diagnostic;
     this.reason = reason;
     this.nodeCandidate = nodeCandidate;
+    this.originId = originId;
   }
 
   @Nullable
@@ -97,6 +100,11 @@ public class NodeImpl implements Node {
       }
     }
     return null;
+  }
+
+  @Override
+  public Optional<String> originId() {
+    return Optional.ofNullable(originId);
   }
 
   @Override
@@ -175,6 +183,7 @@ public class NodeImpl implements Node {
     String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
         .add("id", id)
+        .add("originId", id)
         .add("userId", userId)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)

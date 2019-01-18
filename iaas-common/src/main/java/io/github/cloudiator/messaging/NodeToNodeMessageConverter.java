@@ -77,6 +77,10 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
       nodeBuilder.userId(node.getUserId());
     }
 
+    if (!Strings.isNullOrEmpty(node.getOriginId())) {
+      nodeBuilder.originId(node.getOriginId());
+    }
+
     return nodeBuilder.build();
   }
 
@@ -108,6 +112,10 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     if (node.loginCredential().isPresent()) {
       builder
           .setLoginCredential(LOGIN_CREDENTIAL_CONVERTER.applyBack(node.loginCredential().get()));
+    }
+
+    if (node.originId().isPresent()) {
+      builder.setOriginId(node.originId().get());
     }
 
     return builder.build();

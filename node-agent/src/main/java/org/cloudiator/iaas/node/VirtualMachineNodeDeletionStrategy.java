@@ -18,6 +18,8 @@
 
 package org.cloudiator.iaas.node;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.base.MoreObjects;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeType;
@@ -52,8 +54,12 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
 
     SettableFutureResponseCallback<VirtualMachineDeletedResponse, VirtualMachineDeletedResponse> future = SettableFutureResponseCallback
         .create();
+
+    checkState(node.originId().isPresent(), "No origin id is present on node. Can not delete.");
+
     virtualMachineService.deleteVirtualMachineAsync(
-        DeleteVirtualMachineRequestMessage.newBuilder().setVmId(node.id()).setUserId(node.userId())
+        DeleteVirtualMachineRequestMessage.newBuilder().setVmId(node.originId().get())
+            .setUserId(node.userId())
             .build(), future);
 
     try {
