@@ -36,6 +36,7 @@ import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Installation.InstallationRequest;
 import org.cloudiator.messages.Installation.InstallationResponse;
 import org.cloudiator.messages.InstallationEntities.Tool;
+import org.cloudiator.messages.NodeEntities;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
@@ -83,8 +84,12 @@ public class InstallEventSubscriber implements Runnable {
 
     LOGGER.debug("Received installRequest with requestId: " + requestId);
 
+    final NodeEntities.Node nodeMessage = installationRequest.getInstallation().getNode();
+
     Node node = NODE_MESSAGE_CONVERTER
-        .applyBack(installationRequest.getInstallation().getNode());
+        .applyBack(
+            NodeEntities.Node.newBuilder(nodeMessage).setUserId(installationRequest.getUserId())
+                .build());
 
     RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
         Sets.newHashSet(
