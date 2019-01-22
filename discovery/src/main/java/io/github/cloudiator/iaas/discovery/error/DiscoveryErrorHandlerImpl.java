@@ -73,7 +73,7 @@ public class DiscoveryErrorHandlerImpl implements DiscoveryErrorHandler {
       LOGGER.info(String
           .format("%s is setting cloud with id %s to error state due to error %s.", this, cloudId,
               e.getMessage()), e);
-      cloudStateMachine.apply(cloudWithError, CloudState.ERROR);
+      cloudStateMachine.apply(cloudWithError, CloudState.ERROR, new Object[0]);
     } catch (ExecutionException ex) {
       LOGGER.error(
           String

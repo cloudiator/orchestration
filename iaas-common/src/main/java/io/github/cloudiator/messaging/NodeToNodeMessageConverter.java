@@ -137,7 +137,7 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
       }
 
       if (nodeProperties.memory().isPresent()) {
-        builder.setMemory(nodeProperties.numberOfCores().get());
+        builder.setMemory(nodeProperties.memory().get());
       }
 
       if (nodeProperties.geoLocation().isPresent()) {

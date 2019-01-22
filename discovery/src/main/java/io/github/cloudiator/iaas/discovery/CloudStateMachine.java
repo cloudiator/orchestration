@@ -162,8 +162,8 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
   }
 
   @Override
-  public ExtendedCloud apply(ExtendedCloud object, State to)
+  public ExtendedCloud apply(ExtendedCloud object, State to, Object[] arguments)
       throws ExecutionException {
-    return stateMachine.apply(object, to);
+    return stateMachine.apply(object, to, arguments);
   }
 }

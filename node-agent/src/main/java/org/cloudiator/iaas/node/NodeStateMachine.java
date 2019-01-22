@@ -28,7 +28,6 @@ import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.TransitionBuilder;
-import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeState;
@@ -151,7 +150,7 @@ public class NodeStateMachine implements StateMachine<Node> {
   }
 
   @Override
-  public Node apply(Node object, State to) throws ExecutionException {
-    return stateMachine.apply(object, to);
+  public Node apply(Node object, State to, Object[] arguments) throws ExecutionException {
+    return stateMachine.apply(object, to, arguments);
   }
 }

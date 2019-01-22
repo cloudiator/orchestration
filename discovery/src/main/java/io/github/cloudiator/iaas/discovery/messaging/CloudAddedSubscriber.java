@@ -79,7 +79,7 @@ public class CloudAddedSubscriber implements Runnable {
 
       try {
         final ExtendedCloud createdCloud = cloudStateMachine
-            .apply(cloudToBeCreated, CloudState.OK);
+            .apply(cloudToBeCreated, CloudState.OK, new Object[0]);
 
         final CloudCreatedResponse cloudCreatedResponse = CloudCreatedResponse.newBuilder()
             .setCloud(
