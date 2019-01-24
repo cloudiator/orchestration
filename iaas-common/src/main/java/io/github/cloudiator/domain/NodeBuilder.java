@@ -100,7 +100,7 @@ public class NodeBuilder {
         .nodeProperties(nodeProperties).generateId().originId(virtualMachine.id())
         .name(virtualMachine.name());
   }
-  
+
   public NodeBuilder failedNode() {
     return newBuilder().generateId().state(NodeState.ERROR);
   }

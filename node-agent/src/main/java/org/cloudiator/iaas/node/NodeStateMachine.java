@@ -18,25 +18,27 @@
 
 package org.cloudiator.iaas.node;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
-import de.uniulm.omi.cloudiator.util.function.ThrowingFunction;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
 import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
-import de.uniulm.omi.cloudiator.util.stateMachine.TransitionBuilder;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
-import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.concurrent.ExecutionException;
+import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.messages.Node.NodeEvent;
-import org.cloudiator.messaging.services.CloudService;
 import org.cloudiator.messaging.services.NodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,43 +48,33 @@ public class NodeStateMachine implements StateMachine<Node> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeStateMachine.class);
   private final StateMachine<Node> stateMachine;
-  private final CloudDomainRepository cloudDomainRepository;
-  private final CloudRegistry cloudRegistry;
-  private final CloudService cloudService;
   private final NodeService nodeService;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
+  private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
 
   @Inject
   public NodeStateMachine(
-      CloudDomainRepository cloudDomainRepository,
-      CloudRegistry cloudRegistry, CloudService cloudService,
       NodeService nodeService,
       NodeDomainRepository nodeDomainRepository,
-      NodeDeletionStrategy nodeDeletionStrategy) {
-    this.cloudDomainRepository = cloudDomainRepository;
-    this.cloudRegistry = cloudRegistry;
-    this.cloudService = cloudService;
+      NodeDeletionStrategy nodeDeletionStrategy,
+      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory) {
     this.nodeService = nodeService;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<Node>builder().errorState(NodeState.ERROR)
+    stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.NEW).to(NodeState.OK)
+            Transitions.<Node>transitionBuilder().from(NodeState.NEW).to(NodeState.OK)
                 .action(newToOk())
                 .build())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.OK).to(NodeState.DELETED)
+            Transitions.<Node>transitionBuilder().from(NodeState.OK).to(NodeState.DELETED)
                 .action(delete())
                 .build())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.ERROR)
+            Transitions.<Node>transitionBuilder().from(NodeState.ERROR)
                 .to(NodeState.DELETED)
                 .action(delete())
-                .build())
-        .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.OK).to(NodeState.ERROR)
-                .action(error())
                 .build())
         .addHook(new StateMachineHook<Node>() {
           @Override
@@ -110,12 +102,14 @@ public class NodeStateMachine implements StateMachine<Node> {
 
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeDeletionStrategy = nodeDeletionStrategy;
+    this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
   }
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void save(Node node) {
+  Node save(Node node) {
     nodeDomainRepository.save(node);
+    return node;
   }
 
   @SuppressWarnings("WeakerAccess")
@@ -125,15 +119,36 @@ public class NodeStateMachine implements StateMachine<Node> {
   }
 
 
-  private ThrowingFunction<Node, Node> newToOk() {
+  private TransitionAction<Node> newToOk() {
 
-    //todo implement
-    throw new UnsupportedOperationException();
+    return (o, arguments) -> {
+
+      checkState(arguments.length == 2, "Expected arguments to be of size 1");
+      final Object first = arguments[0];
+      checkState(first instanceof NodeCandidate,
+          "Expected first argument to be of type node candidate");
+      NodeCandidate nodeCandidate = (NodeCandidate) first;
+      final Object second = arguments[1];
+      checkState(second instanceof String, "Expected second argument to be of type string");
+      String groupName = (String) second;
+
+      checkState(nodeCandidateIncarnationFactory.canIncarnate(nodeCandidate), String.format(
+          "Can not incarnate node candidate %s. Not supported by nodeIncarnationFactory %s.",
+          nodeCandidate, nodeCandidateIncarnationFactory));
+
+      final Node created = nodeCandidateIncarnationFactory.create(groupName, o.userId())
+          .apply(nodeCandidate);
+
+      save(created);
+
+      return created;
+
+    };
   }
 
-  private ThrowingFunction<Node, Node> delete() {
+  private TransitionAction<Node> delete() {
 
-    return node -> {
+    return (node, arguments) -> {
 
       nodeDeletionStrategy.deleteNode(node);
       delete(node);
@@ -142,11 +157,18 @@ public class NodeStateMachine implements StateMachine<Node> {
     };
   }
 
-  private ThrowingFunction<Node, Node> error() {
+  private ErrorTransition<Node> error() {
 
-    //todo implement
-    throw new UnsupportedOperationException();
+    return Transitions.<Node>errorTransitionBuilder()
+        .action((o, arguments, throwable) -> {
 
+          final NodeBuilder builder = NodeBuilder.of(o).state(NodeState.ERROR);
+          if (throwable != null) {
+            builder.diagnostic(throwable.getMessage());
+          }
+          return save(builder.build());
+        })
+        .errorState(NodeState.ERROR).build();
   }
 
   @Override

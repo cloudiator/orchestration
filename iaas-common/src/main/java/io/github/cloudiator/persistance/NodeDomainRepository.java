@@ -131,15 +131,59 @@ public class NodeDomainRepository {
     checkState(
         domain.userId().equals(nodeModel.getTenantModel().getUserId()), "user id does not match");
 
-    //todo implement state persistence
-    //todo update reason and diagnostic
-    throw new UnsupportedOperationException("Updating node model is currently not supported");
+    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
+    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
+    final IpGroupModel ipGroupModel = generateIpModel(domain);
+
+    nodeModel.setOriginId(domain.originId().orElse(null));
+    nodeModel.setName(domain.name());
+    nodeModel.setNodeProperties(nodePropertiesModel);
+    nodeModel.setLoginCredential(loginCredentialModel);
+    nodeModel.setType(nodeModel.getType());
+    nodeModel.setIpGroup(ipGroupModel);
+    nodeModel.setNodeState(domain.state());
+    nodeModel.setDiagnostic(domain.diagnostic().orElse(null));
+    nodeModel.setReason(domain.reason().orElse(null));
+
+    return nodeModel;
   }
 
   private NodeModel createModel(Node domain,
       @Nullable NodeGroupModel nodeGroupModel) {
 
     final TenantModel tenantModel = tenantModelRepository.createOrGet(domain.userId());
+
+    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
+    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
+    final IpGroupModel ipGroupModel = generateIpModel(domain);
+
+    return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
+        nodePropertiesModel,
+        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
+        domain.diagnostic().orElse(null), domain.reason().orElse(null));
+
+  }
+
+  @Nullable
+  private IpGroupModel generateIpModel(Node domain) {
+    IpGroupModel ipGroupModel = null;
+    if (!domain.ipAddresses().isEmpty()) {
+      ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
+    }
+    return ipGroupModel;
+  }
+
+  @Nullable
+  private LoginCredentialModel generateLoginCredential(Node domain) {
+    LoginCredentialModel loginCredentialModel = null;
+    if (domain.loginCredential().isPresent()) {
+      loginCredentialModel = loginCredentialDomainRepository
+          .saveAndGet(domain.loginCredential().get());
+    }
+    return loginCredentialModel;
+  }
+
+  private NodePropertiesModel generateNodeProperties(Node domain) {
 
     final NodeProperties nodeProperties = domain.nodeProperties();
 
@@ -154,12 +198,6 @@ public class NodeDomainRepository {
       geoLocationModel = geoLocationDomainRepository.saveAndGet(nodeProperties.geoLocation().get());
     }
 
-    LoginCredentialModel loginCredentialModel = null;
-    if (domain.loginCredential().isPresent()) {
-      loginCredentialModel = loginCredentialDomainRepository
-          .saveAndGet(domain.loginCredential().get());
-    }
-
     final NodePropertiesModel nodePropertiesModel = new NodePropertiesModel(
         nodeProperties.providerId(),
         nodeProperties.numberOfCores().orElse(null), nodeProperties.memory().orElse(null),
@@ -168,15 +206,7 @@ public class NodeDomainRepository {
 
     nodePropertiesModelRepository.save(nodePropertiesModel);
 
-    IpGroupModel ipGroupModel = null;
-    if (!domain.ipAddresses().isEmpty()) {
-      ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
-    }
-
-    return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
-        nodePropertiesModel,
-        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
-        domain.diagnostic().orElse(null), domain.reason().orElse(null));
+    return nodePropertiesModel;
 
   }
 
