@@ -49,8 +49,14 @@ public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntitie
 
   @Override
   public Image apply(IaasEntities.Image image) {
-    return ImageBuilder.newBuilder().id(image.getId()).providerId(image.getProviderId())
-        .name(image.getName()).os(operatingSystemConverter.apply(image.getOperationSystem()))
-        .location(LOCATION_CONVERTER.apply(image.getLocation())).build();
+    ImageBuilder builder = ImageBuilder.newBuilder()
+        .id(image.getId())
+        .providerId(image.getProviderId())
+        .name(image.getName())
+        .os(operatingSystemConverter.apply(image.getOperationSystem()));
+    if (image.hasLocation()) {
+      builder.location(LOCATION_CONVERTER.apply(image.getLocation()));
+    }
+    return builder.build();
   }
 }
