@@ -18,21 +18,18 @@
 
 package org.cloudiator.iaas.node;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
 import de.uniulm.omi.cloudiator.util.stateMachine.State;
-import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
-import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
@@ -44,10 +41,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class NodeStateMachine implements StateMachine<Node> {
+public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeStateMachine.class);
-  private final StateMachine<Node> stateMachine;
+  private final ErrorAwareStateMachine<Node> stateMachine;
   private final NodeService nodeService;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
@@ -64,11 +61,11 @@ public class NodeStateMachine implements StateMachine<Node> {
     //noinspection unchecked
     stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
         .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.NEW).to(NodeState.OK)
-                .action(newToOk())
+            Transitions.<Node>transitionBuilder().from(NodeState.CREATED).to(NodeState.RUNNING)
+                .action(createdToRunning())
                 .build())
         .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.OK).to(NodeState.DELETED)
+            Transitions.<Node>transitionBuilder().from(NodeState.RUNNING).to(NodeState.DELETED)
                 .action(delete())
                 .build())
         .addTransition(
@@ -119,30 +116,12 @@ public class NodeStateMachine implements StateMachine<Node> {
   }
 
 
-  private TransitionAction<Node> newToOk() {
+  private TransitionAction<Node> createdToRunning() {
 
     return (o, arguments) -> {
-
-      checkState(arguments.length == 2, "Expected arguments to be of size 1");
-      final Object first = arguments[0];
-      checkState(first instanceof NodeCandidate,
-          "Expected first argument to be of type node candidate");
-      NodeCandidate nodeCandidate = (NodeCandidate) first;
-      final Object second = arguments[1];
-      checkState(second instanceof String, "Expected second argument to be of type string");
-      String groupName = (String) second;
-
-      checkState(nodeCandidateIncarnationFactory.canIncarnate(nodeCandidate), String.format(
-          "Can not incarnate node candidate %s. Not supported by nodeIncarnationFactory %s.",
-          nodeCandidate, nodeCandidateIncarnationFactory));
-
-      final Node created = nodeCandidateIncarnationFactory.create(groupName, o.userId())
-          .apply(nodeCandidate);
-
-      save(created);
-
-      return created;
-
+      final Node running = NodeBuilder.of(o).state(NodeState.RUNNING).build();
+      save(running);
+      return running;
     };
   }
 
@@ -174,5 +153,10 @@ public class NodeStateMachine implements StateMachine<Node> {
   @Override
   public Node apply(Node object, State to, Object[] arguments) throws ExecutionException {
     return stateMachine.apply(object, to, arguments);
+  }
+
+  @Override
+  public Node fail(Node object, Object[] arguments, Throwable t) {
+    return stateMachine.fail(object, arguments, t);
   }
 }

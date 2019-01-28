@@ -26,6 +26,7 @@ import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
+import io.github.cloudiator.util.NameGenerator;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
@@ -53,7 +54,7 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
   }
 
   @Override
-  public Node apply(NodeCandidate nodeCandidate) throws ExecutionException {
+  public Node apply(NodeCandidate nodeCandidate) {
 
     final SettableFutureResponseCallback<VirtualMachineCreatedResponse, VirtualMachine> virtualMachineFuture = SettableFutureResponseCallback
         .create(
@@ -79,12 +80,16 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
           .format("%s incarnated nodeCandidate %s as virtual machine %s.", this, nodeCandidate,
               virtualMachine));
 
-      return NodeBuilder.of(virtualMachine).state(NodeState.OK).userId(userId)
+      return NodeBuilder.of(virtualMachine).state(NodeState.CREATED).userId(userId)
           .nodeCandidate(nodeCandidate.id()).build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",
           e);
+    } catch (ExecutionException e) {
+      return NodeBuilder.newBuilder().name(NAME_GENERATOR.generate(groupName))
+          .state(NodeState.FAILED).userId(userId).nodeCandidate(nodeCandidate.id())
+          .diagnostic(e.getMessage()).generateId().build();
     }
   }
 

@@ -67,7 +67,7 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
   }
 
   @Override
-  public Node apply(NodeCandidate nodeCandidate) throws ExecutionException {
+  public Node apply(NodeCandidate nodeCandidate) {
     final SettableFutureResponseCallback<FunctionCreatedResponse, Function> callback =
         SettableFutureResponseCallback.create(FunctionCreatedResponse::getFunction);
 
@@ -77,26 +77,26 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
 
     functionService.createFuntionAsync(createFunctionRequestMessage, callback);
 
+    final Cloud cloud = cloudMessageRepository.getById(userId, nodeCandidate.cloud().id());
+    String name = String.format("%s-%s-%s-%s",
+        cloud.api().providerName(),
+        cloud.configuration().nodeGroup(),
+        "faas",
+        groupName);
+
     try {
       final Function function = callback.get();
-      final Cloud cloud = cloudMessageRepository.getById(userId, nodeCandidate.cloud().id());
 
       NodeProperties properties = NodePropertiesBuilder.newBuilder()
           .providerId(nodeCandidate.cloud().id())
           .memory((long) function.getMemory())
           .build();
 
-      String name = String.format("%s-%s-%s-%s",
-          cloud.api().providerName(),
-          cloud.configuration().nodeGroup(),
-          "faas",
-          groupName);
-
       return NodeBuilder.newBuilder()
           .generateId()
           .originId(function.getId())
           .userId(userId)
-          .state(NodeState.OK)
+          .state(NodeState.CREATED)
           .name(name)
           .nodeType(NodeType.FAAS)
           .nodeProperties(properties)
@@ -105,6 +105,10 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
           .build();
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
+    } catch (ExecutionException e) {
+      return NodeBuilder.newBuilder().generateId().userId(userId).state(NodeState.FAILED).name(name)
+          .nodeType(NodeType.FAAS).nodeCandidate(nodeCandidate.id()).diagnostic(e.getMessage())
+          .build();
     }
   }
 

@@ -118,9 +118,13 @@ public class NodeDomainRepository {
   }
 
   public void delete(String id) {
+
+    //todo: delete group when last member leaves?
+
     checkNotNull(id, "id is null");
 
     NodeModel byDomainId = nodeModelRepository.getByDomainId(id);
+
     checkState(byDomainId != null, "Node with the id %s does not exist.", id);
     nodeModelRepository.delete(byDomainId);
   }

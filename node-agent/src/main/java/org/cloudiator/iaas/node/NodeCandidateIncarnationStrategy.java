@@ -19,12 +19,12 @@
 package org.cloudiator.iaas.node;
 
 
-import de.uniulm.omi.cloudiator.util.function.ThrowingFunction;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeCandidate;
+import java.util.function.Function;
 
 
-public interface NodeCandidateIncarnationStrategy extends ThrowingFunction<NodeCandidate, Node> {
+public interface NodeCandidateIncarnationStrategy extends Function<NodeCandidate, Node> {
 
   interface NodeCandidateIncarnationFactory {
 

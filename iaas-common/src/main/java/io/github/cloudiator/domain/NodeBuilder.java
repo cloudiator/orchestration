@@ -26,6 +26,7 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import io.github.cloudiator.util.NameGenerator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -100,11 +101,6 @@ public class NodeBuilder {
         .nodeProperties(nodeProperties).generateId().originId(virtualMachine.id())
         .name(virtualMachine.name());
   }
-
-  public NodeBuilder failedNode() {
-    return newBuilder().generateId().state(NodeState.ERROR);
-  }
-
 
   public NodeBuilder nodeProperties(
       NodeProperties nodeProperties) {
