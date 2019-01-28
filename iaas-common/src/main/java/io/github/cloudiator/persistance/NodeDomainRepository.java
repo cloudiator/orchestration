@@ -139,7 +139,12 @@ public class NodeDomainRepository {
     final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
     final IpGroupModel ipGroupModel = generateIpModel(domain);
 
-    nodeModel.setOriginId(domain.originId().orElse(null));
+    if (nodeModel.getOriginId() != null) {
+      checkState(domain.originId().isPresent(), "model has a originId but domain object does not.");
+      checkState(domain.originId().get().equals(nodeModel.getOriginId()),
+          "orgin id does not match");
+      nodeModel.setOriginId(domain.originId().orElse(null));
+    }
     nodeModel.setName(domain.name());
     nodeModel.setNodeProperties(nodePropertiesModel);
     nodeModel.setLoginCredential(loginCredentialModel);
