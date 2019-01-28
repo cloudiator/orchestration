@@ -1,5 +1,7 @@
 package org.cloudiator.iaas.node;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeType;
@@ -33,9 +35,12 @@ public class FaasNodeDeletionStrategy implements NodeDeletionStrategy {
 
     SettableFutureResponseCallback<FunctionDeletedResponse, FunctionDeletedResponse> future =
         SettableFutureResponseCallback.create();
+
+    checkState(node.originId().isPresent(), "No origin id is present on node. Can not delete");
+
     functionService.deleteFuntionAsync(
         Function.DeleteFunctionRequestMessage.newBuilder()
-            .setFunctionId(node.id()).setUserId(node.userId()).build(), future);
+            .setFunctionId(node.originId().get()).setUserId(node.userId()).build(), future);
 
     try {
       future.get();

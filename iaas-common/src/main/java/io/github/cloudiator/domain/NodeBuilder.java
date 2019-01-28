@@ -26,7 +26,9 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import io.github.cloudiator.util.NameGenerator;
 import java.util.Set;
+import java.util.UUID;
 
 public class NodeBuilder {
 
@@ -41,6 +43,7 @@ public class NodeBuilder {
   private String diagnostic;
   private String reason;
   private String nodeCandidate;
+  private String originId;
 
   private NodeBuilder() {
   }
@@ -57,6 +60,7 @@ public class NodeBuilder {
     diagnostic = node.diagnostic().orElse(null);
     reason = node.reason().orElse(null);
     nodeCandidate = node.nodeCandidate().orElse(null);
+    originId = node.originId().orElse(null);
   }
 
   public static NodeBuilder newBuilder() {
@@ -94,9 +98,9 @@ public class NodeBuilder {
 
     return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
         .loginCredential(loginCredential)
-        .nodeProperties(nodeProperties).id(virtualMachine.id()).name(virtualMachine.name());
+        .nodeProperties(nodeProperties).generateId().originId(virtualMachine.id())
+        .name(virtualMachine.name());
   }
-
 
   public NodeBuilder nodeProperties(
       NodeProperties nodeProperties) {
@@ -121,8 +125,18 @@ public class NodeBuilder {
     return this;
   }
 
+  public NodeBuilder generateId() {
+    this.id = UUID.randomUUID().toString();
+    return this;
+  }
+
   public NodeBuilder id(String id) {
     this.id = id;
+    return this;
+  }
+
+  public NodeBuilder originId(String originId) {
+    this.originId = originId;
     return this;
   }
 
@@ -158,6 +172,6 @@ public class NodeBuilder {
 
   public Node build() {
     return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state,
-        userId, diagnostic, reason, nodeCandidate);
+        userId, diagnostic, reason, nodeCandidate, originId);
   }
 }

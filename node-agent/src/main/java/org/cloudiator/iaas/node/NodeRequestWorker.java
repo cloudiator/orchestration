@@ -23,12 +23,14 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeGroups;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeCandidateConverter;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.persistance.NodeDomainRepository;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -56,19 +58,21 @@ public class NodeRequestWorker implements Runnable {
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
+  private final NodeStateMachine nodeStateMachine;
 
   @Inject
   public NodeRequestWorker(NodeRequestQueue nodeRequestQueue,
       MatchmakingService matchmakingService,
       MessageInterface messageInterface,
       NodeDomainRepository nodeDomainRepository,
-      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory) {
+      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory,
+      NodeStateMachine nodeStateMachine) {
     this.nodeRequestQueue = nodeRequestQueue;
     this.matchmakingService = matchmakingService;
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
-
+    this.nodeStateMachine = nodeStateMachine;
   }
 
   private static String buildErrorMessage(List<Throwable> exceptions) {
@@ -116,8 +120,7 @@ public class NodeRequestWorker implements Runnable {
                 "Illegal request case " + userNodeRequest.getNodeRequestMessage().getRequestCase());
         }
 
-        List<Node> nodes = new ArrayList<>();
-        List<Throwable> exceptions = new ArrayList<>();
+        Set<Node> nodes = new HashSet<>();
 
         CountDownLatch countDownLatch = new CountDownLatch(
             nodeCandidates.size());
@@ -131,13 +134,21 @@ public class NodeRequestWorker implements Runnable {
             nodeCandidate -> {
 
               //incarnate node candidate to a new
-              try {
-                final Node incarnation = nodeCandidateIncarnationFactory.create(groupName, userId)
-                    .apply(NODE_CANDIDATE_CONVERTER.apply(nodeCandidate));
-                nodes.add(incarnation);
-              } catch (ExecutionException e) {
-                exceptions.add(e.getCause());
+              Node incarnation = nodeCandidateIncarnationFactory.create(groupName, userId)
+                  .apply(NODE_CANDIDATE_CONVERTER.apply(nodeCandidate));
+
+              if (incarnation.state().equals(NodeState.FAILED)) {
+                incarnation = nodeStateMachine.fail(incarnation, new Object[0], null);
+              } else {
+                try {
+                  incarnation = nodeStateMachine.apply(incarnation, NodeState.RUNNING, null);
+                } catch (ExecutionException e) {
+                  throw new IllegalStateException("Could not switch state of node");
+                }
               }
+
+              nodes.add(incarnation);
+
               countDownLatch.countDown();
             });
 
@@ -151,31 +162,15 @@ public class NodeRequestWorker implements Runnable {
                 this,
                 userNodeRequest));
 
-        if (exceptions.isEmpty()) {
+        //create node group
+        final NodeGroup nodeGroup = createNodeGroup(userId, nodes);
 
-          //create node group
-          final NodeGroup nodeGroup = NodeGroups
-              .of(userId, nodes);
-          LOGGER
-              .debug(String.format("%s is grouping the nodes of request %s to node group %s.", this,
-                  userNodeRequest, nodeGroup));
-
-          //persist the node group
-          persistNodeGroup(nodeGroup);
-
-          LOGGER.debug(
-              String.format("%s is replying success for request %s with node group %s.", this,
-                  userNodeRequest, nodeGroup));
-          messageInterface.reply(messageId,
-              NodeRequestResponse.newBuilder()
-                  .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
-        } else {
-          LOGGER.error(String.format(
-              "%s received error messages %s while starting virtual machines for node request %s. Replying with failure.",
-              this, buildErrorMessage(exceptions), userNodeRequest));
-          messageInterface.reply(NodeRequestResponse.class, messageId,
-              Error.newBuilder().setMessage(buildErrorMessage(exceptions)).setCode(500).build());
-        }
+        LOGGER.debug(
+            String.format("%s is replying success for request %s with node group %s.", this,
+                userNodeRequest, nodeGroup));
+        messageInterface.reply(messageId,
+            NodeRequestResponse.newBuilder()
+                .setNodeGroup(NODE_GROUP_CONVERTER.applyBack(nodeGroup)).build());
       } catch (Exception e) {
         LOGGER.error(String
             .format("Unexpected error %s occurred while working on request %s.", e.getMessage(),
@@ -184,6 +179,19 @@ public class NodeRequestWorker implements Runnable {
             Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
       }
     }
+  }
+
+  private NodeGroup createNodeGroup(String userId, Set<Node> nodes) {
+    final NodeGroup nodeGroup = NodeGroups
+        .of(userId, nodes);
+    LOGGER
+        .debug(String.format("%s is grouping the nodes %s to node group %s.", this,
+            nodes, nodeGroup));
+
+    //persist the node group
+    persistNodeGroup(nodeGroup);
+
+    return nodeGroup;
   }
 
   private List<NodeCandidate> matchmaking(NodeRequest userNodeRequest, String userId)

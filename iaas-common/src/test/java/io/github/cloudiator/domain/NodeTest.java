@@ -47,7 +47,8 @@ public class NodeTest {
     Set<IpAddress> ipAddresses = Sets
         .newHashSet(publicIp, privateIp);
 
-    final Node node = NodeBuilder.newBuilder().id(UUID.randomUUID().toString()).state(NodeState.OK).userId("userId")
+    final Node node = NodeBuilder.newBuilder().id(UUID.randomUUID().toString())
+        .state(NodeState.RUNNING).userId("userId")
         .nodeType(NodeType.VM).nodeProperties(nodeProperties)
         .ipAddresses(ipAddresses).build();
 

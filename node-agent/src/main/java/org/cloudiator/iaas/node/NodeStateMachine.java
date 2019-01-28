@@ -21,69 +21,57 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
-import de.uniulm.omi.cloudiator.util.function.ThrowingFunction;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
 import de.uniulm.omi.cloudiator.util.stateMachine.State;
-import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
-import de.uniulm.omi.cloudiator.util.stateMachine.TransitionBuilder;
-import io.github.cloudiator.domain.ExtendedCloud;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
-import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.concurrent.ExecutionException;
+import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.messages.Node.NodeEvent;
-import org.cloudiator.messaging.services.CloudService;
 import org.cloudiator.messaging.services.NodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class NodeStateMachine implements StateMachine<Node> {
+public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeStateMachine.class);
-  private final StateMachine<Node> stateMachine;
-  private final CloudDomainRepository cloudDomainRepository;
-  private final CloudRegistry cloudRegistry;
-  private final CloudService cloudService;
+  private final ErrorAwareStateMachine<Node> stateMachine;
   private final NodeService nodeService;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
+  private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
 
   @Inject
   public NodeStateMachine(
-      CloudDomainRepository cloudDomainRepository,
-      CloudRegistry cloudRegistry, CloudService cloudService,
       NodeService nodeService,
       NodeDomainRepository nodeDomainRepository,
-      NodeDeletionStrategy nodeDeletionStrategy) {
-    this.cloudDomainRepository = cloudDomainRepository;
-    this.cloudRegistry = cloudRegistry;
-    this.cloudService = cloudService;
+      NodeDeletionStrategy nodeDeletionStrategy,
+      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory) {
     this.nodeService = nodeService;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<Node>builder().errorState(NodeState.ERROR)
+    stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.NEW).to(NodeState.OK)
-                .action(newToOk())
+            Transitions.<Node>transitionBuilder().from(NodeState.CREATED).to(NodeState.RUNNING)
+                .action(createdToRunning())
                 .build())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.OK).to(NodeState.DELETED)
+            Transitions.<Node>transitionBuilder().from(NodeState.RUNNING).to(NodeState.DELETED)
                 .action(delete())
                 .build())
         .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.ERROR)
+            Transitions.<Node>transitionBuilder().from(NodeState.ERROR)
                 .to(NodeState.DELETED)
                 .action(delete())
-                .build())
-        .addTransition(
-            TransitionBuilder.<Node>newBuilder().from(NodeState.OK).to(NodeState.ERROR)
-                .action(error())
                 .build())
         .addHook(new StateMachineHook<Node>() {
           @Override
@@ -111,12 +99,14 @@ public class NodeStateMachine implements StateMachine<Node> {
 
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeDeletionStrategy = nodeDeletionStrategy;
+    this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
   }
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void save(Node node) {
+  Node save(Node node) {
     nodeDomainRepository.save(node);
+    return node;
   }
 
   @SuppressWarnings("WeakerAccess")
@@ -126,15 +116,18 @@ public class NodeStateMachine implements StateMachine<Node> {
   }
 
 
-  private ThrowingFunction<Node, Node> newToOk() {
+  private TransitionAction<Node> createdToRunning() {
 
-    //todo implement
-    throw new UnsupportedOperationException();
+    return (o, arguments) -> {
+      final Node running = NodeBuilder.of(o).state(NodeState.RUNNING).build();
+      save(running);
+      return running;
+    };
   }
 
-  private ThrowingFunction<Node, Node> delete() {
+  private TransitionAction<Node> delete() {
 
-    return node -> {
+    return (node, arguments) -> {
 
       nodeDeletionStrategy.deleteNode(node);
       delete(node);
@@ -143,15 +136,27 @@ public class NodeStateMachine implements StateMachine<Node> {
     };
   }
 
-  private ThrowingFunction<Node, Node> error() {
+  private ErrorTransition<Node> error() {
 
-    //todo implement
-    throw new UnsupportedOperationException();
+    return Transitions.<Node>errorTransitionBuilder()
+        .action((o, arguments, throwable) -> {
 
+          final NodeBuilder builder = NodeBuilder.of(o).state(NodeState.ERROR);
+          if (throwable != null) {
+            builder.diagnostic(throwable.getMessage());
+          }
+          return save(builder.build());
+        })
+        .errorState(NodeState.ERROR).build();
   }
 
   @Override
-  public Node apply(Node object, State to) throws ExecutionException {
-    return stateMachine.apply(object, to);
+  public Node apply(Node object, State to, Object[] arguments) throws ExecutionException {
+    return stateMachine.apply(object, to, arguments);
+  }
+
+  @Override
+  public Node fail(Node object, Object[] arguments, Throwable t) {
+    return stateMachine.fail(object, arguments, t);
   }
 }

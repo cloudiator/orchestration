@@ -66,7 +66,7 @@ public class DeleteCloudSubscriber implements Runnable {
               return;
             }
 
-            cloudStateMachine.apply(cloud.get(), CloudState.DELETED);
+            cloudStateMachine.apply(cloud.get(), CloudState.DELETED, new Object[0]);
 
             messageInterface.reply(messageId, CloudDeletedResponse.newBuilder().build());
 

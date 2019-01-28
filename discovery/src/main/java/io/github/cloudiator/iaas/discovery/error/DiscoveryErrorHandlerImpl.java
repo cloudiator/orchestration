@@ -20,12 +20,10 @@ package io.github.cloudiator.iaas.discovery.error;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.multicloud.exception.MultiCloudException;
-import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.domain.ExtendedCloudBuilder;
 import io.github.cloudiator.iaas.discovery.CloudStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,18 +66,10 @@ public class DiscoveryErrorHandlerImpl implements DiscoveryErrorHandler {
     ExtendedCloud cloudWithError = ExtendedCloudBuilder.of(cloud)
         .diagnostic(e.getMessage()).build();
 
-    try {
-      //set cloud to error state
-      LOGGER.info(String
-          .format("%s is setting cloud with id %s to error state due to error %s.", this, cloudId,
-              e.getMessage()), e);
-      cloudStateMachine.apply(cloudWithError, CloudState.ERROR);
-    } catch (ExecutionException ex) {
-      LOGGER.error(
-          String
-              .format("Error %s while setting cloud %s to ERROR state.", ex.getCause().getMessage(),
-                  cloudWithError),
-          e.getCause());
-    }
+    //set cloud to error state
+    LOGGER.info(String
+        .format("%s is setting cloud with id %s to error state due to error %s.", this, cloudId,
+            e.getMessage()), e);
+    cloudStateMachine.fail(cloudWithError, new Object[0], e);
   }
 }

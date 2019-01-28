@@ -40,16 +40,48 @@ class NodeModel extends Model {
   @Column(nullable = false, unique = true)
   private String domainId;
 
+  @Nullable
+  private String originId;
+
   @Column(nullable = false)
   private String name;
 
   @ManyToOne(optional = false)
   private TenantModel tenantModel;
 
-  @OneToOne(optional = false)
+  public NodeModel setNodeProperties(
+      NodePropertiesModel nodeProperties) {
+    this.nodeProperties = nodeProperties;
+    return this;
+  }
+
+  public NodeModel setLoginCredential(
+      @Nullable LoginCredentialModel loginCredential) {
+    this.loginCredential = loginCredential;
+    return this;
+  }
+
+  public NodeModel setType(NodeType type) {
+
+    if (type != NodeType.UNKOWN) {
+      checkState(this.type.equals(NodeType.UNKOWN), String.format(
+          "Changing type is only allowed of the current value is unknown. Current value is %s.",
+          this.type));
+    }
+
+    this.type = type;
+    return this;
+  }
+
+  public NodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
+    this.ipGroup = ipGroup;
+    return this;
+  }
+
+  @OneToOne(optional = false, orphanRemoval = true)
   private NodePropertiesModel nodeProperties;
 
-  @OneToOne(optional = true)
+  @OneToOne(optional = true, orphanRemoval = true)
   @Nullable
   private LoginCredentialModel loginCredential;
 
@@ -57,11 +89,10 @@ class NodeModel extends Model {
   @Column(nullable = false)
   private NodeType type;
 
-  @OneToOne(optional = true, cascade = CascadeType.ALL)
+  @OneToOne(optional = true, cascade = CascadeType.ALL, orphanRemoval = true)
   @Nullable
   private IpGroupModel ipGroup;
 
-  @ManyToOne
   @Nullable
   private NodeGroupModel nodeGroupModel;
 
@@ -82,7 +113,7 @@ class NodeModel extends Model {
 
   }
 
-  NodeModel(String domainId, String name, TenantModel tenantModel,
+  NodeModel(String domainId, @Nullable String originId, String name, TenantModel tenantModel,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
       @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel,
@@ -96,6 +127,7 @@ class NodeModel extends Model {
     checkNotNull(nodeState, "nodeState is null");
 
     this.domainId = domainId;
+    this.originId = originId;
     this.name = name;
     this.tenantModel = tenantModel;
     this.nodeProperties = nodeProperties;
@@ -180,5 +212,24 @@ class NodeModel extends Model {
   public NodeModel setReason(@Nullable String reason) {
     this.reason = reason;
     return this;
+  }
+
+  @Nullable
+  public String getOriginId() {
+    return originId;
+  }
+
+  public String setOriginId(String originId) {
+    if (originId != null) {
+      checkState(this.originId == null,
+          String.format("OriginId was already set to value %s", this.originId));
+    }
+    this.originId = originId;
+    return this.originId;
+  }
+
+  public String setName(String name) {
+    this.name = name;
+    return this.name;
   }
 }

@@ -22,12 +22,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
-import de.uniulm.omi.cloudiator.util.function.ThrowingFunction;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
+import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
 import de.uniulm.omi.cloudiator.util.stateMachine.State;
-import de.uniulm.omi.cloudiator.util.stateMachine.StateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
-import de.uniulm.omi.cloudiator.util.stateMachine.TransitionBuilder;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
+import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
 import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.domain.ExtendedCloudBuilder;
@@ -42,10 +43,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class CloudStateMachine implements StateMachine<ExtendedCloud> {
+public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudStateMachine.class);
-  private final StateMachine<ExtendedCloud> stateMachine;
+  private final ErrorAwareStateMachine<ExtendedCloud> stateMachine;
   private final CloudDomainRepository cloudDomainRepository;
   private final CloudRegistry cloudRegistry;
   private final CloudService cloudService;
@@ -59,23 +60,20 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
     this.cloudService = cloudService;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<ExtendedCloud>builder().errorState(CloudState.ERROR)
+    stateMachine = StateMachineBuilder.<ExtendedCloud>builder().errorTransition(error())
         .addTransition(
-            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.NEW).to(CloudState.OK)
+            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.NEW).to(CloudState.OK)
                 .action(newToOk())
                 .build())
         .addTransition(
-            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.OK).to(CloudState.DELETED)
-                .action(delete())
-                .build())
-        .addTransition(
-            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.ERROR)
+            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.OK)
                 .to(CloudState.DELETED)
                 .action(delete())
                 .build())
         .addTransition(
-            TransitionBuilder.<ExtendedCloud>newBuilder().from(CloudState.OK).to(CloudState.ERROR)
-                .action(error())
+            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.ERROR)
+                .to(CloudState.DELETED)
+                .action(delete())
                 .build())
         .addHook(new StateMachineHook<ExtendedCloud>() {
           @Override
@@ -114,13 +112,13 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
   }
 
 
-  private ThrowingFunction<ExtendedCloud, ExtendedCloud> newToOk() {
+  private TransitionAction<ExtendedCloud> newToOk() {
 
-    return extendedCloud -> {
+    return (extendedCloud, arguments) -> {
 
       final ExtendedCloudImpl ok = ExtendedCloudBuilder.of(extendedCloud).state(CloudState.OK)
           .build();
-      save(ok);
+      CloudStateMachine.this.save(ok);
       cloudRegistry.register(ok);
 
       return ok;
@@ -128,9 +126,9 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
   }
 
-  private ThrowingFunction<ExtendedCloud, ExtendedCloud> delete() {
+  private TransitionAction<ExtendedCloud> delete() {
 
-    return extendedCloud -> {
+    return (extendedCloud, arguments) -> {
 
       final ExtendedCloudImpl deleted = ExtendedCloudBuilder.of(extendedCloud)
           .state(CloudState.DELETED)
@@ -145,25 +143,35 @@ public class CloudStateMachine implements StateMachine<ExtendedCloud> {
 
   }
 
-  private ThrowingFunction<ExtendedCloud, ExtendedCloud> error() {
+  private ErrorTransition<ExtendedCloud> error() {
 
-    return extendedCloud -> {
+    return Transitions.<ExtendedCloud>errorTransitionBuilder()
+        .action((extendedCloud, arguments, t) -> {
 
-      final ExtendedCloudImpl error = ExtendedCloudBuilder.of(extendedCloud)
-          .state(CloudState.ERROR)
-          .build();
+          final ExtendedCloudBuilder builder = ExtendedCloudBuilder.of(extendedCloud)
+              .state(CloudState.ERROR);
+          if (t != null) {
+            builder.diagnostic(t.getMessage());
+          }
 
-      save(error);
-      cloudRegistry.unregister(extendedCloud.id());
+          final ExtendedCloudImpl cloud = builder.build();
 
-      return error;
-    };
+          save(cloud);
+          cloudRegistry.unregister(cloud.id());
+
+          return cloud;
+        }).errorState(CloudState.ERROR).build();
 
   }
 
   @Override
-  public ExtendedCloud apply(ExtendedCloud object, State to)
+  public ExtendedCloud apply(ExtendedCloud object, State to, Object[] arguments)
       throws ExecutionException {
-    return stateMachine.apply(object, to);
+    return stateMachine.apply(object, to, arguments);
+  }
+
+  @Override
+  public ExtendedCloud fail(ExtendedCloud object, Object[] arguments, Throwable t) {
+    return stateMachine.fail(object, arguments, t);
   }
 }

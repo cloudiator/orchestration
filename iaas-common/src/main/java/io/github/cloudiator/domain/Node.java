@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 
 public interface Node extends Identifiable, Stateful {
 
+  Optional<String> originId();
+
   String name();
 
   String userId();

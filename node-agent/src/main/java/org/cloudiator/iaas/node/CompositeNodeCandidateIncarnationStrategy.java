@@ -23,13 +23,13 @@ import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeCandidate;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 public class CompositeNodeCandidateIncarnationStrategy implements NodeCandidateIncarnationStrategy {
 
   private final Set<NodeCandidateIncarnationFactory> factories;
   private final String groupName;
   private final String userId;
+
   public CompositeNodeCandidateIncarnationStrategy(String groupName, String userId,
       Set<NodeCandidateIncarnationFactory> factories) {
     this.groupName = groupName;
@@ -38,7 +38,7 @@ public class CompositeNodeCandidateIncarnationStrategy implements NodeCandidateI
   }
 
   @Override
-  public Node apply(NodeCandidate nodeCandidate) throws ExecutionException {
+  public Node apply(NodeCandidate nodeCandidate) {
 
     for (NodeCandidateIncarnationFactory factory : factories) {
       if (factory.canIncarnate(nodeCandidate)) {
