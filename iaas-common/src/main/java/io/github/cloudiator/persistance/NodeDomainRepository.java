@@ -143,6 +143,8 @@ public class NodeDomainRepository {
       checkState(domain.originId().isPresent(), "model has a originId but domain object does not.");
       checkState(domain.originId().get().equals(nodeModel.getOriginId()),
           "origin id does not match");
+
+    } else {
       nodeModel.setOriginId(domain.originId().orElse(null));
     }
     nodeModel.setName(domain.name());
