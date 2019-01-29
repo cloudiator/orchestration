@@ -50,23 +50,6 @@ class NodeModel extends Model {
   @ManyToOne(optional = false)
   private TenantModel tenantModel;
 
-  public NodeModel setNodeProperties(
-      NodePropertiesModel nodeProperties) {
-    this.nodeProperties = nodeProperties;
-    return this;
-  }
-
-  public NodeModel setLoginCredential(
-      @Nullable LoginCredentialModel loginCredential) {
-    this.loginCredential = loginCredential;
-    return this;
-  }
-
-  public NodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
-    this.ipGroup = ipGroup;
-    return this;
-  }
-
   @OneToOne(optional = false, orphanRemoval = true)
   private NodePropertiesModel nodeProperties;
 
@@ -83,6 +66,7 @@ class NodeModel extends Model {
   private IpGroupModel ipGroup;
 
   @Nullable
+  @ManyToOne
   private NodeGroupModel nodeGroupModel;
 
   @Enumerated(EnumType.STRING)
@@ -239,5 +223,22 @@ class NodeModel extends Model {
   public String setName(String name) {
     this.name = name;
     return this.name;
+  }
+
+  public NodeModel setNodeProperties(
+      NodePropertiesModel nodeProperties) {
+    this.nodeProperties = nodeProperties;
+    return this;
+  }
+
+  public NodeModel setLoginCredential(
+      @Nullable LoginCredentialModel loginCredential) {
+    this.loginCredential = loginCredential;
+    return this;
+  }
+
+  public NodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
+    this.ipGroup = ipGroup;
+    return this;
   }
 }
