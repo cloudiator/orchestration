@@ -24,6 +24,7 @@ import static com.google.common.base.Preconditions.checkState;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
@@ -58,18 +59,6 @@ class NodeModel extends Model {
   public NodeModel setLoginCredential(
       @Nullable LoginCredentialModel loginCredential) {
     this.loginCredential = loginCredential;
-    return this;
-  }
-
-  public NodeModel setType(NodeType type) {
-
-    if (type != NodeType.UNKOWN) {
-      checkState(this.type.equals(NodeType.UNKOWN), String.format(
-          "Changing type is only allowed of the current value is unknown. Current value is %s.",
-          this.type));
-    }
-
-    this.type = type;
     return this;
   }
 
@@ -219,13 +208,32 @@ class NodeModel extends Model {
     return originId;
   }
 
-  public String setOriginId(String originId) {
-    if (originId != null) {
-      checkState(this.originId == null,
-          String.format("OriginId was already set to value %s", this.originId));
+  public NodeModel setOriginId(String originId) {
+
+    if (Objects.equals(this.originId, originId)) {
+      return this;
     }
+
+    checkState(this.originId == null, String.format(
+        "Changing the value of origin ID is not allowed. Was set to value %s, tried updating to %s",
+        this.originId, originId));
+
     this.originId = originId;
-    return this.originId;
+    return this;
+  }
+
+  public NodeModel setType(NodeType type) {
+
+    if (Objects.equals(this.type, type)) {
+      return this;
+    }
+
+    checkState(NodeType.UNKOWN.equals(this.type), String.format(
+        "Changing the value of type is only allowed if it was UNKNOWN. Was set to value %s, tried updating to %s",
+        this.type, type));
+
+    this.type = type;
+    return this;
   }
 
   public String setName(String name) {

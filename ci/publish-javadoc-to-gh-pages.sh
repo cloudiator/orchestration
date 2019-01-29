@@ -11,7 +11,7 @@ if [ "$TRAVIS_REPO_SLUG" == "cloudiator/orchestration" ] && [ "$TRAVIS_JDK_VERSI
   cd $HOME
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "travis-ci"
-  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/cloudiator/rest-server gh-pages > /dev/null
+  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/cloudiator/orchestration gh-pages > /dev/null
 
   cd gh-pages
   git rm -rf ./javadoc

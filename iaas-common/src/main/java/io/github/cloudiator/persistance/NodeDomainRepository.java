@@ -144,9 +144,8 @@ public class NodeDomainRepository {
       checkState(domain.originId().get().equals(nodeModel.getOriginId()),
           "origin id does not match");
 
-    } else {
-      nodeModel.setOriginId(domain.originId().orElse(null));
     }
+    nodeModel.setOriginId(domain.originId().orElse(null));
     nodeModel.setName(domain.name());
     nodeModel.setNodeProperties(nodePropertiesModel);
     nodeModel.setLoginCredential(loginCredentialModel);
