@@ -103,7 +103,7 @@ public class NodeDomainRepository {
     NodeModel nodeModel = nodeModelRepository.getByTenantAndDomainId(domain.userId(), domain.id());
 
     if (nodeModel == null) {
-      nodeModel = createModel(domain, null);
+      nodeModel = createModel(domain);
     } else {
       nodeModel = updateModel(domain, nodeModel);
     }
@@ -158,8 +158,7 @@ public class NodeDomainRepository {
     return nodeModel;
   }
 
-  private NodeModel createModel(Node domain,
-      @Nullable NodeGroupModel nodeGroupModel) {
+  private NodeModel createModel(Node domain) {
 
     final TenantModel tenantModel = tenantModelRepository.createOrGet(domain.userId());
 
@@ -169,7 +168,7 @@ public class NodeDomainRepository {
 
     return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
         nodePropertiesModel,
-        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel, domain.state(),
+        loginCredentialModel, domain.type(), ipGroupModel, null, domain.state(),
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
 
   }
