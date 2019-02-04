@@ -264,10 +264,12 @@ public class UnixInstaller extends AbstractInstaller {
     // Prepare EMS url to invoke
     String emsUrl = Configuration.conf().getString("installer.ems.url");
     String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
-    if (emsApiKey!=null && !emsApiKey.isEmpty()) emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
-    LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
 
     if (StringUtils.isNotBlank(emsUrl)) {
+      // Append API-key
+      if (StringUtils.isNotBlank(emsApiKey)) emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
+      LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
       // Contact EMS to get EMS Client installation instructions for this node
       LOGGER.debug(String.format("Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s", node.id(), emsUrl));
       InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper.getInstallationInstructionsFromServer(node, emsUrl);
