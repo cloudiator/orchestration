@@ -133,6 +133,9 @@ public class InstallEventSubscriber implements Runnable {
       } else if (tool.equals(Tool.SPARK_WORKER)) {
         installApi.installSparkWorker();
         installedTools.add(tool);
+      } else if (tool.equals(Tool.EMS_CLIENT)) {
+        installApi.installEMS();
+        installedTools.add(tool);
       } else {
         throw new IllegalStateException("Unsupported toolName: " + tool.name());
       }

@@ -58,6 +58,11 @@ public interface InstallApi extends AutoCloseable {
    */
   void installSparkWorker() throws RemoteException;
 
+  /**
+   * Fetch and start EMS
+   */
+  void installEMS() throws RemoteException;
+
 
   @Override
   void close() throws RemoteException;
