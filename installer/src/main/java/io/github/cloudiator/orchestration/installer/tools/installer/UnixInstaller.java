@@ -88,9 +88,7 @@ public class UnixInstaller extends AbstractInstaller {
   public void installVisor() throws RemoteException {
 
     //check for installed Visor
-    RemoteConnectionResponse checkresult = this.remoteConnection
-        .executeCommand("sudo netstat -tupln | grep -c 31415");
-    if (checkresult.stdOut().matches("1")) {
+    if (this.remoteConnection.executeCommand("curl localhost:31415").getExitStatus() == 0) {
       LOGGER.debug("Port 31415 in use - Visor already installed, new installation canceled");
     } else {
 
