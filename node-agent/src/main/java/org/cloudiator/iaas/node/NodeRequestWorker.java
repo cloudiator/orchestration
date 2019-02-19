@@ -210,7 +210,7 @@ public class NodeRequestWorker implements Runnable {
         .format("%s received matchmaking response for node request %s. Selected offer is %s.",
             this, userNodeRequest, matchmakingResponse));
 
-    return matchmakingResponse.getCandidatesList();
+    return matchmakingResponse.getSolution().getNodeCandidatesList();
   }
 
   @Override
