@@ -25,7 +25,7 @@ import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import javax.annotation.Nullable;
 
 
 public class NodePropertiesBuilder {
@@ -40,19 +40,30 @@ public class NodePropertiesBuilder {
   private NodePropertiesBuilder() {
   }
 
-  public static NodePropertiesBuilder of(HardwareFlavor hardwareFlavor, Image image,
-      Location location) {
+  public static NodePropertiesBuilder of(String providerId, @Nullable HardwareFlavor hardwareFlavor,
+      @Nullable Image image,
+      @Nullable Location location) {
 
-    checkNotNull(hardwareFlavor, "hardwareFlavor is null");
-    checkNotNull(image, "image is null");
-    checkNotNull(location, "location is null");
+    checkNotNull(providerId, "providerId is null");
 
-    final String providerId = IdScopedByClouds.from(hardwareFlavor.id()).cloudId();
+    final NodePropertiesBuilder nodePropertiesBuilder = newBuilder().providerId(providerId);
 
-    return newBuilder().providerId(providerId).numberOfCores(hardwareFlavor.numberOfCores())
-        .memory(hardwareFlavor.mbRam())
-        .disk(hardwareFlavor.gbDisk().orElse(null)).os(image.operatingSystem())
-        .geoLocation(location.geoLocation().orElse(null));
+    if (image != null) {
+      nodePropertiesBuilder.os(image.operatingSystem());
+    }
+
+    if (location != null) {
+      nodePropertiesBuilder.geoLocation(location.geoLocation().orElse(null));
+    }
+
+    if (hardwareFlavor != null) {
+      nodePropertiesBuilder.numberOfCores(hardwareFlavor.numberOfCores())
+          .memory(hardwareFlavor.mbRam())
+          .disk(hardwareFlavor.gbDisk().orElse(null));
+    }
+
+    return nodePropertiesBuilder;
+
   }
 
   public static NodePropertiesBuilder newBuilder() {
