@@ -26,7 +26,7 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.util.NameGenerator;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import java.util.Set;
 import java.util.UUID;
 
@@ -73,9 +73,12 @@ public class NodeBuilder {
   }
 
   public static NodeBuilder of(VirtualMachine virtualMachine) {
+
+    final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
+
     NodeProperties nodeProperties = NodePropertiesBuilder
-        .of(virtualMachine.hardware().get(), virtualMachine.image().get(),
-            virtualMachine.location().get())
+        .of(providerId, virtualMachine.hardware().orElse(null), virtualMachine.image().orElse(null),
+            virtualMachine.location().orElse(null))
         .build();
 
     LoginCredential loginCredential = null;
