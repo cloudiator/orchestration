@@ -91,7 +91,7 @@ public class UnixInstaller extends AbstractInstaller {
     RemoteConnectionResponse checkresult = this.remoteConnection
         .executeCommand("ps -ef | grep -c visor.jar");
     if (!checkresult.stdOut().matches("1")) {
-      LOGGER.debug("Port 31415 in use - Visor already installed, new installation canceled");
+      LOGGER.debug("Result: " + checkresult.stdOut() + " - VisorInstallation canceled ");
     } else {
 
       //download Visor
