@@ -94,8 +94,9 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Check returned [%s] in standard out", checkresult.stdOut()));
     LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
 
-    if (!checkresult.stdOut().trim().equals("0")) {
+    if (checkresult.getExitStatus() == 0) {
       LOGGER.debug("Skipping installation as Visor is already running");
+
     } else {
 
       //download Visor
@@ -254,6 +255,16 @@ public class UnixInstaller extends AbstractInstaller {
             .getString("installer.spark.master.port")
             + " -e SPARK_WORKER_UI_PORT=" + Configuration.conf()
             .getString("installer.spark.worker.ui")
+            + " -e JMS_IP=" + Configuration.conf()
+            .getString("installer.spark.jmsip")
+            + " -e JMS_PORT=" + Configuration.conf()
+            .getString("installer.spark.jmsport")
+            + " -e APP_NAME=" + Configuration.conf()
+            .getString("installer.spark.appname")
+            + " -e METRIC_REPORTING_INTERVAL=" + Configuration.conf()
+            .getString("installer.spark.metricreporting")
+            + " -e METRIC_PATTERN=" + Configuration.conf()
+            .getString("installer.spark.metricpattern")
             + " -p 9999:9999 "
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")

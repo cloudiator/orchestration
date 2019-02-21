@@ -2,6 +2,7 @@ package org.cloudiator.iaas.node;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import de.uniulm.omi.cloudiator.domain.OperatingSystems;
 import de.uniulm.omi.cloudiator.sword.domain.Cloud;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
@@ -90,6 +91,7 @@ public class FaasNodeIncarnationStrategy implements NodeCandidateIncarnationStra
       NodeProperties properties = NodePropertiesBuilder.newBuilder()
           .providerId(nodeCandidate.cloud().id())
           .memory((long) function.getMemory())
+          .os(OperatingSystems.unknown())
           .build();
 
       return NodeBuilder.newBuilder()
