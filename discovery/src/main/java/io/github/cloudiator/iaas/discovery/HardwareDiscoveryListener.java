@@ -21,7 +21,10 @@ package io.github.cloudiator.iaas.discovery;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
+import io.github.cloudiator.domain.DiscoveredHardware;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
+import io.github.cloudiator.persistance.MissingLocationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +50,23 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
   @Override
   @Transactional
   public void handle(Object o) {
-    HardwareFlavor hardwareFlavor = (HardwareFlavor) o;
-    hardwareDomainRepository.save(hardwareFlavor);
+
+    final HardwareFlavor hardwareFlavor = (HardwareFlavor) o;
+
+    final DiscoveredHardware byId = hardwareDomainRepository.findById(hardwareFlavor.id());
+
+    if (byId != null) {
+      LOGGER.trace(String.format("Skipping hardware %s. Already exists.", hardwareFlavor));
+      return;
+    }
+
+    DiscoveredHardware discoveredHardware = new DiscoveredHardware(hardwareFlavor,
+        DiscoveryItemState.NEW);
+    try {
+      hardwareDomainRepository.save(discoveredHardware);
+    } catch (MissingLocationException e) {
+      LOGGER.trace("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
+    }
+
   }
 }

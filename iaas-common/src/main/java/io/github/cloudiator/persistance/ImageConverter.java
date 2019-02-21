@@ -18,27 +18,27 @@
 
 package io.github.cloudiator.persistance;
 
-import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.ImageBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import io.github.cloudiator.domain.DiscoveredImage;
 import javax.annotation.Nullable;
 
 /**
  * Created by daniel on 02.06.17.
  */
-class ImageConverter implements OneWayConverter<ImageModel, Image> {
+class ImageConverter implements OneWayConverter<ImageModel, DiscoveredImage> {
 
   private final LocationConverter locationConverter = new LocationConverter();
 
   @Nullable
   @Override
-  public Image apply(@Nullable ImageModel imageModel) {
+  public DiscoveredImage apply(@Nullable ImageModel imageModel) {
     if (imageModel == null) {
       return null;
     }
-    return ImageBuilder.newBuilder().os(imageModel.operatingSystem())
+    return new DiscoveredImage(ImageBuilder.newBuilder().os(imageModel.operatingSystem())
         .location(locationConverter.apply(imageModel.getLocationModel()))
         .providerId(imageModel.getProviderId()).id(imageModel.getCloudUniqueId())
-        .name(imageModel.getName()).build();
+        .name(imageModel.getName()).build(), imageModel.getState());
   }
 }

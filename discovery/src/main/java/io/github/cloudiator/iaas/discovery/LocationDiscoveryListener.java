@@ -21,7 +21,10 @@ package io.github.cloudiator.iaas.discovery;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
+import io.github.cloudiator.domain.DiscoveredLocation;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.persistance.LocationDomainRepository;
+import io.github.cloudiator.persistance.MissingLocationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +50,22 @@ public class LocationDiscoveryListener implements DiscoveryListener {
   @Override
   @Transactional
   public void handle(Object o) {
-    Location location = (Location) o;
+    final Location location = (Location) o;
 
-    locationDomainRepository.save(location);
+    final DiscoveredLocation byId = locationDomainRepository.findById(location.id());
+
+    if (byId != null) {
+      LOGGER.trace(String.format("Skipping location %s. Already exists.", location));
+      return;
+    }
+
+    DiscoveredLocation discoveredLocation = new DiscoveredLocation(location,
+        DiscoveryItemState.NEW);
+
+    try {
+      locationDomainRepository.save(discoveredLocation);
+    } catch (MissingLocationException e) {
+      LOGGER.trace("Skipping discovery of location %s as assigned parent seems to be missing.", e);
+    }
   }
 }

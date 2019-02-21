@@ -23,13 +23,14 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.LocationScope;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.Location.LocationQueryRequest;
 import org.cloudiator.messaging.ResponseException;
 import org.cloudiator.messaging.services.LocationService;
 
-public class LocationMessageRepository implements MessageRepository<Location> {
+public class LocationMessageRepository implements MessageRepository<DiscoveredLocation> {
 
   private final static String RESPONSE_ERROR = "Could not retrieve hardware flavor object(s) due to error %s";
   private static final LocationMessageToLocationConverter CONVERTER = LocationMessageToLocationConverter.INSTANCE;
@@ -42,9 +43,9 @@ public class LocationMessageRepository implements MessageRepository<Location> {
   }
 
   @Override
-  public Location getById(String userId, String id) {
+  public DiscoveredLocation getById(String userId, String id) {
     try {
-      final List<Location> collect = locationService
+      final List<DiscoveredLocation> collect = locationService
           .getLocations(
               LocationQueryRequest.newBuilder().setLocationId(id).setUserId(userId).build())
           .getLocationsList().stream().map(CONVERTER).collect(Collectors.toList());
@@ -63,7 +64,7 @@ public class LocationMessageRepository implements MessageRepository<Location> {
   }
 
   @Override
-  public List<Location> getAll(String userId) {
+  public List<DiscoveredLocation> getAll(String userId) {
     try {
       return locationService
           .getLocations(LocationQueryRequest.newBuilder().setUserId(userId).build())

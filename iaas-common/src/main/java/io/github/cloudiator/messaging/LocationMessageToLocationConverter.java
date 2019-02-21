@@ -19,9 +19,9 @@
 package io.github.cloudiator.messaging;
 
 import de.uniulm.omi.cloudiator.domain.LocationScope;
-import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.LocationBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import org.cloudiator.messages.entities.CommonEntities;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.Location.Builder;
@@ -30,17 +30,18 @@ import org.cloudiator.messages.entities.IaasEntities.Location.Builder;
  * Created by daniel on 07.06.17.
  */
 public class LocationMessageToLocationConverter implements
-    TwoWayConverter<IaasEntities.Location, Location> {
+    TwoWayConverter<IaasEntities.Location, DiscoveredLocation> {
 
   public static final LocationMessageToLocationConverter INSTANCE = new LocationMessageToLocationConverter();
   private final LocationScopeMessageToLocationScopeConverter locationScopeConverter = new LocationScopeMessageToLocationScopeConverter();
   private final GeoLocationMessageToGeoLocationConverter geoLocationConverter = new GeoLocationMessageToGeoLocationConverter();
+  private static final DiscoveryItemStateConverter DISCOVERY_ITEM_STATE_CONVERTER = DiscoveryItemStateConverter.INSTANCE;
 
   private LocationMessageToLocationConverter() {
   }
 
   @Override
-  public IaasEntities.Location applyBack(Location location) {
+  public IaasEntities.Location applyBack(DiscoveredLocation location) {
     if (location == null) {
       return null;
     }
@@ -48,10 +49,11 @@ public class LocationMessageToLocationConverter implements
         .setProviderId(location.providerId())
         .setName(location.name())
         .setLocationScope(locationScopeConverter.applyBack(location.locationScope()))
-        .setIsAssignable(location.isAssignable());
+        .setIsAssignable(location.isAssignable())
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(location.state()));
 
     if (location.parent().isPresent()) {
-      builder.setParent(applyBack(location.parent().get()));
+      builder.setParent(applyBack((DiscoveredLocation) location.parent().get()));
     }
 
     if (location.geoLocation().isPresent()) {
@@ -62,7 +64,7 @@ public class LocationMessageToLocationConverter implements
   }
 
   @Override
-  public Location apply(IaasEntities.Location location) {
+  public DiscoveredLocation apply(IaasEntities.Location location) {
     if (location == null) {
       return null;
     }
@@ -77,7 +79,8 @@ public class LocationMessageToLocationConverter implements
       locationBuilder.parent(apply(location.getParent()));
     }
 
-    return locationBuilder.build();
+    return new DiscoveredLocation(locationBuilder.build(),
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(location.getState()));
 
   }
 

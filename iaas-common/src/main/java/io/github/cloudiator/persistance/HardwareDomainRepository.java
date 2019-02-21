@@ -21,8 +21,8 @@ package io.github.cloudiator.persistance;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import io.github.cloudiator.domain.DiscoveredHardware;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -54,25 +54,25 @@ public class HardwareDomainRepository {
   }
 
 
-  public HardwareFlavor findById(String id) {
+  public DiscoveredHardware findById(String id) {
     return HARDWARE_CONVERTER.apply(hardwareModelRepository.findByCloudUniqueId(id));
   }
 
-  public HardwareFlavor findByTenantAndId(String userId, String hardwareId) {
+  public DiscoveredHardware findByTenantAndId(String userId, String hardwareId) {
     return HARDWARE_CONVERTER
         .apply(hardwareModelRepository.findByCloudUniqueIdAndTenant(userId, hardwareId));
   }
 
-  public List<HardwareFlavor> findByTenantAndCloud(String tenantId, String cloudId) {
+  public List<DiscoveredHardware> findByTenantAndCloud(String tenantId, String cloudId) {
     return hardwareModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
-        .map(HARDWARE_CONVERTER).collect(Collectors.toList());
+        .map(HARDWARE_CONVERTER::apply).collect(Collectors.toList());
   }
 
-  public void save(HardwareFlavor domain) {
+  public void save(DiscoveredHardware domain) {
     saveAndGet(domain);
   }
 
-  HardwareModel saveAndGet(HardwareFlavor domain) {
+  HardwareModel saveAndGet(DiscoveredHardware domain) {
 
     HardwareModel hardwareModel = hardwareModelRepository.findByCloudUniqueId(domain.id());
 
@@ -86,7 +86,7 @@ public class HardwareDomainRepository {
     return hardwareModel;
   }
 
-  private HardwareModel createModel(HardwareFlavor domain) {
+  private HardwareModel createModel(DiscoveredHardware domain) {
 
     //get corresponding cloudModel
     final CloudModel cloudModel = getCloudModel(domain.id());
@@ -96,13 +96,13 @@ public class HardwareDomainRepository {
 
     final HardwareOfferModel hardwareOfferModel = getOrCreateHardwareOffer(domain);
 
-    final LocationModel locationModel = getOrCreateLocationModel(domain);
+    final LocationModel locationModel = getLocationModel(domain);
 
     return new HardwareModel(domain.id(), domain.providerId(),
-        domain.name(), cloudModel, locationModel, hardwareOfferModel);
+        domain.name(), cloudModel, locationModel, hardwareOfferModel, domain.state());
   }
 
-  private void updateModel(HardwareFlavor domain, HardwareModel model) {
+  private void updateModel(DiscoveredHardware domain, HardwareModel model) {
     //we only allow update of the hardware offer object
     //todo throw exception if other elements change?
     model.setHardwareOfferModel(getOrCreateHardwareOffer(domain));
@@ -113,7 +113,7 @@ public class HardwareDomainRepository {
     return cloudDomainRepository.findModelById(cloudId);
   }
 
-  private HardwareOfferModel getOrCreateHardwareOffer(HardwareFlavor domain) {
+  private HardwareOfferModel getOrCreateHardwareOffer(DiscoveredHardware domain) {
     //generate hardware offer
     HardwareOfferModel hardwareOfferModel = hardwareOfferModelRepository
         .findByCpuRamDisk(domain.numberOfCores(), domain.mbRam(),
@@ -129,31 +129,36 @@ public class HardwareDomainRepository {
 
 
   @Nullable
-  private LocationModel getOrCreateLocationModel(HardwareFlavor domain) {
+  private LocationModel getLocationModel(DiscoveredHardware domain) {
 
-    LocationModel locationModel = null;
-    if (domain.location().isPresent()) {
-      locationModel = locationDomainRepository
-          .saveAndGet(domain.location().get());
+    if (!domain.location().isPresent()) {
+      return null;
     }
-    return locationModel;
 
+    final LocationModel model = locationDomainRepository.getModel(domain.location().get());
+
+    if (model == null) {
+      throw new MissingLocationException(
+          "Location with id %s is missing. Can not persist the image");
+    }
+
+    return model;
   }
 
-  public void delete(HardwareFlavor hardwareFlavor) {
+  public void delete(DiscoveredHardware hardwareFlavor) {
     final HardwareModel byCloudUniqueId = this.hardwareModelRepository
         .findByCloudUniqueId(hardwareFlavor.id());
     this.hardwareModelRepository.delete(byCloudUniqueId);
   }
 
-  public List<HardwareFlavor> findAll() {
+  public List<DiscoveredHardware> findAll() {
     return hardwareModelRepository.findAll().stream().map(
-        HARDWARE_CONVERTER).collect(Collectors.toList());
+        HARDWARE_CONVERTER::apply).collect(Collectors.toList());
   }
 
-  public List<HardwareFlavor> findAll(String user) {
+  public List<DiscoveredHardware> findAll(String user) {
     return hardwareModelRepository.findByTenant(user).stream().map(
-        HARDWARE_CONVERTER).collect(Collectors.toList());
+        HARDWARE_CONVERTER::apply).collect(Collectors.toList());
   }
 
 }

@@ -20,8 +20,13 @@ package io.github.cloudiator.iaas.discovery;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
+import io.github.cloudiator.domain.DiscoveredHardware;
+import io.github.cloudiator.domain.DiscoveredImage;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.persistance.ImageDomainRepository;
+import io.github.cloudiator.persistance.MissingLocationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +52,22 @@ public class ImageDiscoveryListener implements DiscoveryListener {
   @Override
   @Transactional
   public void handle(Object o) {
-    Image image = (Image) o;
 
-    imageDomainRepository.save(image);
+    final Image image = (Image) o;
+
+    final DiscoveredImage byId = imageDomainRepository.findById(image.id());
+
+    if (byId != null) {
+      LOGGER.trace(String.format("Skipping image %s. Already exists.", image));
+      return;
+    }
+
+    DiscoveredImage discoveredImage = new DiscoveredImage(image, DiscoveryItemState.NEW);
+
+    try {
+      imageDomainRepository.save(discoveredImage);
+    } catch (MissingLocationException e) {
+      LOGGER.trace("Skipping discovery of image %s as assigned location seems to be missing.", e);
+    }
   }
 }

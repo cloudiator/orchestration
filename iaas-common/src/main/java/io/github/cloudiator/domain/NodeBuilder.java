@@ -76,7 +76,7 @@ public class NodeBuilder {
 
     final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
 
-    NodeProperties nodeProperties = NodePropertiesBuilder
+    final NodeProperties nodeProperties = NodePropertiesBuilder
         .of(providerId, virtualMachine.hardware().orElse(null), virtualMachine.image().orElse(null),
             virtualMachine.location().orElse(null))
         .build();

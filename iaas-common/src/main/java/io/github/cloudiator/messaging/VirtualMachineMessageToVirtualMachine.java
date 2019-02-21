@@ -21,6 +21,10 @@ package io.github.cloudiator.messaging;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
+import io.github.cloudiator.domain.DiscoveredHardware;
+import io.github.cloudiator.domain.DiscoveredImage;
+import io.github.cloudiator.domain.DiscoveredLocation;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
 
@@ -51,15 +55,19 @@ public class VirtualMachineMessageToVirtualMachine implements
         .setName(virtualMachine.name());
 
     if (virtualMachine.location().isPresent()) {
-      builder.setLocation(locationConverter.applyBack(virtualMachine.location().get()));
+      builder.setLocation(
+          locationConverter.applyBack(new DiscoveredLocation(virtualMachine.location().get(),
+              DiscoveryItemState.UNKNOWN)));
     }
 
     if (virtualMachine.image().isPresent()) {
-      builder.setImage(imageConverter.applyBack(virtualMachine.image().get()));
+      builder.setImage(imageConverter.applyBack(
+          new DiscoveredImage(virtualMachine.image().get(), DiscoveryItemState.UNKNOWN)));
     }
 
     if (virtualMachine.hardware().isPresent()) {
-      builder.setHardware(hardwareConverter.applyBack(virtualMachine.hardware().get()));
+      builder.setHardware(hardwareConverter.applyBack(
+          new DiscoveredHardware(virtualMachine.hardware().get(), DiscoveryItemState.UNKNOWN)));
     }
 
     if (virtualMachine.loginCredential().isPresent()) {
@@ -92,7 +100,8 @@ public class VirtualMachineMessageToVirtualMachine implements
     }
 
     if (virtualMachine.hasLoginCredential()) {
-      builder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(virtualMachine.getLoginCredential()));
+      builder
+          .loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(virtualMachine.getLoginCredential()));
     }
 
     virtualMachine.getIpAddressesList().forEach(

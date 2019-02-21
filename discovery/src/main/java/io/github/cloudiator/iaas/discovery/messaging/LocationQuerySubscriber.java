@@ -19,7 +19,7 @@
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.Location;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import io.github.cloudiator.messaging.LocationMessageToLocationConverter;
 import io.github.cloudiator.persistance.LocationDomainRepository;
 import java.util.stream.Collectors;
@@ -88,7 +88,7 @@ public class LocationQuerySubscriber implements Runnable {
 
 
   private void replyForUserIdAndLocationId(String requestId, String userId, String locationId) {
-    final Location location = locationDomainRepository
+    final DiscoveredLocation location = locationDomainRepository
         .findByTenantAndId(userId, locationId);
     if (location == null) {
       messageInterface.reply(requestId, LocationQueryResponse.newBuilder().build());
