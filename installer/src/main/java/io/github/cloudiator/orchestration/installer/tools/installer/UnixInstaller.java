@@ -91,7 +91,7 @@ public class UnixInstaller extends AbstractInstaller {
     RemoteConnectionResponse checkresult = this.remoteConnection
         .executeCommand("ps -ef | grep -c \"[v]isor.jar\"");
     LOGGER.debug("idempotent check: " + checkresult.stdOut());
-    LOGGER.debug("check = " + checkresult.stdOut().contains("0"));
+    LOGGER.debug("check = " + checkresult.stdOut().equals("0"));
     if (!checkresult.stdOut().contains("0")) {
       LOGGER.debug("VisorInstallation canceled, process with ");
     } else {
