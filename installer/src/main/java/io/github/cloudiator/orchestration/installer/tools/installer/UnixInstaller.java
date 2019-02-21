@@ -94,8 +94,9 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Check returned [%s] in standard out", checkresult.stdOut()));
     LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
 
-    if (!checkresult.stdOut().trim().equals("0")) {
+    if (checkresult.getExitStatus() == 0) {
       LOGGER.debug("Skipping installation as Visor is already running");
+
     } else {
 
       //download Visor
