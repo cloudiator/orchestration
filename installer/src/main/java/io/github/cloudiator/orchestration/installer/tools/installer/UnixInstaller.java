@@ -90,9 +90,12 @@ public class UnixInstaller extends AbstractInstaller {
     //check for installed Visor
     RemoteConnectionResponse checkresult = this.remoteConnection
         .executeCommand("ps -ef | grep -c \"[v]isor.jar\"");
-    LOGGER.debug("idempotent check: " + checkresult.stdOut());
-    if (!checkresult.stdOut().matches("0")) {
-      LOGGER.debug("Result: " + checkresult.stdOut() + " - VisorInstallation canceled ");
+
+    LOGGER.debug(String.format("Check returned [%s] in standard out", checkresult.stdOut()));
+    LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
+
+    if (!checkresult.stdOut().trim().equals("0")) {
+      LOGGER.debug("Skipping installation as Visor is already running");
     } else {
 
       //download Visor
