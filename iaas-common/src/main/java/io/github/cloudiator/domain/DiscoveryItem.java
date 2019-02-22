@@ -24,4 +24,8 @@ public interface DiscoveryItem extends Stateful {
 
   @Override
   DiscoveryItemState state();
+
+  void setState(DiscoveryItemState state);
+
+  String userId();
 }

@@ -42,7 +42,8 @@ class HardwareConverter implements OneWayConverter<HardwareModel, HardwareFlavor
         .location(locationConverter.apply(hardwareModel.getLocationModel()))
         .mbRam(hardwareModel.hardwareOffer().getMbOfRam())
         .gbDisk(hardwareModel.hardwareOffer().getDiskSpace())
-        .cores(hardwareModel.hardwareOffer().getNumberOfCores()).build(), hardwareModel.getState());
+        .cores(hardwareModel.hardwareOffer().getNumberOfCores()).build(), hardwareModel.getState(),
+        hardwareModel.getTenant().getUserId());
 
   }
 }

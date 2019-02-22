@@ -22,9 +22,9 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
+import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import io.github.cloudiator.messaging.HardwareMessageRepository;
 import io.github.cloudiator.messaging.ImageMessageRepository;
 import io.github.cloudiator.messaging.LocationMessageRepository;
@@ -45,8 +45,8 @@ public class EnrichVirtualMachine {
     this.imageMessageRepository = imageMessageRepository;
   }
 
-  public VirtualMachine update(String userId, VirtualMachineTemplate virtualMachineTemplate,
-      VirtualMachine virtualMachine) {
+  public ExtendedVirtualMachine update(String userId, VirtualMachineTemplate virtualMachineTemplate,
+      ExtendedVirtualMachine virtualMachine) {
 
     String hardwareId = virtualMachineTemplate.hardwareFlavorId();
     if (virtualMachine.hardware().isPresent()) {
@@ -67,8 +67,9 @@ public class EnrichVirtualMachine {
     final Image image = imageMessageRepository.getById(userId, imageId);
     final Location location = locationMessageRepository.getById(userId, locationId);
 
-    return VirtualMachineBuilder.of(virtualMachine).hardware(hardware).image(image)
-        .location(location).build();
+    return new ExtendedVirtualMachine(
+        VirtualMachineBuilder.of(virtualMachine).hardware(hardware).image(image)
+            .location(location).build(), virtualMachine.getUserId());
   }
 
 }

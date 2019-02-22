@@ -30,13 +30,16 @@ import java.util.Optional;
 public class DiscoveredLocation implements Location, DiscoveryItem {
 
   private final Location delegate;
-  private final DiscoveryItemState state;
+  private DiscoveryItemState state;
+  private final String userId;
 
-  public DiscoveredLocation(Location delegate, DiscoveryItemState state) {
+  public DiscoveredLocation(Location delegate, DiscoveryItemState state, String userId) {
     checkNotNull(delegate, "delegate is null");
     checkNotNull(state, "state is null");
+    checkNotNull(userId, "userId is null");
     this.delegate = delegate;
     this.state = state;
+    this.userId = userId;
   }
 
   @Override
@@ -54,7 +57,7 @@ public class DiscoveredLocation implements Location, DiscoveryItem {
 
     if (delegate.parent().isPresent()) {
       return Optional
-          .of(new DiscoveredLocation(delegate.parent().get(), DiscoveryItemState.UNKNOWN));
+          .of(new DiscoveredLocation(delegate.parent().get(), DiscoveryItemState.UNKNOWN, userId));
     }
 
     return Optional.empty();
@@ -94,5 +97,15 @@ public class DiscoveredLocation implements Location, DiscoveryItem {
   @Override
   public DiscoveryItemState state() {
     return state;
+  }
+
+  @Override
+  public void setState(DiscoveryItemState state) {
+    this.state = state;
+  }
+
+  @Override
+  public String userId() {
+    return this.userId;
   }
 }

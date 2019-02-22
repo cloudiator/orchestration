@@ -67,4 +67,8 @@ class HardwareModel extends ResourceModel {
   public DiscoveryItemState getState() {
     return state;
   }
+
+  public TenantModel getTenant() {
+    return getCloudModel().getTenantModel();
+  }
 }

@@ -21,8 +21,11 @@ package io.github.cloudiator.iaas.discovery;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.DiscoveredHardware;
 import io.github.cloudiator.domain.DiscoveryItemState;
+import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
 import org.slf4j.Logger;
@@ -35,11 +38,14 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageDiscoveryListener.class);
   private final HardwareDomainRepository hardwareDomainRepository;
+  private final CloudDomainRepository cloudDomainRepository;
 
   @Inject
   public HardwareDiscoveryListener(
-      HardwareDomainRepository hardwareDomainRepository) {
+      HardwareDomainRepository hardwareDomainRepository,
+      CloudDomainRepository cloudDomainRepository) {
     this.hardwareDomainRepository = hardwareDomainRepository;
+    this.cloudDomainRepository = cloudDomainRepository;
   }
 
   @Override
@@ -60,12 +66,21 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
       return;
     }
 
+    final ExtendedCloud cloud = cloudDomainRepository
+        .findById(IdScopedByClouds.from(hardwareFlavor.id()).cloudId());
+
+    if (cloud == null) {
+      throw new IllegalStateException(
+          String.format("Cloud for hardware %s is not available", hardwareFlavor));
+    }
+
     DiscoveredHardware discoveredHardware = new DiscoveredHardware(hardwareFlavor,
-        DiscoveryItemState.NEW);
+        DiscoveryItemState.NEW, cloud.userId());
     try {
       hardwareDomainRepository.save(discoveredHardware);
     } catch (MissingLocationException e) {
-      LOGGER.trace("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
+      LOGGER
+          .trace("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
     }
 
   }

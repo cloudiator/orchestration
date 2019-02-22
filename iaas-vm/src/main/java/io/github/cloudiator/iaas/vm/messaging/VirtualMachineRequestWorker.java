@@ -26,6 +26,7 @@ import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
+import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
 import io.github.cloudiator.iaas.vm.VirtualMachineRequestToTemplateConverter;
 import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
@@ -99,10 +100,11 @@ public class VirtualMachineRequestWorker implements Runnable {
       Exchange result = createVirtualMachineWorkflow
           .execute(Exchange.of(virtualMachineTemplate));
 
-      VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
+      ExtendedVirtualMachine virtualMachine = new ExtendedVirtualMachine(
+          result.getData(VirtualMachine.class).get(), userId);
 
       //decorate virtual machine
-      final VirtualMachine update = enrichVirtualMachine
+      final ExtendedVirtualMachine update = enrichVirtualMachine
           .update(userId,
               virtualMachineTemplate,
               virtualMachine);

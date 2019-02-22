@@ -50,7 +50,8 @@ public class LocationMessageToLocationConverter implements
         .setName(location.name())
         .setLocationScope(locationScopeConverter.applyBack(location.locationScope()))
         .setIsAssignable(location.isAssignable())
-        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(location.state()));
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(location.state()))
+        .setUserId(location.userId());
 
     if (location.parent().isPresent()) {
       builder.setParent(applyBack((DiscoveredLocation) location.parent().get()));
@@ -80,7 +81,7 @@ public class LocationMessageToLocationConverter implements
     }
 
     return new DiscoveredLocation(locationBuilder.build(),
-        DISCOVERY_ITEM_STATE_CONVERTER.apply(location.getState()));
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(location.getState()), location.getUserId());
 
   }
 

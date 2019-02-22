@@ -142,11 +142,6 @@ class LocationModel extends Model {
     return children;
   }
 
-  public void setChildren(
-      List<LocationModel> children) {
-    this.children = children;
-  }
-
   @Nullable
   public GeoLocationModel getGeoLocationModel() {
     return geoLocationModel;
@@ -161,16 +156,8 @@ class LocationModel extends Model {
     return locationScope;
   }
 
-  public void setLocationScope(@Nullable LocationScope locationScope) {
-    this.locationScope = locationScope;
-  }
-
   public Boolean getAssignable() {
     return isAssignable;
-  }
-
-  public void setAssignable(Boolean assignable) {
-    isAssignable = assignable;
   }
 
   public Set<LocationModel> hierachy() {
@@ -193,5 +180,14 @@ class LocationModel extends Model {
 
   public DiscoveryItemState getState() {
     return state;
+  }
+
+  public LocationModel setState(DiscoveryItemState state) {
+    this.state = state;
+    return this;
+  }
+
+  public TenantModel getTenant() {
+    return getCloudModel().getTenantModel();
   }
 }

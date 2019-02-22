@@ -42,6 +42,6 @@ class LocationConverter implements OneWayConverter<LocationModel, Location> {
         .name(locationModel.getName()).scope(locationModel.getLocationScope())
         .geoLocation(GEO_LOCATION_CONVERTER.apply(locationModel.getGeoLocationModel()))
         .assignable(locationModel.getAssignable()).parent(apply(locationModel.getParent())).build(),
-        locationModel.getState());
+        locationModel.getState(), locationModel.getTenant().getUserId());
   }
 }

@@ -20,11 +20,12 @@ package io.github.cloudiator.iaas.discovery;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
-import io.github.cloudiator.domain.DiscoveredHardware;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.domain.DiscoveryItemState;
+import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.ImageDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
 import org.slf4j.Logger;
@@ -37,11 +38,14 @@ public class ImageDiscoveryListener implements DiscoveryListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageDiscoveryListener.class);
   private final ImageDomainRepository imageDomainRepository;
+  private final CloudDomainRepository cloudDomainRepository;
 
   @Inject
   public ImageDiscoveryListener(
-      ImageDomainRepository imageDomainRepository) {
+      ImageDomainRepository imageDomainRepository,
+      CloudDomainRepository cloudDomainRepository) {
     this.imageDomainRepository = imageDomainRepository;
+    this.cloudDomainRepository = cloudDomainRepository;
   }
 
   @Override
@@ -62,10 +66,20 @@ public class ImageDiscoveryListener implements DiscoveryListener {
       return;
     }
 
-    DiscoveredImage discoveredImage = new DiscoveredImage(image, DiscoveryItemState.NEW);
+    final ExtendedCloud cloud = cloudDomainRepository
+        .findById(IdScopedByClouds.from(image.id()).cloudId());
+
+    if (cloud == null) {
+      throw new IllegalStateException(
+          String.format("Cloud for image %s is not available", image));
+    }
+
+    DiscoveredImage discoveredImage = new DiscoveredImage(image, DiscoveryItemState.NEW,
+        cloud.userId());
 
     try {
       imageDomainRepository.save(discoveredImage);
+
     } catch (MissingLocationException e) {
       LOGGER.trace("Skipping discovery of image %s as assigned location seems to be missing.", e);
     }

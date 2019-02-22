@@ -48,6 +48,8 @@ public class DiscoveryItemStateConverter implements
         return IaasEntities.DiscoveryItemState.DISCOVERY_LOCALLY_DELETED;
       case REMOTELY_DELETED:
         return IaasEntities.DiscoveryItemState.DISCOVERY_REMOTELY_DELETED;
+      case DELETED:
+        return IaasEntities.DiscoveryItemState.DISCOVERY_DELETED;
       default:
         throw new AssertionError("Unknown state " + discoveryItemState);
     }
@@ -69,9 +71,11 @@ public class DiscoveryItemStateConverter implements
         return DiscoveryItemState.NEW;
       case DISCOVERY_OK:
         return DiscoveryItemState.OK;
+      case DISCOVERY_DELETED:
+        return DiscoveryItemState.DELETED;
       case UNRECOGNIZED:
       default:
-        throw new AssertionError("Unkown state " + discoveryItemState);
+        throw new AssertionError("Unknown state " + discoveryItemState);
     }
   }
 }

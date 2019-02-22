@@ -45,18 +45,14 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeStateMachine.class);
   private final ErrorAwareStateMachine<Node> stateMachine;
-  private final NodeService nodeService;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
-  private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
 
   @Inject
   public NodeStateMachine(
       NodeService nodeService,
       NodeDomainRepository nodeDomainRepository,
-      NodeDeletionStrategy nodeDeletionStrategy,
-      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory) {
-    this.nodeService = nodeService;
+      NodeDeletionStrategy nodeDeletionStrategy) {
 
     //noinspection unchecked
     stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
@@ -99,7 +95,6 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeDeletionStrategy = nodeDeletionStrategy;
-    this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
   }
 
   @SuppressWarnings("WeakerAccess")

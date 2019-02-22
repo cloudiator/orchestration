@@ -122,8 +122,11 @@ public class LocationDomainRepository {
 
   private void updateModel(DiscoveredLocation domain, LocationModel model) {
 
-    //we only allow an update of the geolocation
-    //todo throw exception if other attributes are updated?
+    //check if id matches
+    checkState(domain.id().equals(model.getCloudUniqueId()), "ids do not match");
+
+    //updated the state
+    model.setState(domain.state());
 
     //create if not already exists
     if (model.getGeoLocationModel() == null && domain.geoLocation().isPresent()) {

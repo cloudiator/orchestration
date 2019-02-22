@@ -45,7 +45,8 @@ public class ImageMessageToImageConverter implements
         .setProviderId(image.providerId())
         .setName(image.name())
         .setOperationSystem(operatingSystemConverter.applyBack(image.operatingSystem()))
-        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(image.state()));
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(image.state()))
+        .setUserId(image.userId());
     if (image.location().isPresent()) {
       builder
           .setLocation(LOCATION_CONVERTER.applyBack((DiscoveredLocation) image.location().get()));
@@ -64,6 +65,6 @@ public class ImageMessageToImageConverter implements
       builder.location(LOCATION_CONVERTER.apply(image.getLocation()));
     }
     return new DiscoveredImage(builder.build(),
-        DISCOVERY_ITEM_STATE_CONVERTER.apply(image.getState()));
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(image.getState()), image.getUserId());
   }
 }

@@ -27,6 +27,7 @@ public enum DiscoveryItemState implements State {
   REMOTELY_DELETED,
   LOCALLY_DELETED,
   DISABLED,
+  DELETED,
   UNKNOWN
 
 }

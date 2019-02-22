@@ -45,7 +45,8 @@ public class HardwareMessageToHardwareConverter implements
         .setCores(hardwareFlavor.numberOfCores())
         .setId(hardwareFlavor.id()).setProviderId(hardwareFlavor.providerId())
         .setRam(hardwareFlavor.mbRam()).setName(hardwareFlavor.name())
-        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(hardwareFlavor.state()));
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(hardwareFlavor.state()))
+        .setUserId(hardwareFlavor.userId());
     if (hardwareFlavor.gbDisk().isPresent()) {
       builder.setDisk(hardwareFlavor.gbDisk().get());
     }
@@ -73,6 +74,7 @@ public class HardwareMessageToHardwareConverter implements
     }
 
     return new DiscoveredHardware(hardwareFlavorBuilder.build(),
-        DISCOVERY_ITEM_STATE_CONVERTER.apply(hardwareFlavor.getState()));
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(hardwareFlavor.getState()),
+        hardwareFlavor.getUserId());
   }
 }

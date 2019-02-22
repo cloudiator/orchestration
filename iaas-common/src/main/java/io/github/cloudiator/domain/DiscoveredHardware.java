@@ -28,16 +28,19 @@ import java.util.Optional;
 public class DiscoveredHardware implements HardwareFlavor, DiscoveryItem {
 
   private final HardwareFlavor delegate;
-  private final DiscoveryItemState state;
+  private DiscoveryItemState state;
+  private final String userId;
 
   public DiscoveredHardware(HardwareFlavor delegate,
-      DiscoveryItemState state) {
+      DiscoveryItemState state, String userId) {
 
     checkNotNull(delegate, "delegate is null");
     checkNotNull(state, "state is null");
+    checkNotNull(userId, "userId is null");
 
     this.delegate = delegate;
     this.state = state;
+    this.userId = userId;
   }
 
   @Override
@@ -76,7 +79,8 @@ public class DiscoveredHardware implements HardwareFlavor, DiscoveryItem {
 
     if (delegate.location().isPresent()) {
       return Optional
-          .of(new DiscoveredLocation(delegate.location().get(), DiscoveryItemState.UNKNOWN));
+          .of(new DiscoveredLocation(delegate.location().get(), DiscoveryItemState.UNKNOWN,
+              userId));
     }
 
     return Optional.empty();
@@ -90,5 +94,15 @@ public class DiscoveredHardware implements HardwareFlavor, DiscoveryItem {
   @Override
   public DiscoveryItemState state() {
     return state;
+  }
+
+  @Override
+  public void setState(DiscoveryItemState state) {
+    this.state = state;
+  }
+
+  @Override
+  public String userId() {
+    return this.userId;
   }
 }

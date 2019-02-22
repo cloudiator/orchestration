@@ -39,6 +39,7 @@ class ImageConverter implements OneWayConverter<ImageModel, DiscoveredImage> {
     return new DiscoveredImage(ImageBuilder.newBuilder().os(imageModel.operatingSystem())
         .location(locationConverter.apply(imageModel.getLocationModel()))
         .providerId(imageModel.getProviderId()).id(imageModel.getCloudUniqueId())
-        .name(imageModel.getName()).build(), imageModel.getState());
+        .name(imageModel.getName()).build(), imageModel.getState(),
+        imageModel.getTenant().getUserId());
   }
 }

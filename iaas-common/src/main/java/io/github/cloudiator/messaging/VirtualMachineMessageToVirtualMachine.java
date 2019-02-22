@@ -18,13 +18,13 @@
 
 package io.github.cloudiator.messaging;
 
-import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import io.github.cloudiator.domain.DiscoveredHardware;
 import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.domain.DiscoveredLocation;
 import io.github.cloudiator.domain.DiscoveryItemState;
+import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
 
@@ -32,7 +32,7 @@ import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
  * Created by Daniel Seybold on 28.06.2017.
  */
 public class VirtualMachineMessageToVirtualMachine implements
-    TwoWayConverter<IaasEntities.VirtualMachine, VirtualMachine> {
+    TwoWayConverter<IaasEntities.VirtualMachine, ExtendedVirtualMachine> {
 
   public static final VirtualMachineMessageToVirtualMachine INSTANCE = new VirtualMachineMessageToVirtualMachine();
 
@@ -47,27 +47,30 @@ public class VirtualMachineMessageToVirtualMachine implements
 
 
   @Override
-  public IaasEntities.VirtualMachine applyBack(VirtualMachine virtualMachine) {
+  public IaasEntities.VirtualMachine applyBack(ExtendedVirtualMachine virtualMachine) {
 
     final Builder builder = IaasEntities.VirtualMachine.newBuilder()
         .setId(virtualMachine.id())
         .setProviderId(virtualMachine.providerId())
-        .setName(virtualMachine.name());
+        .setName(virtualMachine.name())
+        .setUserId(virtualMachine.getUserId());
 
     if (virtualMachine.location().isPresent()) {
       builder.setLocation(
           locationConverter.applyBack(new DiscoveredLocation(virtualMachine.location().get(),
-              DiscoveryItemState.UNKNOWN)));
+              DiscoveryItemState.UNKNOWN, virtualMachine.getUserId())));
     }
 
     if (virtualMachine.image().isPresent()) {
       builder.setImage(imageConverter.applyBack(
-          new DiscoveredImage(virtualMachine.image().get(), DiscoveryItemState.UNKNOWN)));
+          new DiscoveredImage(virtualMachine.image().get(), DiscoveryItemState.UNKNOWN,
+              virtualMachine.getUserId())));
     }
 
     if (virtualMachine.hardware().isPresent()) {
       builder.setHardware(hardwareConverter.applyBack(
-          new DiscoveredHardware(virtualMachine.hardware().get(), DiscoveryItemState.UNKNOWN)));
+          new DiscoveredHardware(virtualMachine.hardware().get(), DiscoveryItemState.UNKNOWN,
+              virtualMachine.getUserId())));
     }
 
     if (virtualMachine.loginCredential().isPresent()) {
@@ -82,7 +85,7 @@ public class VirtualMachineMessageToVirtualMachine implements
   }
 
   @Override
-  public VirtualMachine apply(IaasEntities.VirtualMachine virtualMachine) {
+  public ExtendedVirtualMachine apply(IaasEntities.VirtualMachine virtualMachine) {
 
     VirtualMachineBuilder builder = VirtualMachineBuilder.newBuilder().id(virtualMachine.getId())
         .providerId(virtualMachine.getProviderId()).name(virtualMachine.getName());
@@ -107,7 +110,7 @@ public class VirtualMachineMessageToVirtualMachine implements
     virtualMachine.getIpAddressesList().forEach(
         ipAddress -> builder.addIpAddress(ipConverter.apply(ipAddress)));
 
-    return builder.build();
+    return new ExtendedVirtualMachine(builder.build(), virtualMachine.getUserId());
 
   }
 }

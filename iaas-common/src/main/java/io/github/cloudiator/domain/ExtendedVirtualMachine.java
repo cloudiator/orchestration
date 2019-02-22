@@ -21,30 +21,73 @@ package io.github.cloudiator.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
+import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import java.util.Optional;
+import java.util.Set;
 
-public class DiscoveredImage implements Image, DiscoveryItem {
+public class ExtendedVirtualMachine implements VirtualMachine {
 
-  private final Image delegate;
-  private DiscoveryItemState state;
+  private final VirtualMachine delegate;
   private final String userId;
 
-  public DiscoveredImage(Image delegate, DiscoveryItemState state, String userId) {
+  public ExtendedVirtualMachine(VirtualMachine delegate,
+      String userId) {
 
     checkNotNull(delegate, "delegate is null");
-    checkNotNull(state, "state is null");
+    checkNotNull(userId, "userId is null");
 
     this.delegate = delegate;
-    this.state = state;
     this.userId = userId;
   }
 
   @Override
-  public OperatingSystem operatingSystem() {
-    return delegate.operatingSystem();
+  public Set<IpAddress> ipAddresses() {
+    return delegate.ipAddresses();
+  }
+
+  @Override
+  public Set<IpAddress> publicIpAddresses() {
+    return delegate.publicIpAddresses();
+  }
+
+  @Override
+  public Set<IpAddress> privateIpAddresses() {
+    return delegate.privateIpAddresses();
+  }
+
+  @Override
+  public Optional<Image> image() {
+    return delegate.image();
+  }
+
+  @Override
+  public Optional<String> imageId() {
+    return delegate.imageId();
+  }
+
+  @Override
+  public Optional<HardwareFlavor> hardware() {
+    return delegate.hardware();
+  }
+
+  @Override
+  public Optional<String> hardwareId() {
+    return delegate.hardwareId();
+  }
+
+  @Override
+  public Optional<LoginCredential> loginCredential() {
+    return delegate.loginCredential();
+  }
+
+  @Override
+  public State state() {
+    return delegate.state();
   }
 
   @Override
@@ -65,14 +108,7 @@ public class DiscoveredImage implements Image, DiscoveryItem {
 
   @Override
   public Optional<Location> location() {
-
-    if (delegate.location().isPresent()) {
-      return Optional
-          .of(new DiscoveredLocation(delegate.location().get(), DiscoveryItemState.UNKNOWN,
-              userId));
-    }
-
-    return Optional.empty();
+    return delegate.location();
   }
 
   @Override
@@ -80,18 +116,8 @@ public class DiscoveredImage implements Image, DiscoveryItem {
     return delegate.locationId();
   }
 
-  @Override
-  public DiscoveryItemState state() {
-    return state;
-  }
 
-  @Override
-  public void setState(DiscoveryItemState state) {
-    this.state = state;
-  }
-
-  @Override
-  public String userId() {
+  public String getUserId() {
     return userId;
   }
 }
