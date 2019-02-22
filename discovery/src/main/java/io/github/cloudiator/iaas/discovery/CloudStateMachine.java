@@ -83,8 +83,9 @@ public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> 
 
           @Override
           public void post(State from, ExtendedCloud cloud) {
-            final CloudEvent cloudEvent = CloudEvent.newBuilder().setCloud(
-                CloudMessageToCloudConverter.INSTANCE.applyBack(cloud))
+            final CloudEvent cloudEvent = CloudEvent.newBuilder().setUserId(cloud.userId())
+                .setCloud(
+                    CloudMessageToCloudConverter.INSTANCE.applyBack(cloud))
                 .setFrom(CloudStateConverter.INSTANCE.applyBack(
                     (CloudState) from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
                 .build();
