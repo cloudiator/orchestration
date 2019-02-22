@@ -24,6 +24,7 @@ import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import io.github.cloudiator.util.NameGenerator;
@@ -88,7 +89,8 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
           e);
     } catch (ExecutionException e) {
       return NodeBuilder.newBuilder().name(NAME_GENERATOR.generate(groupName))
-          .state(NodeState.FAILED).userId(userId).nodeCandidate(nodeCandidate.id())
+          .state(NodeState.FAILED).userId(userId).nodeCandidate(nodeCandidate.id()).nodeProperties(
+              NodePropertiesBuilder.newBuilder().providerId(nodeCandidate.cloud().id()).build())
           .diagnostic(e.getMessage()).generateId().build();
     }
   }
