@@ -28,6 +28,7 @@ import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.util.NameGenerator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -48,6 +49,7 @@ public class NodeBuilder {
   private String originId;
 
   private NodeBuilder() {
+    this.ipAddresses = new HashSet<>();
   }
 
   private NodeBuilder(Node node) {
