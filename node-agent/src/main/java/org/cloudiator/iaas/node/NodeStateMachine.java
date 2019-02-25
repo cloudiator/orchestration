@@ -46,18 +46,20 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
   private final ErrorAwareStateMachine<Node> stateMachine;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
+  private final NodeSchedulingStrategy nodeSchedulingStrategy;
 
   @Inject
   public NodeStateMachine(
       NodeService nodeService,
       NodeDomainRepository nodeDomainRepository,
-      NodeDeletionStrategy nodeDeletionStrategy) {
+      NodeDeletionStrategy nodeDeletionStrategy,
+      NodeSchedulingStrategy nodeSchedulingStrategy) {
 
     //noinspection unchecked
     stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
         .addTransition(
             Transitions.<Node>transitionBuilder().from(NodeState.PENDING).to(NodeState.RUNNING)
-                .action(createdToRunning())
+                .action(pendingToRunning())
                 .build())
         .addTransition(
             Transitions.<Node>transitionBuilder().from(NodeState.RUNNING).to(NodeState.DELETED)
@@ -94,6 +96,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeDeletionStrategy = nodeDeletionStrategy;
+    this.nodeSchedulingStrategy = nodeSchedulingStrategy;
   }
 
   @SuppressWarnings("WeakerAccess")
@@ -110,12 +113,21 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
   }
 
 
-  private TransitionAction<Node> createdToRunning() {
+  private TransitionAction<Node> pendingToRunning() {
 
     return (o, arguments) -> {
-      final Node running = NodeBuilder.of(o).state(NodeState.RUNNING).build();
-      save(running);
-      return running;
+
+      if (!nodeSchedulingStrategy.canSchedule(o)) {
+        throw new ExecutionException(new IllegalStateException(
+            String.format("NodeScheduleStrategy does not support scheduling of node %s.", o)));
+      }
+      try {
+        final Node schedule = nodeSchedulingStrategy.schedule(o);
+        save(schedule);
+        return schedule;
+      } catch (NodeSchedulingException e) {
+        throw new ExecutionException(e);
+      }
     };
   }
 
