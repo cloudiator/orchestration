@@ -149,11 +149,12 @@ public class NodeDomainRepository {
     nodeModel.setName(domain.name());
     nodeModel.setNodeProperties(nodePropertiesModel);
     nodeModel.setLoginCredential(loginCredentialModel);
-    nodeModel.setType(nodeModel.getType());
+    nodeModel.setType(domain.type());
     nodeModel.setIpGroup(ipGroupModel);
     nodeModel.setNodeState(domain.state());
     nodeModel.setDiagnostic(domain.diagnostic().orElse(null));
     nodeModel.setReason(domain.reason().orElse(null));
+    nodeModel.setNodeCandidate(domain.nodeCandidate().orElse(null));
 
     return nodeModel;
   }
@@ -169,6 +170,7 @@ public class NodeDomainRepository {
     return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
         nodePropertiesModel,
         loginCredentialModel, domain.type(), ipGroupModel, null, domain.state(),
+        domain.nodeCandidate().orElse(null),
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
 
   }

@@ -21,6 +21,7 @@ package io.github.cloudiator.persistance;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import java.util.Collections;
@@ -74,6 +75,10 @@ class NodeModel extends Model {
   @Column(nullable = false)
   private NodeState nodeState;
 
+  @Lob
+  @Nullable
+  private String nodeCandidate;
+
   @Nullable
   @Lob
   private String diagnostic;
@@ -93,7 +98,8 @@ class NodeModel extends Model {
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
       @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel,
-      NodeState nodeState, @Nullable String diagnostic, @Nullable String reason) {
+      NodeState nodeState, @Nullable String nodeCandidate, @Nullable String diagnostic,
+      @Nullable String reason) {
 
     checkNotNull(domainId, "domainId is null");
     checkNotNull(name, "name is null");
@@ -112,6 +118,7 @@ class NodeModel extends Model {
     this.ipGroup = ipGroup;
     this.nodeGroupModel = nodeGroupModel;
     this.nodeState = nodeState;
+    this.nodeCandidate = nodeCandidate;
     this.diagnostic = diagnostic;
     this.reason = reason;
 
@@ -243,5 +250,14 @@ class NodeModel extends Model {
   public NodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
     this.ipGroup = ipGroup;
     return this;
+  }
+
+  @Nullable
+  public String getNodeCandidate() {
+    return nodeCandidate;
+  }
+
+  public void setNodeCandidate(@Nullable String nodeCandidate) {
+    this.nodeCandidate = nodeCandidate;
   }
 }
