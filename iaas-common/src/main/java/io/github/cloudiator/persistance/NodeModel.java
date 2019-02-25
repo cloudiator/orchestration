@@ -32,6 +32,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
@@ -74,9 +75,11 @@ class NodeModel extends Model {
   private NodeState nodeState;
 
   @Nullable
+  @Lob
   private String diagnostic;
 
   @Nullable
+  @Lob
   private String reason;
 
   /**
