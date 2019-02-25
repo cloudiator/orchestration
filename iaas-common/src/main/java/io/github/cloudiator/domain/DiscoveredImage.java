@@ -21,6 +21,7 @@ package io.github.cloudiator.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
@@ -93,5 +94,11 @@ public class DiscoveredImage implements Image, DiscoveryItem {
   @Override
   public String userId() {
     return userId;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("delegate", delegate).add("state", state)
+        .add("userId", userId).toString();
   }
 }

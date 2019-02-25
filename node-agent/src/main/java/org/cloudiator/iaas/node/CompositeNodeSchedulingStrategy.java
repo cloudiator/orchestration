@@ -18,22 +18,46 @@
 
 package org.cloudiator.iaas.node;
 
-import com.google.common.base.Joiner;
-import com.google.inject.Inject;
+import static com.google.common.base.Preconditions.checkState;
+
 import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeCandidate;
 import java.util.Set;
+import javax.inject.Inject;
 
 public class CompositeNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
+  private final Set<NodeSchedulingStrategy> strategies;
+
+  @Inject
+  public CompositeNodeSchedulingStrategy(
+      Set<NodeSchedulingStrategy> strategies) {
+    this.strategies = strategies;
+  }
 
   @Override
   public boolean canSchedule(Node pending) {
+
+    for (NodeSchedulingStrategy nodeSchedulingStrategy : strategies) {
+      if (nodeSchedulingStrategy.canSchedule(pending)) {
+        return true;
+      }
+    }
+
     return false;
   }
 
   @Override
   public Node schedule(Node pending) throws NodeSchedulingException {
-    return null;
+
+    checkState(canSchedule(pending), "Can not schedule " + pending);
+
+    for (NodeSchedulingStrategy nodeSchedulingStrategy : strategies) {
+      if (nodeSchedulingStrategy.canSchedule(pending)) {
+        return nodeSchedulingStrategy.schedule(pending);
+      }
+    }
+
+    throw new IllegalStateException(
+        String.format("Could not find a strategy to schedule %s. Tried %s.", pending, strategies));
   }
 }

@@ -21,6 +21,7 @@ package io.github.cloudiator.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import java.util.Optional;
@@ -104,5 +105,11 @@ public class DiscoveredHardware implements HardwareFlavor, DiscoveryItem {
   @Override
   public String userId() {
     return this.userId;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("delegate", delegate).add("state", state)
+        .add("userId", userId).toString();
   }
 }

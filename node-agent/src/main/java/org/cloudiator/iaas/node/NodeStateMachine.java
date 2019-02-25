@@ -119,7 +119,8 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
       if (!nodeSchedulingStrategy.canSchedule(o)) {
         throw new ExecutionException(new IllegalStateException(
-            String.format("NodeScheduleStrategy does not support scheduling of node %s.", o)));
+            String.format("NodeScheduleStrategy %s does not support scheduling of node %s.",
+                nodeDeletionStrategy, o)));
       }
       try {
         final Node schedule = nodeSchedulingStrategy.schedule(o);
