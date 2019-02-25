@@ -85,7 +85,7 @@ public class LocationDiscoveryListener implements DiscoveryListener {
       locationDomainRepository.save(discoveredLocation);
       locationStateMachine.apply(discoveredLocation, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
-      LOGGER.trace("Skipping discovery of location %s as assigned parent seems to be missing.", e);
+      LOGGER.info("Skipping discovery of location %s as assigned parent seems to be missing.", e);
     }
   }
 }

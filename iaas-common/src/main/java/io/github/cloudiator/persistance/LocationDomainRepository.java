@@ -106,6 +106,11 @@ public class LocationDomainRepository {
     //save the parent location
     if (domain.parent().isPresent()) {
       parent = getModel(domain.parent().get());
+      if (parent == null) {
+        throw new MissingLocationException(String
+            .format("Parent location %s is currently missing. Can not persist the location %s.",
+                domain.parent().get(), domain));
+      }
     }
 
     GeoLocationModel geoLocationModel = null;

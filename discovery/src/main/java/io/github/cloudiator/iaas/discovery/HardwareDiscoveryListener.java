@@ -29,7 +29,6 @@ import io.github.cloudiator.iaas.discovery.state.HardwareStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +85,7 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
       hardwareStateMachine.apply(discoveredHardware, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
       LOGGER
-          .trace("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
+          .info("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
     }
 
   }

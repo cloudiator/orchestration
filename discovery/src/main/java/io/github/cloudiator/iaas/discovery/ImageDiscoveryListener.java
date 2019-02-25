@@ -86,7 +86,7 @@ public class ImageDiscoveryListener implements DiscoveryListener {
       imageDomainRepository.save(discoveredImage);
       imageStateMachine.apply(discoveredImage, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
-      LOGGER.trace("Skipping discovery of image %s as assigned location seems to be missing.", e);
+      LOGGER.info("Skipping discovery of image %s as assigned location seems to be missing.", e);
     }
   }
 }
