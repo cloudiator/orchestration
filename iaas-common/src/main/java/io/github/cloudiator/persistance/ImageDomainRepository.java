@@ -22,7 +22,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.DiscoveredImage;
 import java.util.Collection;
@@ -131,10 +130,10 @@ public class ImageDomainRepository {
 
   private void updateModel(DiscoveredImage domain, ImageModel model) {
 
-    //currently we only update the operating system.
-    //todo throw exception if something else is changed?
+    checkState(domain.id().equals(model.getCloudUniqueId()), "ids do not match");
 
     operatingSystemDomainRepository.update(domain.operatingSystem(), model.operatingSystem());
+    model.setState(domain.state());
     imageModelRepository.save(model);
   }
 

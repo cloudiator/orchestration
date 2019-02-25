@@ -34,7 +34,6 @@ import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.concurrent.ExecutionException;
-import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messaging.services.NodeService;
 import org.slf4j.Logger;
@@ -57,7 +56,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
     //noinspection unchecked
     stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
         .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.CREATED).to(NodeState.RUNNING)
+            Transitions.<Node>transitionBuilder().from(NodeState.PENDING).to(NodeState.RUNNING)
                 .action(createdToRunning())
                 .build())
         .addTransition(
@@ -146,7 +145,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
   }
 
   @Override
-  public Node apply(Node object, State to, Object[] arguments) throws ExecutionException {
+  public Node apply(Node object, State to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

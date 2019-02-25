@@ -16,15 +16,16 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package org.cloudiator.iaas.node;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 
-public enum NodeState implements State {
+import io.github.cloudiator.domain.Node;
 
-  PENDING,
-  RUNNING,
-  ERROR,
-  DELETED
+
+public interface NodeSchedulingStrategy {
+
+  boolean canSchedule(Node pending);
+
+  Node schedule(Node pending) throws NodeSchedulingException;
 
 }

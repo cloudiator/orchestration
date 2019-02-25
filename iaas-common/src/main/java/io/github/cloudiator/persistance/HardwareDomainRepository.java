@@ -103,8 +103,11 @@ public class HardwareDomainRepository {
   }
 
   private void updateModel(DiscoveredHardware domain, HardwareModel model) {
-    //we only allow update of the hardware offer object
-    //todo throw exception if other elements change?
+
+    checkState(domain.id().equals(model.getCloudUniqueId()), "ids do not match");
+
+    model.setState(domain.state());
+
     model.setHardwareOfferModel(getOrCreateHardwareOffer(domain));
   }
 

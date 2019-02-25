@@ -77,21 +77,13 @@ public class CloudAddedSubscriber implements Runnable {
                     cloudToBeCreated)).build());
       }
 
-      try {
-        final ExtendedCloud createdCloud = cloudStateMachine
-            .apply(cloudToBeCreated, CloudState.OK, new Object[0]);
+      final ExtendedCloud createdCloud = cloudStateMachine
+          .apply(cloudToBeCreated, CloudState.OK, new Object[0]);
 
-        final CloudCreatedResponse cloudCreatedResponse = CloudCreatedResponse.newBuilder()
-            .setCloud(
-                CloudMessageToCloudConverter.INSTANCE.applyBack(createdCloud)).build();
-        messageInterface.reply(messageId, cloudCreatedResponse);
-
-      } catch (ExecutionException e) {
-        if (e.getCause() instanceof Exception) {
-          throw (Exception) e.getCause();
-        }
-        throw e;
-      }
+      final CloudCreatedResponse cloudCreatedResponse = CloudCreatedResponse.newBuilder()
+          .setCloud(
+              CloudMessageToCloudConverter.INSTANCE.applyBack(createdCloud)).build();
+      messageInterface.reply(messageId, cloudCreatedResponse);
 
     } catch (Exception e) {
       LOGGER.error(String.format("Unexpected exception occurred during handling of request %s.",

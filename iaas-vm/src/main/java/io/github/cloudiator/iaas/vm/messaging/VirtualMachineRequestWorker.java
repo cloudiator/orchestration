@@ -27,6 +27,7 @@ import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.domain.ExtendedVirtualMachine;
+import io.github.cloudiator.domain.LocalVirtualMachineState;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
 import io.github.cloudiator.iaas.vm.VirtualMachineRequestToTemplateConverter;
 import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
@@ -101,7 +102,7 @@ public class VirtualMachineRequestWorker implements Runnable {
           .execute(Exchange.of(virtualMachineTemplate));
 
       ExtendedVirtualMachine virtualMachine = new ExtendedVirtualMachine(
-          result.getData(VirtualMachine.class).get(), userId);
+          result.getData(VirtualMachine.class).get(), userId, LocalVirtualMachineState.CREATED);
 
       //decorate virtual machine
       final ExtendedVirtualMachine update = enrichVirtualMachine
@@ -135,7 +136,7 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void persistVirtualMachine(VirtualMachine vm, String userId) {
+  void persistVirtualMachine(ExtendedVirtualMachine vm, String userId) {
     virtualMachineDomainRepository.save(vm, userId);
   }
 

@@ -25,9 +25,11 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.iaas.discovery.state.ImageStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.ImageDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,13 +41,16 @@ public class ImageDiscoveryListener implements DiscoveryListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageDiscoveryListener.class);
   private final ImageDomainRepository imageDomainRepository;
   private final CloudDomainRepository cloudDomainRepository;
+  private final ImageStateMachine imageStateMachine;
 
   @Inject
   public ImageDiscoveryListener(
       ImageDomainRepository imageDomainRepository,
-      CloudDomainRepository cloudDomainRepository) {
+      CloudDomainRepository cloudDomainRepository,
+      ImageStateMachine imageStateMachine) {
     this.imageDomainRepository = imageDomainRepository;
     this.cloudDomainRepository = cloudDomainRepository;
+    this.imageStateMachine = imageStateMachine;
   }
 
   @Override
@@ -79,7 +84,7 @@ public class ImageDiscoveryListener implements DiscoveryListener {
 
     try {
       imageDomainRepository.save(discoveredImage);
-
+      imageStateMachine.apply(discoveredImage, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
       LOGGER.trace("Skipping discovery of image %s as assigned location seems to be missing.", e);
     }

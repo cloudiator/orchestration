@@ -16,15 +16,24 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package org.cloudiator.iaas.node;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
+import com.google.common.base.Joiner;
+import com.google.inject.Inject;
+import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeCandidate;
+import java.util.Set;
 
-public enum NodeState implements State {
+public class CompositeNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
-  PENDING,
-  RUNNING,
-  ERROR,
-  DELETED
 
+  @Override
+  public boolean canSchedule(Node pending) {
+    return false;
+  }
+
+  @Override
+  public Node schedule(Node pending) throws NodeSchedulingException {
+    return null;
+  }
 }

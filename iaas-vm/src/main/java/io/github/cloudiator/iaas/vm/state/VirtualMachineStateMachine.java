@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,15 +16,8 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package io.github.cloudiator.iaas.vm.state;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
-
-public enum NodeState implements State {
-
-  PENDING,
-  RUNNING,
-  ERROR,
-  DELETED
+public class VirtualMachineStateMachine {
 
 }

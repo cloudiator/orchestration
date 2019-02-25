@@ -25,6 +25,7 @@ import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.domain.DiscoveredLocation;
 import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.domain.ExtendedVirtualMachine;
+import io.github.cloudiator.domain.LocalVirtualMachineState;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachine.Builder;
 
@@ -41,6 +42,7 @@ public class VirtualMachineMessageToVirtualMachine implements
   private HardwareMessageToHardwareConverter hardwareConverter = HardwareMessageToHardwareConverter.INSTANCE;
   private LocationMessageToLocationConverter locationConverter = LocationMessageToLocationConverter.INSTANCE;
   private IpAddressMessageToIpAddress ipConverter = new IpAddressMessageToIpAddress();
+  public static final VirtualMachineStateConverter VM_STATE_CONVERTER = new VirtualMachineStateConverter();
 
   private VirtualMachineMessageToVirtualMachine() {
   }
@@ -53,7 +55,8 @@ public class VirtualMachineMessageToVirtualMachine implements
         .setId(virtualMachine.id())
         .setProviderId(virtualMachine.providerId())
         .setName(virtualMachine.name())
-        .setUserId(virtualMachine.getUserId());
+        .setUserId(virtualMachine.getUserId())
+        .setState(VM_STATE_CONVERTER.apply(virtualMachine.state()));
 
     if (virtualMachine.location().isPresent()) {
       builder.setLocation(
@@ -110,7 +113,53 @@ public class VirtualMachineMessageToVirtualMachine implements
     virtualMachine.getIpAddressesList().forEach(
         ipAddress -> builder.addIpAddress(ipConverter.apply(ipAddress)));
 
-    return new ExtendedVirtualMachine(builder.build(), virtualMachine.getUserId());
+    return new ExtendedVirtualMachine(builder.build(), virtualMachine.getUserId(),
+        VM_STATE_CONVERTER.applyBack(virtualMachine.getState()));
 
+  }
+
+  public static class VirtualMachineStateConverter implements
+      TwoWayConverter<LocalVirtualMachineState, IaasEntities.VirtualMachineState> {
+
+    private VirtualMachineStateConverter() {
+    }
+
+    @Override
+    public LocalVirtualMachineState applyBack(IaasEntities.VirtualMachineState vmState) {
+      switch (vmState) {
+        case VM_STATE_CREATED:
+          return LocalVirtualMachineState.CREATED;
+        case VM_STATE_FAILED:
+          return LocalVirtualMachineState.FAILED;
+        case VM_STATE_RUNNING:
+          return LocalVirtualMachineState.RUNNING;
+        case VM_STATE_ERROR:
+          return LocalVirtualMachineState.ERROR;
+        case VM_STATE_DELETED:
+          return LocalVirtualMachineState.DELETED;
+        case UNRECOGNIZED:
+        default:
+          throw new AssertionError("Unknown vmState " + vmState);
+      }
+    }
+
+    @Override
+    public IaasEntities.VirtualMachineState apply(LocalVirtualMachineState vmState) {
+
+      switch (vmState) {
+        case CREATED:
+          return IaasEntities.VirtualMachineState.VM_STATE_CREATED;
+        case ERROR:
+          return IaasEntities.VirtualMachineState.VM_STATE_ERROR;
+        case RUNNING:
+          return IaasEntities.VirtualMachineState.VM_STATE_RUNNING;
+        case FAILED:
+          return IaasEntities.VirtualMachineState.VM_STATE_FAILED;
+        case DELETED:
+          return IaasEntities.VirtualMachineState.VM_STATE_DELETED;
+        default:
+          throw new AssertionError("Unknown vm state " + vmState);
+      }
+    }
   }
 }

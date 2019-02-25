@@ -25,9 +25,11 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.DiscoveredHardware;
 import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.domain.ExtendedCloud;
+import io.github.cloudiator.iaas.discovery.state.HardwareStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,13 +41,16 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageDiscoveryListener.class);
   private final HardwareDomainRepository hardwareDomainRepository;
   private final CloudDomainRepository cloudDomainRepository;
+  private final HardwareStateMachine hardwareStateMachine;
 
   @Inject
   public HardwareDiscoveryListener(
       HardwareDomainRepository hardwareDomainRepository,
-      CloudDomainRepository cloudDomainRepository) {
+      CloudDomainRepository cloudDomainRepository,
+      HardwareStateMachine hardwareStateMachine) {
     this.hardwareDomainRepository = hardwareDomainRepository;
     this.cloudDomainRepository = cloudDomainRepository;
+    this.hardwareStateMachine = hardwareStateMachine;
   }
 
   @Override
@@ -78,6 +83,7 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
         DiscoveryItemState.NEW, cloud.userId());
     try {
       hardwareDomainRepository.save(discoveredHardware);
+      hardwareStateMachine.apply(discoveredHardware, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
       LOGGER
           .trace("Skipping discovery of hardware %s as assigned location seems to be missing.", e);

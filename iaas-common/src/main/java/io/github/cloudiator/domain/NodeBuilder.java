@@ -27,11 +27,13 @@ import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import io.github.cloudiator.util.NameGenerator;
 import java.util.Set;
 import java.util.UUID;
 
 public class NodeBuilder {
 
+  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private NodeProperties nodeProperties;
   private LoginCredential loginCredential;
   private NodeType nodeType;
@@ -145,6 +147,11 @@ public class NodeBuilder {
 
   public NodeBuilder name(String name) {
     this.name = name;
+    return this;
+  }
+
+  public NodeBuilder generateName(String groupName) {
+    this.name = NAME_GENERATOR.generate(groupName);
     return this;
   }
 

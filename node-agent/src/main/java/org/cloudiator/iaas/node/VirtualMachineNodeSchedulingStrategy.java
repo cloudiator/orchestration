@@ -18,16 +18,18 @@
 
 package org.cloudiator.iaas.node;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
-import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
-import io.github.cloudiator.util.NameGenerator;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
@@ -37,34 +39,52 @@ import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncarnationStrategy {
+public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(VirtualMachineNodeIncarnationStrategy.class);
-  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
-  private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
-  private final String groupName;
-  private final String userId;
-  private final VirtualMachineService virtualMachineService;
+      .getLogger(VirtualMachineNodeSchedulingStrategy.class);
 
-  public VirtualMachineNodeIncarnationStrategy(String groupName,
-      String userId, VirtualMachineService virtualMachineService) {
-    this.groupName = groupName;
-    this.userId = userId;
+  private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
+  private final VirtualMachineService virtualMachineService;
+  private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
+
+  @Inject
+  public VirtualMachineNodeSchedulingStrategy(VirtualMachineService virtualMachineService,
+      NodeCandidateMessageRepository nodeCandidateMessageRepository) {
+
     this.virtualMachineService = virtualMachineService;
+    this.nodeCandidateMessageRepository = nodeCandidateMessageRepository;
+  }
+
+  private NodeCandidate retrieveCandidate(Node pending) {
+    checkState(pending.nodeCandidate().isPresent(), "nodeCandidate is not present in pending node");
+
+    final NodeCandidate nodeCandidate = nodeCandidateMessageRepository
+        .getById(pending.userId(), pending.nodeCandidate().get());
+
+    checkNotNull(nodeCandidate, String
+        .format("NodeCandidate with id %s does no (longer) exist.", pending.nodeCandidate().get()));
+
+    return nodeCandidate;
   }
 
   @Override
-  public Node apply(NodeCandidate nodeCandidate) {
+  public boolean canSchedule(Node pending) {
+    return retrieveCandidate(pending).type().equals(NodeCandidateType.IAAS);
+  }
+
+  public Node schedule(Node pending) throws NodeSchedulingException {
 
     final SettableFutureResponseCallback<VirtualMachineCreatedResponse, VirtualMachine> virtualMachineFuture = SettableFutureResponseCallback
         .create(
             virtualMachineCreatedResponse -> VIRTUAL_MACHINE_CONVERTER
                 .apply(virtualMachineCreatedResponse.getVirtualMachine()));
 
-    final VirtualMachineRequest virtualMachineRequest = generateRequest(nodeCandidate);
+    final NodeCandidate nodeCandidate = retrieveCandidate(pending);
+
+    final VirtualMachineRequest virtualMachineRequest = generateRequest(pending, nodeCandidate);
     CreateVirtualMachineRequestMessage createVirtualMachineRequestMessage = CreateVirtualMachineRequestMessage
-        .newBuilder().setUserId(userId).setVirtualMachineRequest(virtualMachineRequest)
+        .newBuilder().setUserId(pending.userId()).setVirtualMachineRequest(virtualMachineRequest)
         .build();
 
     LOGGER.debug(String
@@ -81,50 +101,24 @@ public class VirtualMachineNodeIncarnationStrategy implements NodeCandidateIncar
           .format("%s incarnated nodeCandidate %s as virtual machine %s.", this, nodeCandidate,
               virtualMachine));
 
-      return NodeBuilder.of(virtualMachine).state(NodeState.CREATED).userId(userId)
+      return NodeBuilder.of(virtualMachine).state(NodeState.RUNNING).userId(pending.userId())
           .nodeCandidate(nodeCandidate.id()).build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",
           e);
     } catch (ExecutionException e) {
-      return NodeBuilder.newBuilder().name(NAME_GENERATOR.generate(groupName))
-          .state(NodeState.FAILED).userId(userId).nodeCandidate(nodeCandidate.id()).nodeProperties(
-              NodePropertiesBuilder.newBuilder().providerId(nodeCandidate.cloud().id()).build())
-          .diagnostic(e.getMessage()).generateId().build();
+      throw new NodeSchedulingException(String.format("Could not schedule node %s.", pending), e);
     }
   }
 
-  private VirtualMachineRequest generateRequest(NodeCandidate nodeCandidate) {
+  private VirtualMachineRequest generateRequest(Node pending, NodeCandidate nodeCandidate) {
 
     return VirtualMachineRequest.newBuilder()
         .setHardware(nodeCandidate.hardware().id())
         .setImage(nodeCandidate.image().id())
         .setLocation(nodeCandidate.location().id())
-        .setName(NAME_GENERATOR.generate(this.groupName))
+        .setName(pending.name())
         .build();
   }
-
-  public static class VirtualMachineNodeIncarnationFactory implements
-      NodeCandidateIncarnationFactory {
-
-    private final VirtualMachineService virtualMachineService;
-
-    @Inject
-    public VirtualMachineNodeIncarnationFactory(
-        VirtualMachineService virtualMachineService) {
-      this.virtualMachineService = virtualMachineService;
-    }
-
-    @Override
-    public boolean canIncarnate(NodeCandidate nodeCandidate) {
-      return NodeCandidateType.IAAS.equals(nodeCandidate.type());
-    }
-
-    @Override
-    public NodeCandidateIncarnationStrategy create(String groupName, String userId) {
-      return new VirtualMachineNodeIncarnationStrategy(groupName, userId, virtualMachineService);
-    }
-  }
-
 }

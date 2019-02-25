@@ -86,8 +86,6 @@ public class LocationDiscoveryListener implements DiscoveryListener {
       locationStateMachine.apply(discoveredLocation, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
       LOGGER.trace("Skipping discovery of location %s as assigned parent seems to be missing.", e);
-    } catch (ExecutionException e) {
-      throw new IllegalStateException("Illegal state transition for location.", e);
     }
   }
 }

@@ -21,10 +21,11 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeGroups;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
-import io.github.cloudiator.messaging.NodeCandidateConverter;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.Collections;
@@ -32,9 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
 import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestResponse;
@@ -52,12 +51,10 @@ public class NodeRequestWorker implements Runnable {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(NodeRequestWorker.class);
   private static final NodeGroupMessageToNodeGroup NODE_GROUP_CONVERTER = new NodeGroupMessageToNodeGroup();
-  private static final NodeCandidateConverter NODE_CANDIDATE_CONVERTER = NodeCandidateConverter.INSTANCE;
   private final NodeRequestQueue nodeRequestQueue;
   private final MatchmakingService matchmakingService;
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
-  private final NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory;
   private final NodeStateMachine nodeStateMachine;
 
   @Inject
@@ -65,13 +62,11 @@ public class NodeRequestWorker implements Runnable {
       MatchmakingService matchmakingService,
       MessageInterface messageInterface,
       NodeDomainRepository nodeDomainRepository,
-      NodeCandidateIncarnationFactory nodeCandidateIncarnationFactory,
       NodeStateMachine nodeStateMachine) {
     this.nodeRequestQueue = nodeRequestQueue;
     this.matchmakingService = matchmakingService;
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
-    this.nodeCandidateIncarnationFactory = nodeCandidateIncarnationFactory;
     this.nodeStateMachine = nodeStateMachine;
   }
 
@@ -82,9 +77,16 @@ public class NodeRequestWorker implements Runnable {
             .collect(Collectors.joining("/n")));
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
   void persistNodeGroup(NodeGroup nodeGroup) {
     nodeDomainRepository.save(nodeGroup);
+  }
+
+  @Transactional
+  Node persistNode(Node node) {
+    nodeDomainRepository.save(node);
+    return node;
   }
 
   @Override
@@ -133,21 +135,20 @@ public class NodeRequestWorker implements Runnable {
         nodeCandidates.parallelStream().forEach(
             nodeCandidate -> {
 
-              //incarnate node candidate to a new
-              Node incarnation = nodeCandidateIncarnationFactory.create(groupName, userId)
-                  .apply(NODE_CANDIDATE_CONVERTER.apply(nodeCandidate));
+              //generate the pending node
+              final Node pending = NodeBuilder.newBuilder().generateId().generateName(groupName)
+                  .nodeProperties(
+                      NodePropertiesBuilder.newBuilder()
+                          .providerId(nodeCandidate.getCloud().getId())
+                          .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.getId())
+                  .userId(userId).build();
 
-              if (incarnation.state().equals(NodeState.FAILED)) {
-                incarnation = nodeStateMachine.fail(incarnation, new Object[0], null);
-              } else {
-                try {
-                  incarnation = nodeStateMachine.apply(incarnation, NodeState.RUNNING, null);
-                } catch (ExecutionException e) {
-                  throw new IllegalStateException("Could not switch state of node");
-                }
-              }
+              persistNode(pending);
 
-              nodes.add(incarnation);
+              final Node running = nodeStateMachine
+                  .apply(pending, NodeState.RUNNING, new Object[]{nodeCandidate});
+
+              nodes.add(running);
 
               countDownLatch.countDown();
             });

@@ -27,22 +27,26 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 import java.util.Optional;
 import java.util.Set;
 
-public class ExtendedVirtualMachine implements VirtualMachine {
+public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
 
   private final VirtualMachine delegate;
   private final String userId;
+  private final LocalVirtualMachineState virtualMachineState;
 
   public ExtendedVirtualMachine(VirtualMachine delegate,
-      String userId) {
+      String userId, LocalVirtualMachineState virtualMachineState) {
 
     checkNotNull(delegate, "delegate is null");
     checkNotNull(userId, "userId is null");
+    checkNotNull(virtualMachineState, "virtualMachineState is null");
 
     this.delegate = delegate;
     this.userId = userId;
+    this.virtualMachineState = virtualMachineState;
   }
 
   @Override
@@ -86,8 +90,8 @@ public class ExtendedVirtualMachine implements VirtualMachine {
   }
 
   @Override
-  public State state() {
-    return delegate.state();
+  public VirtualMachineState remoteState() {
+    return delegate.remoteState();
   }
 
   @Override
@@ -119,5 +123,10 @@ public class ExtendedVirtualMachine implements VirtualMachine {
 
   public String getUserId() {
     return userId;
+  }
+
+  @Override
+  public LocalVirtualMachineState state() {
+    return virtualMachineState;
   }
 }

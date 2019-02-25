@@ -36,7 +36,6 @@ import io.github.cloudiator.domain.ExtendedCloudImpl;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter.CloudStateConverter;
 import io.github.cloudiator.persistance.CloudDomainRepository;
-import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Cloud.CloudEvent;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
@@ -166,8 +165,7 @@ public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> 
   }
 
   @Override
-  public ExtendedCloud apply(ExtendedCloud object, State to, Object[] arguments)
-      throws ExecutionException {
+  public ExtendedCloud apply(ExtendedCloud object, State to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

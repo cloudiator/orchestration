@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -18,19 +18,13 @@
 
 package org.cloudiator.iaas.node;
 
+public class NodeSchedulingException extends Exception {
 
-import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeCandidate;
-import java.util.function.Function;
-
-
-public interface NodeCandidateIncarnationStrategy extends Function<NodeCandidate, Node> {
-
-  interface NodeCandidateIncarnationFactory {
-
-    boolean canIncarnate(NodeCandidate nodeCandidate);
-
-    NodeCandidateIncarnationStrategy create(String groupName, String userId);
+  public NodeSchedulingException(String s) {
+    super(s);
   }
 
+  public NodeSchedulingException(String s, Throwable throwable) {
+    super(s, throwable);
+  }
 }

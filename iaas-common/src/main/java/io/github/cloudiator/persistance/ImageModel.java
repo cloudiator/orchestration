@@ -93,6 +93,11 @@ class ImageModel extends ResourceModel implements LoginNameSupplier {
     return state;
   }
 
+  public ImageModel setState(DiscoveryItemState state) {
+    this.state = state;
+    return this;
+  }
+
   public TenantModel getTenant() {
     return getCloudModel().getTenantModel();
   }

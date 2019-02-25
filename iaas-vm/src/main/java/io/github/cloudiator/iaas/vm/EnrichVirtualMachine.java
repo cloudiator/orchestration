@@ -69,7 +69,7 @@ public class EnrichVirtualMachine {
 
     return new ExtendedVirtualMachine(
         VirtualMachineBuilder.of(virtualMachine).hardware(hardware).image(image)
-            .location(location).build(), virtualMachine.getUserId());
+            .location(location).build(), virtualMachine.getUserId(), virtualMachine.state());
   }
 
 }

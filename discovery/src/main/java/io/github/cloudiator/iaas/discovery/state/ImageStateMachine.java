@@ -28,52 +28,50 @@ import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
-import io.github.cloudiator.domain.DiscoveredLocation;
+import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.messaging.DiscoveryItemStateConverter;
-import io.github.cloudiator.messaging.LocationMessageToLocationConverter;
-import io.github.cloudiator.persistance.LocationDomainRepository;
+import io.github.cloudiator.messaging.ImageMessageToImageConverter;
+import io.github.cloudiator.persistance.ImageDomainRepository;
 import org.cloudiator.messages.Discovery.DiscoveryEvent;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLocation> {
+public class ImageStateMachine implements ErrorAwareStateMachine<DiscoveredImage> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocationStateMachine.class);
-  private final ErrorAwareStateMachine<DiscoveredLocation> stateMachine;
-  private final LocationDomainRepository locationDomainRepository;
-  private final CloudService cloudService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ImageStateMachine.class);
+  private final ErrorAwareStateMachine<DiscoveredImage> stateMachine;
+  private final ImageDomainRepository imageDomainRepository;
 
   @Inject
-  public LocationStateMachine(
-      LocationDomainRepository locationDomainRepository,
+  public ImageStateMachine(
+      ImageDomainRepository imageDomainRepository,
       CloudService cloudService) {
-    this.locationDomainRepository = locationDomainRepository;
-    this.cloudService = cloudService;
+    this.imageDomainRepository = imageDomainRepository;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<DiscoveredLocation>builder()
+    stateMachine = StateMachineBuilder.<DiscoveredImage>builder()
         .addTransition(
-            Transitions.<DiscoveredLocation>transitionBuilder().from(DiscoveryItemState.NEW)
+            Transitions.<DiscoveredImage>transitionBuilder().from(DiscoveryItemState.NEW)
                 .to(DiscoveryItemState.OK).action(newToOk()).build())
         .errorTransition(
-            Transitions.<DiscoveredLocation>errorTransitionBuilder()
+            Transitions.<DiscoveredImage>errorTransitionBuilder()
                 .errorState(DiscoveryItemState.DISABLED)
                 .action(toDisabled()).build())
-        .addHook(new StateMachineHook<DiscoveredLocation>() {
+        .addHook(new StateMachineHook<DiscoveredImage>() {
           @Override
-          public void pre(DiscoveredLocation object, State to) {
+          public void pre(DiscoveredImage object, State to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, DiscoveredLocation object) {
+          public void post(State from, DiscoveredImage object) {
             cloudService.announceEvent(DiscoveryEvent.newBuilder().setFrom(
                 DiscoveryItemStateConverter.INSTANCE.applyBack((DiscoveryItemState) from))
                 .setTo(DiscoveryItemStateConverter.INSTANCE.applyBack(object.state()))
-                .setLocation(LocationMessageToLocationConverter.INSTANCE.applyBack(object))
+                .setImage(ImageMessageToImageConverter.INSTANCE.applyBack(object))
                 .setUserId(object.userId())
                 .build());
           }
@@ -83,12 +81,12 @@ public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLo
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  DiscoveredLocation save(DiscoveredLocation discoveredLocation) {
-    locationDomainRepository.save(discoveredLocation);
-    return discoveredLocation;
+  DiscoveredImage save(DiscoveredImage DiscoveredImage) {
+    imageDomainRepository.save(DiscoveredImage);
+    return DiscoveredImage;
   }
 
-  private TransitionAction<DiscoveredLocation> newToOk() {
+  private TransitionAction<DiscoveredImage> newToOk() {
 
     return (o, arguments) -> {
       o.setState(DiscoveryItemState.OK);
@@ -97,7 +95,7 @@ public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLo
     };
   }
 
-  private ErrorTransitionAction<DiscoveredLocation> toDisabled() {
+  private ErrorTransitionAction<DiscoveredImage> toDisabled() {
     return (o, arguments, t) -> {
       o.setState(DiscoveryItemState.DISABLED);
       save(o);
@@ -106,12 +104,12 @@ public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLo
   }
 
   @Override
-  public DiscoveredLocation apply(DiscoveredLocation object, State to, Object[] arguments) {
+  public DiscoveredImage apply(DiscoveredImage object, State to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 
   @Override
-  public DiscoveredLocation fail(DiscoveredLocation object, Object[] arguments, Throwable t) {
+  public DiscoveredImage fail(DiscoveredImage object, Object[] arguments, Throwable t) {
     return stateMachine.fail(object, arguments, t);
   }
 }
