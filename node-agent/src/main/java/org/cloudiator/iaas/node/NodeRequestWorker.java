@@ -26,6 +26,7 @@ import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeGroups;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.NodeGroupMessageToNodeGroup;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.Collections;
@@ -136,7 +137,8 @@ public class NodeRequestWorker implements Runnable {
             nodeCandidate -> {
 
               //generate the pending node
-              final Node pending = NodeBuilder.newBuilder().generateId().generateName(groupName)
+              final Node pending = NodeBuilder.newBuilder().generateId().generateName(groupName).nodeType(
+                  NodeType.UNKOWN)
                   .nodeProperties(
                       NodePropertiesBuilder.newBuilder()
                           .providerId(nodeCandidate.getCloud().getId())

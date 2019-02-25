@@ -29,7 +29,6 @@ import io.github.cloudiator.iaas.discovery.state.LocationStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.LocationDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +84,9 @@ public class LocationDiscoveryListener implements DiscoveryListener {
       locationDomainRepository.save(discoveredLocation);
       locationStateMachine.apply(discoveredLocation, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
-      LOGGER.info("Skipping discovery of location %s as assigned parent seems to be missing.", e);
+      LOGGER.info(String
+              .format("Skipping discovery of location %s as assigned parent seems to be missing.", o),
+          e);
     }
   }
 }
