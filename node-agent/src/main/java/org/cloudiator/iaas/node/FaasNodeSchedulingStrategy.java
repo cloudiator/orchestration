@@ -3,7 +3,6 @@ package org.cloudiator.iaas.node;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.OperatingSystems;
 import io.github.cloudiator.domain.Node;
@@ -91,14 +90,13 @@ public class FaasNodeSchedulingStrategy implements NodeSchedulingStrategy {
           .build();
 
       return NodeBuilder.newBuilder()
-          .generateId()
+          .id(pending.id())
           .originId(function.getId())
           .userId(pending.userId())
           .state(NodeState.RUNNING)
           .name(pending.name())
           .nodeType(NodeType.FAAS)
           .nodeProperties(properties)
-          .ipAddresses(ImmutableSet.of())
           .nodeCandidate(nodeCandidate.id())
           .build();
     } catch (InterruptedException e) {

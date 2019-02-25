@@ -102,7 +102,7 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
               virtualMachine));
 
       return NodeBuilder.of(virtualMachine).state(NodeState.RUNNING).userId(pending.userId())
-          .nodeCandidate(nodeCandidate.id()).build();
+          .nodeCandidate(nodeCandidate.id()).id(pending.id()).name(pending.name()).build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",

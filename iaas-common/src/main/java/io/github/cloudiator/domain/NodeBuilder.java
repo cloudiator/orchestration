@@ -105,8 +105,7 @@ public class NodeBuilder {
 
     return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
         .loginCredential(loginCredential)
-        .nodeProperties(nodeProperties).generateId().originId(virtualMachine.id())
-        .name(virtualMachine.name());
+        .nodeProperties(nodeProperties).originId(virtualMachine.id());
   }
 
   public NodeBuilder nodeProperties(
