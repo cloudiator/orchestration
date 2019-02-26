@@ -263,8 +263,8 @@ public class UnixInstaller extends AbstractInstaller {
             .getString("installer.spark.appname")
             + " -e METRIC_REPORTING_INTERVAL=" + Configuration.conf()
             .getString("installer.spark.metricreporting")
-            + " -e METRIC_PATTERN=" + Configuration.conf()
-            .getString("installer.spark.metricpattern")
+            + " -e METRIC_PATTERN='" + Configuration.conf()
+            .getString("installer.spark.metricpattern") + "'"
             + " -p 9999:9999 "
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")
