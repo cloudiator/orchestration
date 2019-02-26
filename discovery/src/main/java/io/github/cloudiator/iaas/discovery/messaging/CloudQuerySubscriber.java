@@ -1,9 +1,27 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.persist.Transactional;
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
+import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import java.util.stream.Collectors;
@@ -22,9 +40,9 @@ import org.slf4j.LoggerFactory;
 public class CloudQuerySubscriber implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudQuerySubscriber.class);
+  private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
   private final MessageInterface messageInterface;
   private final CloudDomainRepository cloudDomainRepository;
-  private static final CloudMessageToCloudConverter CLOUD_CONVERTER = CloudMessageToCloudConverter.INSTANCE;
 
   @Inject
   public CloudQuerySubscriber(MessageInterface messageInterface,
@@ -70,9 +88,10 @@ public class CloudQuerySubscriber implements Runnable {
             .build());
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
-    final Cloud cloud = cloudDomainRepository
+  void replyForUserIdAndCloudId(String requestId, String userId, String cloudId) {
+    final ExtendedCloud cloud = cloudDomainRepository
         .findByUserAndId(userId, cloudId);
     if (cloud == null) {
       messageInterface.reply(CloudQueryResponse.class, requestId,
@@ -87,8 +106,9 @@ public class CloudQuerySubscriber implements Runnable {
 
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void replyForUserId(String requestId, String userId) {
+  void replyForUserId(String requestId, String userId) {
     CloudQueryResponse cloudQueryResponse = CloudQueryResponse.newBuilder()
         .addAllClouds(cloudDomainRepository.findAll(userId).stream().map(
             CLOUD_CONVERTER::applyBack).collect(Collectors.toList())).build();

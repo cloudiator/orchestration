@@ -1,10 +1,30 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.messaging;
 
+import com.google.common.base.Strings;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.NodeEntities;
@@ -12,22 +32,53 @@ import org.cloudiator.messages.NodeEntities.NodeProperties.Builder;
 
 public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEntities.Node> {
 
-  private final IpAddressMessageToIpAddress ipAddressConverter = new IpAddressMessageToIpAddress();
-  private final NodeTypeToNodeTypeMessage nodeTypeConverter = new NodeTypeToNodeTypeMessage();
-  private final NodePropertiesMessageToNodePropertiesConverter nodePropertiesConverter = new NodePropertiesMessageToNodePropertiesConverter();
-  private final LoginCredentialMessageToLoginCredentialConverter loginCredentialConverter = new LoginCredentialMessageToLoginCredentialConverter();
+  public static final NodeToNodeMessageConverter INSTANCE = new NodeToNodeMessageConverter();
+
+  private static final IpAddressMessageToIpAddress IP_ADDRESS_CONVERTER = new IpAddressMessageToIpAddress();
+  private static final NodeTypeToNodeTypeMessage NODE_TYPE_CONVERTER = new NodeTypeToNodeTypeMessage();
+
+  private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
+  private static final LoginCredentialMessageToLoginCredentialConverter LOGIN_CREDENTIAL_CONVERTER = LoginCredentialMessageToLoginCredentialConverter.INSTANCE;
+
+  public static final NodeStateConverter NODE_STATE_CONVERTER = new NodeStateConverter();
+
+  private NodeToNodeMessageConverter() {
+  }
 
   @Override
   public Node applyBack(NodeEntities.Node node) {
 
-    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder().id(node.getId()).name(node.getName())
-        .nodeProperties(nodePropertiesConverter.apply(node.getNodeProperties()))
-        .nodeType(nodeTypeConverter.applyBack(node.getNodeType())).ipAddresses(
-            node.getIpAddressesList().stream().map(ipAddressConverter::apply)
-                .collect(Collectors.toSet()));
+    final NodeBuilder nodeBuilder = NodeBuilder.newBuilder()
+        .id(node.getId())
+        .name(node.getName())
+        .nodeProperties(NODE_PROPERTIES_CONVERTER.apply(node.getNodeProperties()))
+        .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType())).ipAddresses(
+            node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
+                .collect(Collectors.toSet()))
+        .state(NODE_STATE_CONVERTER.applyBack(node.getState()));
 
     if (node.hasLoginCredential()) {
-      nodeBuilder.loginCredential(loginCredentialConverter.apply(node.getLoginCredential()));
+      nodeBuilder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()));
+    }
+
+    if (!Strings.isNullOrEmpty(node.getReason())) {
+      nodeBuilder.reason(node.getReason());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getDiagnostic())) {
+      nodeBuilder.diagnostic(node.getDiagnostic());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getNodeCandidate())) {
+      nodeBuilder.nodeCandidate(node.getNodeCandidate());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getUserId())) {
+      nodeBuilder.userId(node.getUserId());
+    }
+
+    if (!Strings.isNullOrEmpty(node.getOriginId())) {
+      nodeBuilder.originId(node.getOriginId());
     }
 
     return nodeBuilder.build();
@@ -39,13 +90,32 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     final NodeEntities.Node.Builder builder = NodeEntities.Node.newBuilder().setId(node.id())
         .setName(node.name())
         .addAllIpAddresses(
-            node.ipAddresses().stream().map(ipAddressConverter::applyBack)
+            node.ipAddresses().stream().map(IP_ADDRESS_CONVERTER::applyBack)
                 .collect(Collectors.toList()))
-        .setNodeProperties(nodePropertiesConverter.applyBack(node.nodeProperties()))
-        .setNodeType(nodeTypeConverter.apply(node.type()));
+        .setNodeProperties(NODE_PROPERTIES_CONVERTER.applyBack(node.nodeProperties()))
+        .setNodeType(NODE_TYPE_CONVERTER.apply(node.type()))
+        .setState(NODE_STATE_CONVERTER.apply(node.state()))
+        .setUserId(node.userId());
+
+    if (node.diagnostic().isPresent()) {
+      builder.setDiagnostic(node.diagnostic().get());
+    }
+
+    if (node.reason().isPresent()) {
+      builder.setReason(node.reason().get());
+    }
+
+    if (node.nodeCandidate().isPresent()) {
+      builder.setNodeCandidate(node.nodeCandidate().get());
+    }
 
     if (node.loginCredential().isPresent()) {
-      builder.setLoginCredential(loginCredentialConverter.applyBack(node.loginCredential().get()));
+      builder
+          .setLoginCredential(LOGIN_CREDENTIAL_CONVERTER.applyBack(node.loginCredential().get()));
+    }
+
+    if (node.originId().isPresent()) {
+      builder.setOriginId(node.originId().get());
     }
 
     return builder.build();
@@ -60,7 +130,15 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     @Override
     public NodeEntities.NodeProperties applyBack(NodeProperties nodeProperties) {
       final Builder builder = NodeEntities.NodeProperties.newBuilder()
-          .setNumberOfCores(nodeProperties.numberOfCores()).setMemory(nodeProperties.memory());
+          .setProviderId(nodeProperties.providerId());
+
+      if (nodeProperties.numberOfCores().isPresent()) {
+        builder.setNumberOfCores(nodeProperties.numberOfCores().get());
+      }
+
+      if (nodeProperties.memory().isPresent()) {
+        builder.setMemory(nodeProperties.memory().get());
+      }
 
       if (nodeProperties.geoLocation().isPresent()) {
         builder.setGeoLocation(geoLocationConverter.applyBack(nodeProperties.geoLocation().get()));
@@ -81,11 +159,53 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
 
     @Override
     public NodeProperties apply(NodeEntities.NodeProperties nodeProperties) {
-      return NodePropertiesBuilder.newBuilder().numberOfCores(nodeProperties.getNumberOfCores())
+      return NodePropertiesBuilder.newBuilder().providerId(nodeProperties.getProviderId())
+          .numberOfCores(nodeProperties.getNumberOfCores())
           .disk(nodeProperties.getDisk())
           .geoLocation(geoLocationConverter.apply(nodeProperties.getGeoLocation()))
           .memory(nodeProperties.getMemory())
           .os(operatingSystemConverter.apply(nodeProperties.getOperationSystem())).build();
+    }
+  }
+
+  public static class NodeStateConverter implements
+      TwoWayConverter<NodeState, NodeEntities.NodeState> {
+
+    private NodeStateConverter() {
+    }
+
+    @Override
+    public NodeState applyBack(NodeEntities.NodeState nodeState) {
+      switch (nodeState) {
+        case NODE_STATE_PENDING:
+          return NodeState.PENDING;
+        case NODE_STATE_RUNNING:
+          return NodeState.RUNNING;
+        case NODE_STATE_ERROR:
+          return NodeState.ERROR;
+        case NODE_STATE_DELETED:
+          return NodeState.DELETED;
+        case UNRECOGNIZED:
+        default:
+          throw new AssertionError("Unknown nodeState " + nodeState);
+      }
+    }
+
+    @Override
+    public NodeEntities.NodeState apply(NodeState nodeState) {
+
+      switch (nodeState) {
+        case PENDING:
+          return NodeEntities.NodeState.NODE_STATE_PENDING;
+        case ERROR:
+          return NodeEntities.NodeState.NODE_STATE_ERROR;
+        case RUNNING:
+          return NodeEntities.NodeState.NODE_STATE_RUNNING;
+        case DELETED:
+          return NodeEntities.NodeState.NODE_STATE_DELETED;
+        default:
+          throw new AssertionError("Unknown node state " + nodeState);
+      }
     }
   }
 
@@ -101,6 +221,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
           return NodeType.BYON;
         case CONTAINER:
           return NodeType.CONTAINER;
+        case FAAS:
+          return NodeType.FAAS;
         case UNKNOWN_TYPE:
           return NodeType.UNKOWN;
         case UNRECOGNIZED:
@@ -120,6 +242,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
           return NodeEntities.NodeType.UNKNOWN_TYPE;
         case CONTAINER:
           return NodeEntities.NodeType.CONTAINER;
+        case FAAS:
+          return NodeEntities.NodeType.FAAS;
         default:
           throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
       }

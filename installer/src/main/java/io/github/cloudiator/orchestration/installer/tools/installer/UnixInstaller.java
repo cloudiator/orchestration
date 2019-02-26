@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014-2015 University of Ulm
+ * Copyright (c) 2014-2018 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -19,9 +19,11 @@
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnectionResponse;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,32 +87,45 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installVisor() throws RemoteException {
 
-    //download Visor
-    CommandTask installVisor = new CommandTask(this.remoteConnection,
-        "sudo wget " + Configuration.conf().getString("installer.visor.download")
-            + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
-    installVisor.call();
+    //check for installed Visor
+    RemoteConnectionResponse checkresult = this.remoteConnection
+        .executeCommand("ps -ef | grep -c \"[v]isor.jar\"");
 
-    LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
-    //create properties file
-    FileTask visorConfig = new FileTask(this.remoteConnection, "/tmp/" + VISOR_PROPERTIES,
-        this.buildDefaultVisorConfig(), false);
-    visorConfig.call();
+    LOGGER.debug(String.format("Check returned [%s] in standard out", checkresult.stdOut()));
+    LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
 
-    //move to tool path
-    installVisor = new CommandTask(this.remoteConnection,
-        "sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
-    installVisor.call();
+    if (checkresult.getExitStatus() == 0) {
+      LOGGER.debug("Skipping installation as Visor is already running");
 
-    //start visor
-    String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
-            + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
-    LOGGER.debug("Visor start command: " + startCommand);
-    installVisor = new CommandTask(this.remoteConnection, startCommand);
-    installVisor.call();
+    } else {
 
-    LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
+      //download Visor
+      CommandTask installVisor = new CommandTask(this.remoteConnection,
+          "sudo wget " + Configuration.conf().getString("installer.visor.download")
+              + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
+      installVisor.call();
+
+      LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
+      //create properties file
+      FileTask visorConfig = new FileTask(this.remoteConnection, "/tmp/" + VISOR_PROPERTIES,
+          this.buildDefaultVisorConfig(), false);
+      visorConfig.call();
+
+      //move to tool path
+      installVisor = new CommandTask(this.remoteConnection,
+          "sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
+      installVisor.call();
+
+      //start visor
+      String startCommand =
+          "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
+              + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
+      LOGGER.debug("Visor start command: " + startCommand);
+      installVisor = new CommandTask(this.remoteConnection, startCommand);
+      installVisor.call();
+
+      LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
+    }
   }
 
   @Override
@@ -214,10 +229,9 @@ public class UnixInstaller extends AbstractInstaller {
         "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
     installDocker.call();
 
-    LOGGER.debug(String.format("Installing and starting Lance on node %s", node.id()));
+    LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 
   }
-  
  
   
   @Override
@@ -284,6 +298,92 @@ public class UnixInstaller extends AbstractInstaller {
 	    LOGGER.debug(
 	        String.format("DLMSAgent started successfully on node %s", node.id()));
 	       
+  }
+  
+
+  @Override
+  public void installSparkWorker() throws RemoteException {
+
+    LOGGER.debug(
+        String.format("Fixing hostname for Spark Workers on node %s", node.id()));
+    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
+        + "sudo rm /etc/hosts "
+        + " && "
+        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
+    fixHostname.call();
+
+    LOGGER.debug(
+        String.format("Fetching and starting Spark Worker container on node %s", node.id()));
+
+    //download Docker install script
+    CommandTask startSparkWorkerContainer = new CommandTask(this.remoteConnection,
+        "sudo docker run -d "
+            + " -e SPARK_MASTER_ENDPOINT=" + Configuration.conf()
+            .getString("installer.spark.master.ip")
+            + " -e SPARK_MASTER_PORT=" + Configuration.conf()
+            .getString("installer.spark.master.port")
+            + " -e SPARK_WORKER_UI_PORT=" + Configuration.conf()
+            .getString("installer.spark.worker.ui")
+            + " -e JMS_IP=" + Configuration.conf()
+            .getString("installer.spark.jmsip")
+            + " -e JMS_PORT=" + Configuration.conf()
+            .getString("installer.spark.jmsport")
+            + " -e APP_NAME=" + Configuration.conf()
+            .getString("installer.spark.appname")
+            + " -e METRIC_REPORTING_INTERVAL=" + Configuration.conf()
+            .getString("installer.spark.metricreporting")
+            + " -e METRIC_PATTERN='" + Configuration.conf()
+            .getString("installer.spark.metricpattern") + "'"
+            + " -p 9999:9999 "
+            + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
+            + Configuration.conf().getString("installer.spark.worker.ui")
+            + " --network host "
+            + " cloudiator/spark-worker:latest ");
+
+    startSparkWorkerContainer.call();
+    LOGGER
+        .debug(String.format("Successfully started Spark Worker container  on node %s", node.id()));
+
+  }
+
+  @Override
+  public void installEMS() throws RemoteException {
+
+    // Print node information
+    LOGGER.debug(String
+        .format("Node information: id=%s, name=%s, type=%s", node.id(), node.name(), node.type()));
+    LOGGER.debug(String.format("Node public addresses: %s", node.publicIpAddresses()));
+    LOGGER.debug(String.format("Node 'connectTo' addresses: %s", node.connectTo()));
+
+    // Prepare EMS url to invoke
+    String emsUrl = Configuration.conf().getString("installer.ems.url");
+    String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
+
+    if (StringUtils.isNotBlank(emsUrl)) {
+      // Append API-key
+      if (StringUtils.isNotBlank(emsApiKey)) {
+        emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
+      }
+      LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
+      // Contact EMS to get EMS Client installation instructions for this node
+      LOGGER.debug(String.format(
+          "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
+          node.id(), emsUrl));
+      InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
+          .getInstallationInstructionsFromServer(node, emsUrl);
+      LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
+          installationInstructions));
+
+      // Execute installation instructions
+      LOGGER.debug(
+          String.format("Executing EMS Client installation instructions on node %s", node.id()));
+      InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
+
+      LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
+    } else {
+      LOGGER.warn(String.format("EMS Client installation is switched off"));
+    }
   }
   
   

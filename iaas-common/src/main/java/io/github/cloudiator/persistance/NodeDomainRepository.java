@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -63,17 +81,16 @@ public class NodeDomainRepository {
         .collect(Collectors.toList());
   }
 
-  public void save(NodeGroup nodeGroup, String userId) {
+  public void save(NodeGroup nodeGroup) {
     checkNotNull(nodeGroup, "nodeGroup is null");
-    checkNotNull(userId, "userId is null");
 
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(nodeGroup.userId());
 
     final NodeGroupModel nodeGroupModel = new NodeGroupModel(nodeGroup.id(), tenantModel);
     nodeGroupModelRepository.save(nodeGroupModel);
 
     for (Node node : nodeGroup.getNodes()) {
-      final NodeModel nodeModel = saveAndGet(node, userId);
+      final NodeModel nodeModel = saveAndGet(node);
       nodeGroupModel.addNode(nodeModel);
       nodeModel.assignGroup(nodeGroupModel);
       nodeModelRepository.save(nodeModel);
@@ -82,43 +99,102 @@ public class NodeDomainRepository {
     nodeGroupModelRepository.save(nodeGroupModel);
   }
 
-  NodeModel saveAndGet(Node domain, String userId) {
-    NodeModel nodeModel = nodeModelRepository.getByTenantAndDomainId(userId, domain.id());
+  NodeModel saveAndGet(Node domain) {
+    NodeModel nodeModel = nodeModelRepository.getByTenantAndDomainId(domain.userId(), domain.id());
 
     if (nodeModel == null) {
-      nodeModel = createModel(domain, userId, null);
+      nodeModel = createModel(domain);
     } else {
-      nodeModel = updateModel(domain, nodeModel, userId);
+      nodeModel = updateModel(domain, nodeModel);
     }
     nodeModelRepository.save(nodeModel);
 
     return nodeModel;
   }
 
-  public void save(Node domain, String userId) {
+  public void save(Node domain) {
     checkNotNull(domain, "domain is null");
-    checkNotNull(userId, "userId is null");
-
-    saveAndGet(domain, userId);
+    saveAndGet(domain);
   }
 
-  public void delete(String id, String userId) {
+  public void delete(String id) {
+
+    //todo: delete group when last member leaves?
+
     checkNotNull(id, "id is null");
-    checkNotNull(userId, "userId is null");
 
-    NodeModel byTenantAndDomainId = nodeModelRepository.getByTenantAndDomainId(userId, id);
-    checkState(byTenantAndDomainId != null, "Node with the id %s does not exist.", id);
-    nodeModelRepository.delete(byTenantAndDomainId);
+    NodeModel byDomainId = nodeModelRepository.getByDomainId(id);
+
+    checkState(byDomainId != null, "Node with the id %s does not exist.", id);
+    nodeModelRepository.delete(byDomainId);
   }
 
-  private NodeModel updateModel(Node domain, NodeModel nodeModel, String userId) {
-    return null;
+  private NodeModel updateModel(Node domain, NodeModel nodeModel) {
+
+    checkState(domain.id().equals(nodeModel.getDomainId()), "domain id does not match");
+    checkState(
+        domain.userId().equals(nodeModel.getTenantModel().getUserId()), "user id does not match");
+
+    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
+    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
+    final IpGroupModel ipGroupModel = generateIpModel(domain);
+
+    if (nodeModel.getOriginId() != null) {
+      checkState(domain.originId().isPresent(), "model has a originId but domain object does not.");
+      checkState(domain.originId().get().equals(nodeModel.getOriginId()),
+          "origin id does not match");
+
+    }
+    nodeModel.setOriginId(domain.originId().orElse(null));
+    nodeModel.setName(domain.name());
+    nodeModel.setNodeProperties(nodePropertiesModel);
+    nodeModel.setLoginCredential(loginCredentialModel);
+    nodeModel.setType(domain.type());
+    nodeModel.setIpGroup(ipGroupModel);
+    nodeModel.setNodeState(domain.state());
+    nodeModel.setDiagnostic(domain.diagnostic().orElse(null));
+    nodeModel.setReason(domain.reason().orElse(null));
+    nodeModel.setNodeCandidate(domain.nodeCandidate().orElse(null));
+
+    return nodeModel;
   }
 
-  private NodeModel createModel(Node domain, String userId,
-      @Nullable NodeGroupModel nodeGroupModel) {
+  private NodeModel createModel(Node domain) {
 
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(domain.userId());
+
+    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
+    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
+    final IpGroupModel ipGroupModel = generateIpModel(domain);
+
+    return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
+        nodePropertiesModel,
+        loginCredentialModel, domain.type(), ipGroupModel, null, domain.state(),
+        domain.nodeCandidate().orElse(null),
+        domain.diagnostic().orElse(null), domain.reason().orElse(null));
+
+  }
+
+  @Nullable
+  private IpGroupModel generateIpModel(Node domain) {
+    IpGroupModel ipGroupModel = null;
+    if (!domain.ipAddresses().isEmpty()) {
+      ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
+    }
+    return ipGroupModel;
+  }
+
+  @Nullable
+  private LoginCredentialModel generateLoginCredential(Node domain) {
+    LoginCredentialModel loginCredentialModel = null;
+    if (domain.loginCredential().isPresent()) {
+      loginCredentialModel = loginCredentialDomainRepository
+          .saveAndGet(domain.loginCredential().get());
+    }
+    return loginCredentialModel;
+  }
+
+  private NodePropertiesModel generateNodeProperties(Node domain) {
 
     final NodeProperties nodeProperties = domain.nodeProperties();
 
@@ -133,25 +209,15 @@ public class NodeDomainRepository {
       geoLocationModel = geoLocationDomainRepository.saveAndGet(nodeProperties.geoLocation().get());
     }
 
-    LoginCredentialModel loginCredentialModel = null;
-    if (domain.loginCredential().isPresent()) {
-      loginCredentialModel = loginCredentialDomainRepository
-          .saveAndGet(domain.loginCredential().get());
-    }
-
     final NodePropertiesModel nodePropertiesModel = new NodePropertiesModel(
-        nodeProperties.numberOfCores(), nodeProperties.memory(), nodeProperties.disk().orElse(null),
+        nodeProperties.providerId(),
+        nodeProperties.numberOfCores().orElse(null), nodeProperties.memory().orElse(null),
+        nodeProperties.disk().orElse(null),
         operatingSystemModel, geoLocationModel);
 
     nodePropertiesModelRepository.save(nodePropertiesModel);
 
-    IpGroupModel ipGroupModel = null;
-    if (!domain.ipAddresses().isEmpty()) {
-      ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
-    }
-
-    return new NodeModel(domain.id(), domain.name(), tenantModel, nodePropertiesModel,
-        loginCredentialModel, domain.type(), ipGroupModel, nodeGroupModel);
+    return nodePropertiesModel;
 
   }
 

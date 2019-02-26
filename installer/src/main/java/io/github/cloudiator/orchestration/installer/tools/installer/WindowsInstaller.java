@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014-2015 University of Ulm
+ * Copyright (c) 2014-2018 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -21,7 +21,9 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -290,7 +292,46 @@ public class WindowsInstaller extends AbstractInstaller {
 
   @Override
   public void installDocker() throws RemoteException {
-    LOGGER.warn("Docker installation is currently not supported for Windows!");
+    throw new UnsupportedOperationException(
+        "Docker installation is currently not supported for Windows!");
+  }
+
+  @Override
+  public void installSparkWorker() throws RemoteException {
+    throw new UnsupportedOperationException(
+        "Spark Worker installation is currently not supported for Windows as this tool requires Docker!");
+  }
+
+  @Override
+  public void installEMS() throws RemoteException {
+
+    // Print node information
+    LOGGER.debug(String.format("Node information: id=%s, name=%s, type=%s", node.id(), node.name(), node.type()));
+    LOGGER.debug(String.format("Node public addresses: %s", node.publicIpAddresses()));
+    LOGGER.debug(String.format("Node 'connectTo' addresses: %s", node.connectTo()));
+
+    // Prepare EMS url to invoke
+    String emsUrl = Configuration.conf().getString("installer.ems.url");
+    String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
+
+    if (StringUtils.isNotBlank(emsUrl)) {
+      // Append API-key
+      if (StringUtils.isNotBlank(emsApiKey)) emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
+      LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
+      // Contact EMS to get EMS Client installation instructions for this node
+      LOGGER.debug(String.format("Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s", node.id(), emsUrl));
+      InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper.getInstallationInstructionsFromServer(node, emsUrl);
+      LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(), installationInstructions));
+
+      // Execute installation instructions
+      LOGGER.debug(String.format("Executing EMS Client installation instructions on node %s", node.id()));
+      InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
+
+      LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
+    } else {
+      LOGGER.warn(String.format("EMS Client installation is switched off"));
+    }
   }
 
 @Override

@@ -1,7 +1,25 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.Location;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import io.github.cloudiator.messaging.LocationMessageToLocationConverter;
 import io.github.cloudiator.persistance.LocationDomainRepository;
 import java.util.stream.Collectors;
@@ -18,9 +36,9 @@ import org.slf4j.LoggerFactory;
 public class LocationQuerySubscriber implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocationQueryRequest.class);
+  private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
   private final MessageInterface messageInterface;
   private final LocationDomainRepository locationDomainRepository;
-  private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
 
   @Inject
   public LocationQuerySubscriber(MessageInterface messageInterface,
@@ -70,7 +88,7 @@ public class LocationQuerySubscriber implements Runnable {
 
 
   private void replyForUserIdAndLocationId(String requestId, String userId, String locationId) {
-    final Location location = locationDomainRepository
+    final DiscoveredLocation location = locationDomainRepository
         .findByTenantAndId(userId, locationId);
     if (location == null) {
       messageInterface.reply(requestId, LocationQueryResponse.newBuilder().build());

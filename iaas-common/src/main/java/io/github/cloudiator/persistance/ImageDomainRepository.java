@@ -1,11 +1,29 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import io.github.cloudiator.domain.DiscoveredImage;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,8 +34,8 @@ import javax.annotation.Nullable;
  */
 public class ImageDomainRepository {
 
-  private final ResourceRepository<ImageModel> imageModelRepository;
   private static final ImageConverter IMAGE_CONVERTER = new ImageConverter();
+  private final ResourceRepository<ImageModel> imageModelRepository;
   private final LocationDomainRepository locationDomainRepository;
   private final CloudDomainRepository cloudDomainRepository;
   private final OperatingSystemDomainRepository operatingSystemDomainRepository;
@@ -35,26 +53,26 @@ public class ImageDomainRepository {
   }
 
 
-  public Image findById(String id) {
+  public DiscoveredImage findById(String id) {
     return IMAGE_CONVERTER.apply(imageModelRepository.findByCloudUniqueId(id));
   }
 
-  public Image findByTenantAndId(String userId, String imageId) {
+  public DiscoveredImage findByTenantAndId(String userId, String imageId) {
     return IMAGE_CONVERTER
         .apply(imageModelRepository.findByCloudUniqueIdAndTenant(userId, imageId));
   }
 
-  public List<Image> findByTenantAndCloud(String tenantId, String cloudId) {
+  public List<DiscoveredImage> findByTenantAndCloud(String tenantId, String cloudId) {
     return imageModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
         .map(IMAGE_CONVERTER).collect(Collectors.toList());
   }
 
-  public void save(Image domain) {
+  public void save(DiscoveredImage domain) {
     checkNotNull(domain, "domain is null");
     saveAndGet(domain);
   }
 
-  ImageModel saveAndGet(Image domain) {
+  ImageModel saveAndGet(DiscoveredImage domain) {
     checkNotNull(domain, "domain is null");
 
     ImageModel model = imageModelRepository.findByCloudUniqueId(domain.id());
@@ -73,48 +91,53 @@ public class ImageDomainRepository {
   }
 
   @Nullable
-  private LocationModel getOrCreateLocationModel(Image domain) {
+  private LocationModel getLocationModel(DiscoveredImage domain) {
 
-    LocationModel locationModel = null;
-    if (domain.location().isPresent()) {
-      locationModel = locationDomainRepository
-          .saveAndGet(domain.location().get());
+    if (!domain.location().isPresent()) {
+      return null;
     }
-    return locationModel;
 
+    final LocationModel model = locationDomainRepository.getModel(domain.location().get());
+
+    if (model == null) {
+      throw new MissingLocationException(
+          "Location with id %s is missing. Can not persist the image");
+    }
+
+    return model;
   }
 
-  private ImageModel createModel(Image domain) {
+  private ImageModel createModel(DiscoveredImage domain) {
     final CloudModel cloudModel = getCloudModel(domain.id());
 
     checkState(cloudModel != null, String
         .format("Can not save image %s as related cloudModel is missing.",
             domain));
 
-    LocationModel locationModel = getOrCreateLocationModel(domain);
+    LocationModel locationModel = getLocationModel(domain);
 
     OperatingSystemModel operatingSystemModel = operatingSystemDomainRepository
         .saveAndGet(domain.operatingSystem());
 
     ImageModel imageModel = new ImageModel(domain.id(), domain.providerId(), domain.name(),
         cloudModel,
-        locationModel, null, null, operatingSystemModel);
+        locationModel, null, null, operatingSystemModel, domain.state());
 
     imageModelRepository.save(imageModel);
 
     return imageModel;
   }
 
-  private void updateModel(Image domain, ImageModel model) {
+  private void updateModel(DiscoveredImage domain, ImageModel model) {
 
-    //currently we only update the operating system.
-    //todo throw exception if something else is changed?
+    checkState(domain.id().equals(model.getCloudUniqueId()), "ids do not match");
 
     operatingSystemDomainRepository.update(domain.operatingSystem(), model.operatingSystem());
+    model.setState(domain.state());
     imageModelRepository.save(model);
   }
 
-  public Collection<Image> findAll(@Nullable String userId) {
+  public Collection<DiscoveredImage> findAll(@Nullable String userId) {
     checkNotNull(userId, "userId is null");
     return imageModelRepository.findByTenant(userId).stream().map(IMAGE_CONVERTER)
         .collect(Collectors.toList());

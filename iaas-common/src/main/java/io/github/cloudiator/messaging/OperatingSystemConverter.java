@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.messaging;
 
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
@@ -19,21 +37,30 @@ public class OperatingSystemConverter implements
 
   @Override
   public CommonEntities.OperatingSystem applyBack(OperatingSystem operatingSystem) {
+    if (operatingSystem == null) {
+      return null;
+    }
     return CommonEntities.OperatingSystem.newBuilder()
         .setOperatingSystemArchitecture(
             osArchConverter.applyBack(operatingSystem.operatingSystemArchitecture()))
         .setOperatingSystemFamily(
             osFamilyConverter.applyBack(operatingSystem.operatingSystemFamily()))
-        .setOperatingSystemVersion(String.valueOf(OperatingSystemVersions.unknown().version()))
+        .setOperatingSystemVersion(
+            operatingSystem.operatingSystemVersion().version())
         .build();
   }
 
   @Override
   public OperatingSystem apply(CommonEntities.OperatingSystem operatingSystem) {
+    if (operatingSystem == null) {
+      return null;
+    }
+
     return OperatingSystemBuilder.newBuilder().architecture(
         osArchConverter.apply(operatingSystem.getOperatingSystemArchitecture()))
-        .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily())).version(
-            OperatingSystemVersions.unknown()).build();
+        .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily()))
+        .version(OperatingSystemVersions.of(operatingSystem.getOperatingSystemVersion(), null))
+        .build();
   }
 
   private class OperatingSystemFamilyConverter implements

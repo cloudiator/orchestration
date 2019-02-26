@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -6,6 +24,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,10 +34,10 @@ import java.util.stream.Collectors;
  */
 public class LocationDomainRepository {
 
+  private static final LocationConverter LOCATION_CONVERTER = new LocationConverter();
   private final LocationModelRepository locationModelRepository;
   private final CloudDomainRepository cloudDomainRepository;
   private final GeoLocationDomainRepository geoLocationDomainRepository;
-  private static final LocationConverter LOCATION_CONVERTER = new LocationConverter();
 
   @Inject
   public LocationDomainRepository(
@@ -31,18 +50,18 @@ public class LocationDomainRepository {
   }
 
 
-  public Location findById(String id) {
+  public DiscoveredLocation findById(String id) {
     return LOCATION_CONVERTER.apply(locationModelRepository.findByCloudUniqueId(id));
   }
 
-  public Location findByTenantAndId(String userId, String locationId) {
+  public DiscoveredLocation findByTenantAndId(String userId, String locationId) {
     return LOCATION_CONVERTER
         .apply(locationModelRepository.findByCloudUniqueIdAndTenant(userId, locationId));
   }
 
-  public List<Location> findByTenantAndCloud(String tenantId, String cloudId) {
+  public List<DiscoveredLocation> findByTenantAndCloud(String tenantId, String cloudId) {
     return locationModelRepository.findByTenantAndCloud(tenantId, cloudId).stream()
-        .map(LOCATION_CONVERTER).collect(Collectors.toList());
+        .map(LOCATION_CONVERTER::apply).collect(Collectors.toList());
   }
 
   private CloudModel getCloudModel(String id) {
@@ -50,7 +69,7 @@ public class LocationDomainRepository {
     return cloudDomainRepository.findModelById(cloudId);
   }
 
-  LocationModel saveAndGet(Location domain) {
+  LocationModel saveAndGet(DiscoveredLocation domain) {
     checkNotNull(domain, "domain is null");
     LocationModel model = locationModelRepository.findByCloudUniqueId(domain.id());
     if (model == null) {
@@ -62,18 +81,22 @@ public class LocationDomainRepository {
     return model;
   }
 
-  public void save(Location domain) {
+  LocationModel getModel(Location location) {
+    return locationModelRepository.findByCloudUniqueId(location.id());
+  }
+
+  public void save(DiscoveredLocation domain) {
     checkNotNull(domain, "domain is null");
     saveAndGet(domain);
   }
 
 
-  void update(Location domain, LocationModel model) {
+  void update(DiscoveredLocation domain, LocationModel model) {
     updateModel(domain, model);
     locationModelRepository.save(model);
   }
 
-  private LocationModel createModel(Location domain) {
+  private LocationModel createModel(DiscoveredLocation domain) {
     final CloudModel cloudModel = getCloudModel(domain.id());
     checkState(cloudModel != null, String
         .format("Can not save location %s as related cloudModel is missing.",
@@ -82,7 +105,12 @@ public class LocationDomainRepository {
     LocationModel parent = null;
     //save the parent location
     if (domain.parent().isPresent()) {
-      parent = saveAndGet(domain.parent().get());
+      parent = getModel(domain.parent().get());
+      if (parent == null) {
+        throw new MissingLocationException(String
+            .format("Parent location %s is currently missing. Can not persist the location %s.",
+                domain.parent().get(), domain));
+      }
     }
 
     GeoLocationModel geoLocationModel = null;
@@ -94,13 +122,16 @@ public class LocationDomainRepository {
     return new LocationModel(
         domain.id(), domain.providerId(), domain.name(), cloudModel, parent,
         geoLocationModel,
-        domain.locationScope(), domain.isAssignable());
+        domain.locationScope(), domain.isAssignable(), domain.state());
   }
 
-  private void updateModel(Location domain, LocationModel model) {
+  private void updateModel(DiscoveredLocation domain, LocationModel model) {
 
-    //we only allow an update of the geolocation
-    //todo throw exception if other attributes are updated?
+    //check if id matches
+    checkState(domain.id().equals(model.getCloudUniqueId()), "ids do not match");
+
+    //updated the state
+    model.setState(domain.state());
 
     //create if not already exists
     if (model.getGeoLocationModel() == null && domain.geoLocation().isPresent()) {
@@ -117,9 +148,9 @@ public class LocationDomainRepository {
   }
 
 
-  public Collection<Location> findAll(String userId) {
+  public Collection<DiscoveredLocation> findAll(String userId) {
     checkNotNull(userId, "userId is null");
-    return locationModelRepository.findByTenant(userId).stream().map(LOCATION_CONVERTER)
+    return locationModelRepository.findByTenant(userId).stream().map(LOCATION_CONVERTER::apply)
         .collect(Collectors.toList());
   }
 }

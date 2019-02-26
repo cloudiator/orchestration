@@ -1,7 +1,26 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
+import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.messaging.ImageMessageToImageConverter;
 import io.github.cloudiator.persistance.ImageDomainRepository;
 import java.util.stream.Collectors;
@@ -19,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class ImageQuerySubscriber implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageQuerySubscriber.class);
+  private static final ImageMessageToImageConverter IMAGE_CONVERTER = ImageMessageToImageConverter.INSTANCE;
   private final MessageInterface messageInterface;
   private final ImageDomainRepository imageDomainRepository;
-  private static final ImageMessageToImageConverter IMAGE_CONVERTER = ImageMessageToImageConverter.INSTANCE;
 
   @Inject
   public ImageQuerySubscriber(MessageInterface messageInterface,
@@ -70,7 +89,7 @@ public class ImageQuerySubscriber implements Runnable {
 
 
   private void replyForUserIdAndImageId(String requestId, String userId, String imageId) {
-    final Image image = imageDomainRepository
+    final DiscoveredImage image = imageDomainRepository
         .findByTenantAndId(userId, imageId);
     if (image == null) {
       messageInterface.reply(requestId, ImageQueryResponse.newBuilder().build());
