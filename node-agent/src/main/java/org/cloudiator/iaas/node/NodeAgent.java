@@ -31,6 +31,7 @@ import org.cloudiator.iaas.node.messaging.NodeDeleteRequestListener;
 import org.cloudiator.iaas.node.messaging.NodeGroupQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeRequestListener;
+import org.cloudiator.iaas.node.messaging.VirtualMachineEventSubscriber;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
@@ -62,6 +63,9 @@ public class NodeAgent {
     EXECUTION_SERVICE.execute(INJECTOR.getInstance(NodeRequestWorker.class));
     LOGGER.debug("Starting " + NodeDeleteRequestListener.class);
     INJECTOR.getInstance(NodeDeleteRequestListener.class).run();
+    LOGGER.debug("Starting " + VirtualMachineEventSubscriber.class);
+    INJECTOR.getInstance(VirtualMachineEventSubscriber.class).run();
+
     LOGGER.debug("Finished starting listeners.");
   }
 
