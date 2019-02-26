@@ -22,10 +22,7 @@ import de.uniulm.omi.cloudiator.util.stateMachine.State;
 
 public enum LocalVirtualMachineState implements State {
 
-  CREATED,
-  FAILED,
   RUNNING,
-  ERROR,
-  DELETED
+  ERROR
 
 }

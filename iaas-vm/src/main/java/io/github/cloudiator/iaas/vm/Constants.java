@@ -21,6 +21,7 @@ package io.github.cloudiator.iaas.vm;
 public class Constants {
 
   public static final String VM_PARALLEL_STARTS = "vm.parallelVMStarts";
+  public static final String VM_CLEANUP_ENABLED = "vm.enableCleanup";
 
   private Constants() {
     throw new AssertionError("Do not instantiate");

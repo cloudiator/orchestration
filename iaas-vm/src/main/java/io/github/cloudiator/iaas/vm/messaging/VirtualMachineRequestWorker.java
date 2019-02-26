@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.Inject;
@@ -101,8 +102,11 @@ public class VirtualMachineRequestWorker implements Runnable {
       Exchange result = createVirtualMachineWorkflow
           .execute(Exchange.of(virtualMachineTemplate));
 
+      checkState(result.getData(VirtualMachine.class).isPresent(),
+          "No virtual machine created by workflow.");
+
       ExtendedVirtualMachine virtualMachine = new ExtendedVirtualMachine(
-          result.getData(VirtualMachine.class).get(), userId, LocalVirtualMachineState.CREATED);
+          result.getData(VirtualMachine.class).get(), userId, LocalVirtualMachineState.RUNNING);
 
       //decorate virtual machine
       final ExtendedVirtualMachine update = enrichVirtualMachine

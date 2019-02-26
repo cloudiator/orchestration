@@ -127,16 +127,10 @@ public class VirtualMachineMessageToVirtualMachine implements
     @Override
     public LocalVirtualMachineState applyBack(IaasEntities.VirtualMachineState vmState) {
       switch (vmState) {
-        case VM_STATE_CREATED:
-          return LocalVirtualMachineState.CREATED;
-        case VM_STATE_FAILED:
-          return LocalVirtualMachineState.FAILED;
         case VM_STATE_RUNNING:
           return LocalVirtualMachineState.RUNNING;
         case VM_STATE_ERROR:
           return LocalVirtualMachineState.ERROR;
-        case VM_STATE_DELETED:
-          return LocalVirtualMachineState.DELETED;
         case UNRECOGNIZED:
         default:
           throw new AssertionError("Unknown vmState " + vmState);
@@ -147,16 +141,10 @@ public class VirtualMachineMessageToVirtualMachine implements
     public IaasEntities.VirtualMachineState apply(LocalVirtualMachineState vmState) {
 
       switch (vmState) {
-        case CREATED:
-          return IaasEntities.VirtualMachineState.VM_STATE_CREATED;
         case ERROR:
           return IaasEntities.VirtualMachineState.VM_STATE_ERROR;
         case RUNNING:
           return IaasEntities.VirtualMachineState.VM_STATE_RUNNING;
-        case FAILED:
-          return IaasEntities.VirtualMachineState.VM_STATE_FAILED;
-        case DELETED:
-          return IaasEntities.VirtualMachineState.VM_STATE_DELETED;
         default:
           throw new AssertionError("Unknown vm state " + vmState);
       }
