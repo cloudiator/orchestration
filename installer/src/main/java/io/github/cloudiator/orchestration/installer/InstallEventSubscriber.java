@@ -130,6 +130,10 @@ public class InstallEventSubscriber implements Runnable {
       } else if (tool.equals(Tool.VISOR)) {
         installApi.installVisor();
         installedTools.add(tool);
+      } else if (tool.equals(Tool.DLMS_AGENT)) {
+    	 installApi.installDlmsAgent();
+      } else if (tool.equals(Tool.ALLUXIO_CLIENT)) {
+     	 installApi.installAlluxio();      
       } else if (tool.equals(Tool.SPARK_WORKER)) {
         installApi.installSparkWorker();
         installedTools.add(tool);

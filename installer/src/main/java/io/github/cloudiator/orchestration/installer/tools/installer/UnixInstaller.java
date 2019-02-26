@@ -153,6 +153,7 @@ public class UnixInstaller extends AbstractInstaller {
 
   }
 
+
   @Override
   public void installLance() throws RemoteException {
 
@@ -231,6 +232,74 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 
   }
+ 
+  
+  @Override
+  public void installAlluxio() throws RemoteException {
+	  //download Alluxio
+	    this.remoteConnection.executeCommand("sudo wget " +
+	        Configuration.conf().getString("installer.alluxio.download") + "  -O "
+	        + UnixInstaller.TOOL_PATH
+	        + ALLUXIO_ARCHIVE);
+
+	    LOGGER.debug(String.format("Installing and staring alluxio on node %s", node.id()));
+	    this.remoteConnection.executeCommand("sudo mkdir -p " + ALLUXIO_DIR);
+
+	    this.remoteConnection.executeCommand(
+	        "sudo tar zxvf " + ALLUXIO_ARCHIVE + " -C " + ALLUXIO_DIR
+	            + " --strip-components=1");
+
+	    
+	    this.remoteConnection.executeCommand(
+		        "sudo cp " + ALLUXIO_DIR + "/conf/alluxio-site.properties.template " + ALLUXIO_DIR
+		            + "/conf/alluxio-site.properties");
+	    
+	    this.remoteConnection.executeCommand(
+		        "sudo echo alluxio.master.hostname=>> " + ALLUXIO_DIR + "/conf/alluxio-site.properties " + Configuration.conf().getString("installer.alluxio.master.host"));
+	    
+	    
+	    LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));	    
+  }
+  
+  
+  @Override 
+  public void installDlmsAgent() throws RemoteException {
+	  LOGGER.debug(String.format("Installing and start DLMS agent= on node %s", node.id()));
+	 
+	    
+	  //download DLMSagent
+	    CommandTask installDlmsAgent = new CommandTask(this.remoteConnection, "sudo wget "
+	        + Configuration.conf().getString("installer.dlmsagent.download")
+	        + "  -O " + UnixInstaller.TOOL_PATH + DLMS_AGENT_JAR);
+
+	    	    
+	    String alluxio_metrics_url =  Configuration.conf().getString("installer.dlmsagent.metrics.url");
+	    String dlms_agent_jms_url =  Configuration.conf().getString("installer.dlmsagent.jmsurl");
+	    String dlms_agent_metrics_range = Configuration.conf().getString("installer.dlmsagent.metrics.range");
+	    String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
+	
+	    // start DLMSagent
+	    
+	    String startCommand =
+		        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+		            + " -DjmsUrl=" +
+		            dlms_agent_jms_url + " -DmetricsRange="
+		            + dlms_agent_metrics_range + " -Dserver-port="
+		            + dlms_agent_port
+		            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
+		    LOGGER.debug("Dlms agent start command: " + startCommand);
+		    
+		    
+		
+
+		 installDlmsAgent = new CommandTask(this.remoteConnection, startCommand);
+		 installDlmsAgent.call();
+
+	    LOGGER.debug(
+	        String.format("DLMSAgent started successfully on node %s", node.id()));
+	       
+  }
+  
 
   @Override
   public void installSparkWorker() throws RemoteException {
@@ -316,5 +385,7 @@ public class UnixInstaller extends AbstractInstaller {
       LOGGER.warn(String.format("EMS Client installation is switched off"));
     }
   }
+  
+  
 }
 
