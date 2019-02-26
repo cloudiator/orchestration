@@ -72,7 +72,7 @@ class Init {
     try {
       startPersistService();
       restoreCloudRegistry();
-      submitSchedulabled();
+      submitSchedulable();
     } catch (Exception e) {
       System.err.println("Error while initializing. Message is " + e.getMessage() + ". Exiting.");
       e.printStackTrace();
@@ -81,7 +81,7 @@ class Init {
 
   }
 
-  private void submitSchedulabled() {
+  private void submitSchedulable() {
     LOGGER.info(String.format("Submitting schedulables %s to execution service %s.", schedulables,
         executionService));
     schedulables.forEach(executionService::schedule);

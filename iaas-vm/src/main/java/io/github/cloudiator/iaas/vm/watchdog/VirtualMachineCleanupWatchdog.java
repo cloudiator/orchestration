@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.watchdog;
 
+import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
@@ -72,6 +73,8 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
   @Override
   public void run() {
 
+    LOGGER.info(String.format("%s is starting execution.", this));
+
     final Iterable<VirtualMachine> remoteVMs = computeService.discoveryService()
         .listVirtualMachines();
 
@@ -103,7 +106,7 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
 
       boolean notLongerOrphaned = !remoteOnly.contains(entry.getKey());
 
-      if (!notLongerOrphaned) {
+      if (notLongerOrphaned) {
         LOGGER.info(
             String.format("Virtual machine %s is no longer marked for deletion.", entry.getKey()));
       }
@@ -140,5 +143,10 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
           e);
     }
 
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).toString();
   }
 }

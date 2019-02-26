@@ -81,7 +81,7 @@ public class VmAgentModule extends AbstractModule {
     if (vmAgentContext.cleanupEnabled()) {
       LOGGER
           .warn("Automatic cleanup of orphaned virtual machines is enabled. This will automatically"
-              + "delete virtual machines that are no longer managed by Cloudiator.");
+              + " delete virtual machines that are no longer managed by Cloudiator.");
       schedulablesBinder.addBinding().to(VirtualMachineCleanupWatchdog.class);
     }
 
