@@ -72,8 +72,8 @@ public class VirtualMachineDomainRepository {
         .collect(Collectors.toList());
   }
 
-  public void save(ExtendedVirtualMachine virtualMachine, String userId) {
-    saveAndGet(virtualMachine, userId);
+  public void save(ExtendedVirtualMachine virtualMachine) {
+    saveAndGet(virtualMachine);
   }
 
   public void delete(String vmId, String userId) {
@@ -83,12 +83,12 @@ public class VirtualMachineDomainRepository {
     virtualMachineModelRepository.delete(vm);
   }
 
-  VirtualMachineModel saveAndGet(ExtendedVirtualMachine virtualMachine, String userId) {
+  VirtualMachineModel saveAndGet(ExtendedVirtualMachine virtualMachine) {
     //retrieve an existing virtual machine
     VirtualMachineModel virtualMachineModel = virtualMachineModelRepository
         .findByCloudUniqueId(virtualMachine.id());
     if (virtualMachineModel == null) {
-      virtualMachineModel = createModel(virtualMachine, userId);
+      virtualMachineModel = createModel(virtualMachine);
     } else {
       virtualMachineModel = updateModel(virtualMachine, virtualMachineModel);
     }
@@ -112,12 +112,12 @@ public class VirtualMachineDomainRepository {
   }
 
 
-  private VirtualMachineModel createModel(ExtendedVirtualMachine virtualMachine, String userId) {
+  private VirtualMachineModel createModel(ExtendedVirtualMachine virtualMachine) {
 
     //retrieve the cloud
     final String cloudId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
 
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(userId);
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(virtualMachine.getUserId());
 
     LoginCredentialModel loginCredentialModel = createLoginCredentialModel(virtualMachine);
     IpGroupModel ipGroupModel = createIpGroupModel(virtualMachine);

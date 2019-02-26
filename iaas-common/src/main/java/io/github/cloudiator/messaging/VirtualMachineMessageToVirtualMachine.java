@@ -121,6 +121,8 @@ public class VirtualMachineMessageToVirtualMachine implements
   public static class VirtualMachineStateConverter implements
       TwoWayConverter<LocalVirtualMachineState, IaasEntities.VirtualMachineState> {
 
+    public static final VirtualMachineStateConverter INSTANCE = new VirtualMachineStateConverter();
+    
     private VirtualMachineStateConverter() {
     }
 

@@ -39,6 +39,7 @@ import io.github.cloudiator.iaas.vm.VmAgentContext;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestWorkerFactory;
 import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineCleanupWatchdog;
+import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineErrorWatchdog;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -84,10 +85,11 @@ public class VmAgentModule extends AbstractModule {
               + " delete virtual machines that are no longer managed by Cloudiator.");
       schedulablesBinder.addBinding().to(VirtualMachineCleanupWatchdog.class);
     }
+    schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
 
     bind(ExecutionService.class).annotatedWith(Names.named("SCHEDULE_EXECUTION")).toInstance(
         new ScheduledThreadPoolExecutorExecutionService(
-            new LoggingScheduledThreadPoolExecutor(1)));
+            new LoggingScheduledThreadPoolExecutor(2)));
 
     LOGGER.info(String
         .format("Allowing parallel execution of %s virtual machine requests", parallelVMStarts));

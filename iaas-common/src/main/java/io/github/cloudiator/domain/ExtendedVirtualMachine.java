@@ -35,7 +35,7 @@ public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
 
   private final VirtualMachine delegate;
   private final String userId;
-  private final LocalVirtualMachineState virtualMachineState;
+  private LocalVirtualMachineState virtualMachineState;
 
   public ExtendedVirtualMachine(VirtualMachine delegate,
       String userId, LocalVirtualMachineState virtualMachineState) {
@@ -128,5 +128,9 @@ public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
   @Override
   public LocalVirtualMachineState state() {
     return virtualMachineState;
+  }
+
+  public void setState(LocalVirtualMachineState state) {
+    this.virtualMachineState = state;
   }
 }

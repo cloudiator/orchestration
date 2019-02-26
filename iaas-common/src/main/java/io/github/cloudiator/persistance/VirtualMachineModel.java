@@ -28,6 +28,8 @@ import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -78,6 +80,7 @@ class VirtualMachineModel extends Model {
   private IpGroupModel ipGroup;
 
   @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
   private LocalVirtualMachineState state;
 
   /**

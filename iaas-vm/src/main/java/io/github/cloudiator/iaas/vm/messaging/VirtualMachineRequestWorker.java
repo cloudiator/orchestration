@@ -121,7 +121,7 @@ public class VirtualMachineRequestWorker implements Runnable {
               stopTime - startTime);
 
       //persist the vm
-      persistVirtualMachine(update, userId);
+      persistVirtualMachine(update);
 
       messageInterface.reply(virtualMachineRequest.getId(),
           VirtualMachineCreatedResponse.newBuilder()
@@ -140,8 +140,8 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void persistVirtualMachine(ExtendedVirtualMachine vm, String userId) {
-    virtualMachineDomainRepository.save(vm, userId);
+  void persistVirtualMachine(ExtendedVirtualMachine vm) {
+    virtualMachineDomainRepository.save(vm);
   }
 
   @Override
