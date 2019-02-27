@@ -25,6 +25,7 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemVersions;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import org.cloudiator.messages.entities.CommonEntities;
+import org.cloudiator.messages.entities.CommonEntities.OperatingSystem.Builder;
 
 /**
  * Created by daniel on 08.06.17.
@@ -40,14 +41,20 @@ public class OperatingSystemConverter implements
     if (operatingSystem == null) {
       return null;
     }
-    return CommonEntities.OperatingSystem.newBuilder()
+    final Builder builder = CommonEntities.OperatingSystem.newBuilder()
         .setOperatingSystemArchitecture(
             osArchConverter.applyBack(operatingSystem.operatingSystemArchitecture()))
         .setOperatingSystemFamily(
-            osFamilyConverter.applyBack(operatingSystem.operatingSystemFamily()))
-        .setOperatingSystemVersion(
-            operatingSystem.operatingSystemVersion().version())
-        .build();
+            osFamilyConverter.applyBack(operatingSystem.operatingSystemFamily()));
+
+    if (operatingSystem.operatingSystemVersion().version() != null) {
+      builder.setOperatingSystemVersion(CommonEntities.OperatingSystemVersion.newBuilder()
+          .setVersion(operatingSystem.operatingSystemVersion().asInt()).build());
+    }
+
+    return builder.build();
+
+
   }
 
   @Override
@@ -56,11 +63,19 @@ public class OperatingSystemConverter implements
       return null;
     }
 
-    return OperatingSystemBuilder.newBuilder().architecture(
+    final OperatingSystemBuilder builder = OperatingSystemBuilder.newBuilder().architecture(
         osArchConverter.apply(operatingSystem.getOperatingSystemArchitecture()))
-        .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily()))
-        .version(OperatingSystemVersions.of(operatingSystem.getOperatingSystemVersion(), null))
-        .build();
+        .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily()));
+
+    if (operatingSystem.hasOperatingSystemVersion()) {
+      builder.version(OperatingSystemVersions
+          .of(operatingSystem.getOperatingSystemVersion().getVersion(), null));
+    } else {
+      builder.version(OperatingSystemVersions.unknown());
+    }
+
+    return builder.build();
+
   }
 
   private class OperatingSystemFamilyConverter implements
