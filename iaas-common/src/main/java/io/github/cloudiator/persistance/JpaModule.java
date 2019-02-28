@@ -89,8 +89,6 @@ public class JpaModule extends AbstractModule {
 
     bind(IpGroupModelRepository.class).to(IpGroupModelRepositoryJpa.class);
 
-    bind(NodeGroupModelRepository.class).to(NodeGroupModelRepositoryJpa.class);
-
     bind(LoginCredentialModelRepository.class).to(LoginCredentialModelRepositoryJpa.class);
 
     bind(VirtualMachineModelRepository.class).to(VirtualMachineModelRepositoryJpa.class);

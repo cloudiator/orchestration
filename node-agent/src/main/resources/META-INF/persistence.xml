@@ -26,7 +26,6 @@
 
     <class>io.github.cloudiator.persistance.TenantModel</class>
     <class>io.github.cloudiator.persistance.NodeModel</class>
-    <class>io.github.cloudiator.persistance.NodeGroupModel</class>
     <class>io.github.cloudiator.persistance.NodePropertiesModel</class>
     <class>io.github.cloudiator.persistance.GeoLocationModel</class>
     <class>io.github.cloudiator.persistance.OperatingSystemModel</class>

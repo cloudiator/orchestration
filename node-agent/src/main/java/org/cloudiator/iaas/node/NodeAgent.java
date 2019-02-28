@@ -25,7 +25,6 @@ import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.iaas.node.config.NodeModule;
 import org.cloudiator.iaas.node.messaging.NodeDeleteRequestListener;
-import org.cloudiator.iaas.node.messaging.NodeGroupQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeRequestListener;
 import org.cloudiator.iaas.node.messaging.VirtualMachineEventSubscriber;
@@ -51,8 +50,6 @@ public class NodeAgent {
     INJECTOR.getInstance(NodeRequestListener.class).run();
     LOGGER.debug("Starting " + NodeQueryListener.class);
     INJECTOR.getInstance(NodeQueryListener.class).run();
-    LOGGER.debug("Starting " + NodeGroupQueryListener.class);
-    INJECTOR.getInstance(NodeGroupQueryListener.class).run();
     LOGGER.debug("Starting " + NodeDeleteRequestListener.class);
     INJECTOR.getInstance(NodeDeleteRequestListener.class).run();
     LOGGER.debug("Starting " + VirtualMachineEventSubscriber.class);

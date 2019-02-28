@@ -21,7 +21,6 @@ package io.github.cloudiator.persistance;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import java.util.Collections;
@@ -67,10 +66,6 @@ class NodeModel extends Model {
   @Nullable
   private IpGroupModel ipGroup;
 
-  @Nullable
-  @ManyToOne
-  private NodeGroupModel nodeGroupModel;
-
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private NodeState nodeState;
@@ -97,7 +92,7 @@ class NodeModel extends Model {
   NodeModel(String domainId, @Nullable String originId, String name, TenantModel tenantModel,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential, NodeType nodeType,
-      @Nullable IpGroupModel ipGroup, @Nullable NodeGroupModel nodeGroupModel,
+      @Nullable IpGroupModel ipGroup,
       NodeState nodeState, @Nullable String nodeCandidate, @Nullable String diagnostic,
       @Nullable String reason) {
 
@@ -116,7 +111,6 @@ class NodeModel extends Model {
     this.loginCredential = loginCredential;
     this.type = nodeType;
     this.ipGroup = ipGroup;
-    this.nodeGroupModel = nodeGroupModel;
     this.nodeState = nodeState;
     this.nodeCandidate = nodeCandidate;
     this.diagnostic = diagnostic;
@@ -156,12 +150,6 @@ class NodeModel extends Model {
 
   public String getDomainId() {
     return domainId;
-  }
-
-  public NodeModel assignGroup(NodeGroupModel nodeGroupModel) {
-    checkState(this.nodeGroupModel == null, "Node Group was already assigned.");
-    this.nodeGroupModel = nodeGroupModel;
-    return this;
   }
 
   public String getName() {
