@@ -74,6 +74,8 @@
   </dependencies>
 
   <build>
+    <finalName>install-agent</finalName>
+
     <plugins>
 
       <plugin>
@@ -93,7 +95,6 @@
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
-          <finalName>install-agent</finalName>
           <appendAssemblyId>false</appendAssemblyId>
           <archive>
             <manifest>
