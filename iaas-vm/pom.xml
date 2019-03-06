@@ -62,6 +62,7 @@
   </dependencies>
 
   <build>
+    <finalName>vm-agent</finalName>
     <plugins>
 
       <plugin>
@@ -81,7 +82,7 @@
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
-          <finalName>vm-agent</finalName>
+
           <appendAssemblyId>false</appendAssemblyId>
           <archive>
             <manifest>
