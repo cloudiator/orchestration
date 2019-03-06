@@ -81,6 +81,14 @@ public class UnixInstaller extends AbstractInstaller {
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
 
+    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
+        + "sudo rm /etc/hosts "
+        + " && "
+        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
+    fixHostname.call();
+
+    LOGGER.debug(String.format("Hostname successfully set on node %s", node.id()));
+
   }
 
 
@@ -304,13 +312,6 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installSparkWorker() throws RemoteException {
 
-    LOGGER.debug(
-        String.format("Fixing hostname for Spark Workers on node %s", node.id()));
-    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
-        + "sudo rm /etc/hosts "
-        + " && "
-        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
-    fixHostname.call();
 
     LOGGER.debug(
         String.format("Fetching and starting Spark Worker container on node %s", node.id()));
