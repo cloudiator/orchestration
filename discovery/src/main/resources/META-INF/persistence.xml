@@ -41,6 +41,7 @@
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
     <properties>
+      <property name="hibernate.dialect.storage_engine" value="innodb"/>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
 
       <property name="hibernate.c3p0.min_size" value="5"/>
