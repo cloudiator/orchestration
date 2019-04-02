@@ -81,6 +81,14 @@ public class UnixInstaller extends AbstractInstaller {
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
 
+    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
+        + "sudo rm /etc/hosts "
+        + " && "
+        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
+    fixHostname.call();
+
+    LOGGER.debug(String.format("Hostname successfully set on node %s", node.id()));
+
   }
 
 
@@ -91,7 +99,6 @@ public class UnixInstaller extends AbstractInstaller {
     RemoteConnectionResponse checkresult = this.remoteConnection
         .executeCommand("ps -ef | grep -c \"[v]isor.jar\"");
 
-    LOGGER.debug(String.format("Check returned [%s] in standard out", checkresult.stdOut()));
     LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
 
     if (checkresult.getExitStatus() == 0) {
@@ -232,85 +239,73 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 
   }
- 
-  
+
+
   @Override
   public void installAlluxio() throws RemoteException {
-	  //download Alluxio
-	    this.remoteConnection.executeCommand("sudo wget " +
-	        Configuration.conf().getString("installer.alluxio.download") + "  -O "
-	        + UnixInstaller.TOOL_PATH
-	        + ALLUXIO_ARCHIVE);
+    //download Alluxio
+    this.remoteConnection.executeCommand("sudo wget " +
+        Configuration.conf().getString("installer.alluxio.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
+        + ALLUXIO_ARCHIVE);
 
-	    LOGGER.debug(String.format("Installing and staring alluxio on node %s", node.id()));
-	    this.remoteConnection.executeCommand("sudo mkdir -p " + ALLUXIO_DIR);
+    LOGGER.debug(String.format("Installing and staring alluxio on node %s", node.id()));
+    this.remoteConnection.executeCommand("sudo mkdir -p " + ALLUXIO_DIR);
 
-	    this.remoteConnection.executeCommand(
-	        "sudo tar zxvf " + ALLUXIO_ARCHIVE + " -C " + ALLUXIO_DIR
-	            + " --strip-components=1");
+    this.remoteConnection.executeCommand(
+        "sudo tar zxvf " + ALLUXIO_ARCHIVE + " -C " + ALLUXIO_DIR
+            + " --strip-components=1");
 
-	    
-	    this.remoteConnection.executeCommand(
-		        "sudo cp " + ALLUXIO_DIR + "/conf/alluxio-site.properties.template " + ALLUXIO_DIR
-		            + "/conf/alluxio-site.properties");
-	    
-	    this.remoteConnection.executeCommand(
-		        "sudo echo alluxio.master.hostname=>> " + ALLUXIO_DIR + "/conf/alluxio-site.properties " + Configuration.conf().getString("installer.alluxio.master.host"));
-	    
-	    
-	    LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));	    
+    this.remoteConnection.executeCommand(
+        "sudo cp " + ALLUXIO_DIR + "/conf/alluxio-site.properties.template " + ALLUXIO_DIR
+            + "/conf/alluxio-site.properties");
+
+    this.remoteConnection.executeCommand(
+        "sudo echo alluxio.master.hostname=>> " + ALLUXIO_DIR + "/conf/alluxio-site.properties "
+            + Configuration.conf().getString("installer.alluxio.master.host"));
+
+    LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));
   }
-  
-  
-  @Override 
+
+
+  @Override
   public void installDlmsAgent() throws RemoteException {
-	  LOGGER.debug(String.format("Installing and start DLMS agent= on node %s", node.id()));
-	 
-	    
-	  //download DLMSagent
-	    CommandTask installDlmsAgent = new CommandTask(this.remoteConnection, "sudo wget "
-	        + Configuration.conf().getString("installer.dlmsagent.download")
-	        + "  -O " + UnixInstaller.TOOL_PATH + DLMS_AGENT_JAR);
+    LOGGER.debug(String.format("Installing and start DLMS agent= on node %s", node.id()));
 
-	    	    
-	    String alluxio_metrics_url =  Configuration.conf().getString("installer.dlmsagent.metrics.url");
-	    String dlms_agent_jms_url =  Configuration.conf().getString("installer.dlmsagent.jmsurl");
-	    String dlms_agent_metrics_range = Configuration.conf().getString("installer.dlmsagent.metrics.range");
-	    String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
-	
-	    // start DLMSagent
-	    
-	    String startCommand =
-		        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
-		            + " -DjmsUrl=" +
-		            dlms_agent_jms_url + " -DmetricsRange="
-		            + dlms_agent_metrics_range + " -Dserver-port="
-		            + dlms_agent_port
-		            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
-		    LOGGER.debug("Dlms agent start command: " + startCommand);
-		    
-		    
-		
+    //download DLMSagent
+    CommandTask installDlmsAgent = new CommandTask(this.remoteConnection, "sudo wget "
+        + Configuration.conf().getString("installer.dlmsagent.download")
+        + "  -O " + UnixInstaller.TOOL_PATH + DLMS_AGENT_JAR);
 
-		 installDlmsAgent = new CommandTask(this.remoteConnection, startCommand);
-		 installDlmsAgent.call();
+    String alluxio_metrics_url = Configuration.conf().getString("installer.dlmsagent.metrics.url");
+    String dlms_agent_jms_url = Configuration.conf().getString("installer.dlmsagent.jmsurl");
+    String dlms_agent_metrics_range = Configuration.conf()
+        .getString("installer.dlmsagent.metrics.range");
+    String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
 
-	    LOGGER.debug(
-	        String.format("DLMSAgent started successfully on node %s", node.id()));
-	       
+    // start DLMSagent
+
+    String startCommand =
+        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+            + " -DjmsUrl=" +
+            dlms_agent_jms_url + " -DmetricsRange="
+            + dlms_agent_metrics_range + " -Dserver-port="
+            + dlms_agent_port
+            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
+            + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
+    LOGGER.debug("Dlms agent start command: " + startCommand);
+
+    installDlmsAgent = new CommandTask(this.remoteConnection, startCommand);
+    installDlmsAgent.call();
+
+    LOGGER.debug(
+        String.format("DLMSAgent started successfully on node %s", node.id()));
+
   }
-  
+
 
   @Override
   public void installSparkWorker() throws RemoteException {
-
-    LOGGER.debug(
-        String.format("Fixing hostname for Spark Workers on node %s", node.id()));
-    CommandTask fixHostname = new CommandTask(this.remoteConnection, ""
-        + "sudo rm /etc/hosts "
-        + " && "
-        + " echo 127.0.0.1 localhost.localdomain localhost `hostname` | sudo tee /etc/hosts");
-    fixHostname.call();
 
     LOGGER.debug(
         String.format("Fetching and starting Spark Worker container on node %s", node.id()));
@@ -355,37 +350,48 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Node public addresses: %s", node.publicIpAddresses()));
     LOGGER.debug(String.format("Node 'connectTo' addresses: %s", node.connectTo()));
 
-    // Prepare EMS url to invoke
-    String emsUrl = Configuration.conf().getString("installer.ems.url");
-    String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
+    //check for installed EMS-Client = Baguette-Client
+    RemoteConnectionResponse checkems = this.remoteConnection
+        .executeCommand("cd /opt/baguette-client/");
 
-    if (StringUtils.isNotBlank(emsUrl)) {
-      // Append API-key
-      if (StringUtils.isNotBlank(emsApiKey)) {
-        emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
-      }
-      LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+    LOGGER.debug(String.format("Exit code of ems-folder-search is %s", checkems.getExitStatus()));
 
-      // Contact EMS to get EMS Client installation instructions for this node
-      LOGGER.debug(String.format(
-          "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
-          node.id(), emsUrl));
-      InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
-          .getInstallationInstructionsFromServer(node, emsUrl);
-      LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
-          installationInstructions));
-
-      // Execute installation instructions
-      LOGGER.debug(
-          String.format("Executing EMS Client installation instructions on node %s", node.id()));
-      InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
-
-      LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
+    if (checkems.getExitStatus() == 0) {
+      LOGGER.debug("Skipping installation, baguette-client folder already exists! ");
     } else {
-      LOGGER.warn(String.format("EMS Client installation is switched off"));
+
+      // Prepare EMS url to invoke
+      String emsUrl = Configuration.conf().getString("installer.ems.url");
+      String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
+
+      if (StringUtils.isNotBlank(emsUrl)) {
+        // Append API-key
+        if (StringUtils.isNotBlank(emsApiKey)) {
+          emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
+        }
+        LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
+        // Contact EMS to get EMS Client installation instructions for this node
+        LOGGER.debug(String.format(
+            "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
+            node.id(), emsUrl));
+        InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
+            .getInstallationInstructionsFromServer(node, emsUrl);
+        LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
+            installationInstructions));
+
+        // Execute installation instructions
+        LOGGER.debug(
+            String.format("Executing EMS Client installation instructions on node %s", node.id()));
+        InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
+
+        LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
+      } else {
+        LOGGER.warn(String.format("EMS Client installation is switched off"));
+      }
     }
   }
-  
-  
+
+
 }
 
