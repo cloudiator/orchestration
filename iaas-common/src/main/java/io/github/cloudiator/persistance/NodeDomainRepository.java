@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeGroup;
 import io.github.cloudiator.domain.NodeProperties;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,9 +37,7 @@ public class NodeDomainRepository {
   private final TenantModelRepository tenantModelRepository;
   private final LoginCredentialDomainRepository loginCredentialDomainRepository;
   private final IpAddressDomainRepository ipAddressDomainRepository;
-  private final NodeGroupModelRepository nodeGroupModelRepository;
   private NodeConverter nodeConverter = new NodeConverter();
-  private NodeGroupConverter nodeGroupConverter = new NodeGroupConverter();
 
   @Inject
   public NodeDomainRepository(
@@ -50,8 +47,7 @@ public class NodeDomainRepository {
       NodePropertiesModelRepository nodePropertiesModelRepository,
       TenantModelRepository tenantModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
-      IpAddressDomainRepository ipAddressDomainRepository,
-      NodeGroupModelRepository nodeGroupModelRepository) {
+      IpAddressDomainRepository ipAddressDomainRepository) {
     this.nodeModelRepository = nodeModelRepository;
     this.operatingSystemDomainRepository = operatingSystemDomainRepository;
     this.geoLocationDomainRepository = geoLocationDomainRepository;
@@ -59,7 +55,6 @@ public class NodeDomainRepository {
     this.tenantModelRepository = tenantModelRepository;
     this.loginCredentialDomainRepository = loginCredentialDomainRepository;
     this.ipAddressDomainRepository = ipAddressDomainRepository;
-    this.nodeGroupModelRepository = nodeGroupModelRepository;
   }
 
   public Node findByTenantAndId(String userId, String nodeId) {
@@ -69,34 +64,6 @@ public class NodeDomainRepository {
   public List<Node> findByTenant(String userId) {
     return nodeModelRepository.getByTenant(userId).stream().map(nodeConverter)
         .collect(Collectors.toList());
-  }
-
-  public NodeGroup findGroupByTenantAndId(String userId, String nodeGroupId) {
-    return nodeGroupConverter
-        .apply(nodeGroupModelRepository.findByTenantAndDomainId(userId, nodeGroupId));
-  }
-
-  public List<NodeGroup> findGroupsByTenant(String userId) {
-    return nodeGroupModelRepository.findByTenant(userId).stream().map(nodeGroupConverter)
-        .collect(Collectors.toList());
-  }
-
-  public void save(NodeGroup nodeGroup) {
-    checkNotNull(nodeGroup, "nodeGroup is null");
-
-    final TenantModel tenantModel = tenantModelRepository.createOrGet(nodeGroup.userId());
-
-    final NodeGroupModel nodeGroupModel = new NodeGroupModel(nodeGroup.id(), tenantModel);
-    nodeGroupModelRepository.save(nodeGroupModel);
-
-    for (Node node : nodeGroup.getNodes()) {
-      final NodeModel nodeModel = saveAndGet(node);
-      nodeGroupModel.addNode(nodeModel);
-      nodeModel.assignGroup(nodeGroupModel);
-      nodeModelRepository.save(nodeModel);
-    }
-
-    nodeGroupModelRepository.save(nodeGroupModel);
   }
 
   NodeModel saveAndGet(Node domain) {
@@ -169,7 +136,7 @@ public class NodeDomainRepository {
 
     return new NodeModel(domain.id(), domain.originId().orElse(null), domain.name(), tenantModel,
         nodePropertiesModel,
-        loginCredentialModel, domain.type(), ipGroupModel, null, domain.state(),
+        loginCredentialModel, domain.type(), ipGroupModel, domain.state(),
         domain.nodeCandidate().orElse(null),
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
 

@@ -33,6 +33,7 @@ import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messaging.services.NodeService;
@@ -101,15 +102,16 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  Node save(Node node) {
+  synchronized Node save(Node node) {
     nodeDomainRepository.save(node);
     return node;
   }
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void delete(Node node) {
+  synchronized Node delete(Node node) {
     nodeDomainRepository.delete(node.id());
+    return node;
   }
 
 
@@ -124,7 +126,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
       }
       try {
         final Node schedule = nodeSchedulingStrategy.schedule(o);
-        save(schedule);
+        TransactionRetryer.retry(() -> save(schedule));
         return schedule;
       } catch (NodeSchedulingException e) {
         throw new ExecutionException(e);
@@ -137,7 +139,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
     return (node, arguments) -> {
 
       nodeDeletionStrategy.deleteNode(node);
-      delete(node);
+      TransactionRetryer.retry(() -> delete(node));
 
       return NodeBuilder.of(node).state(NodeState.DELETED).build();
     };
@@ -152,7 +154,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
           if (throwable != null) {
             builder.diagnostic(throwable.getMessage());
           }
-          return save(builder.build());
+          return TransactionRetryer.retry(() -> save(builder.build()));
         })
         .errorState(NodeState.ERROR).build();
   }

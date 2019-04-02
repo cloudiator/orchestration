@@ -21,14 +21,10 @@ package org.cloudiator.iaas.node;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
-import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
-import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.cloudiator.iaas.node.config.NodeModule;
 import org.cloudiator.iaas.node.messaging.NodeDeleteRequestListener;
-import org.cloudiator.iaas.node.messaging.NodeGroupQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeQueryListener;
 import org.cloudiator.iaas.node.messaging.NodeRequestListener;
 import org.cloudiator.iaas.node.messaging.VirtualMachineEventSubscriber;
@@ -47,9 +43,6 @@ public class NodeAgent {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(NodeAgent.class);
 
-  private static final ExecutionService EXECUTION_SERVICE = new ScheduledThreadPoolExecutorExecutionService(
-      new ScheduledThreadPoolExecutor(5));
-
   public static void main(String[] args) {
 
     LOGGER.debug("Starting listeners.");
@@ -57,10 +50,6 @@ public class NodeAgent {
     INJECTOR.getInstance(NodeRequestListener.class).run();
     LOGGER.debug("Starting " + NodeQueryListener.class);
     INJECTOR.getInstance(NodeQueryListener.class).run();
-    LOGGER.debug("Starting " + NodeGroupQueryListener.class);
-    INJECTOR.getInstance(NodeGroupQueryListener.class).run();
-    LOGGER.debug("Starting " + NodeRequestWorker.class);
-    EXECUTION_SERVICE.execute(INJECTOR.getInstance(NodeRequestWorker.class));
     LOGGER.debug("Starting " + NodeDeleteRequestListener.class);
     INJECTOR.getInstance(NodeDeleteRequestListener.class).run();
     LOGGER.debug("Starting " + VirtualMachineEventSubscriber.class);
