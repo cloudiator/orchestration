@@ -39,9 +39,13 @@
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
 
+      <property name="hibernate.connection.isolation" value="8"/>
       <property name="hibernate.c3p0.min_size" value="5"/>
       <property name="hibernate.c3p0.max_size" value="20"/>
       <property name="hibernate.c3p0.timeout" value="300"/>
+
+      <property name="hibernate.order_inserts" value="true"/>
+      <property name="hibernate.order_updates" value="true"/>
 
       <!--<property name="hibernate.connection.provider_class"
         value="org.hibernate.connection.C3P0ConnectionProvider"/>-->

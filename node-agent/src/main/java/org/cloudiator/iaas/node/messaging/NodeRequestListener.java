@@ -19,6 +19,7 @@
 package org.cloudiator.iaas.node.messaging;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
@@ -27,6 +28,7 @@ import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import org.cloudiator.iaas.node.NodeStateMachine;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestMessage;
@@ -36,6 +38,7 @@ import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class NodeRequestListener implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory
@@ -55,7 +58,7 @@ public class NodeRequestListener implements Runnable {
   }
 
   @Transactional
-  Node persistNode(Node node) {
+  synchronized Node persistNode(Node node) {
     nodeDomainRepository.save(node);
     return node;
   }
@@ -88,7 +91,7 @@ public class NodeRequestListener implements Runnable {
                         .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.getId())
                 .userId(userId).build();
 
-            persistNode(pending);
+            TransactionRetryer.retry(() -> persistNode(pending));
 
             final Node running = nodeStateMachine
                 .apply(pending, NodeState.RUNNING, new Object[]{nodeCandidate});
