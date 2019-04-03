@@ -23,6 +23,7 @@ import com.google.inject.Injector;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
+import org.cloudiator.iaas.node.config.NodeAgentContext;
 import org.cloudiator.iaas.node.config.NodeModule;
 import org.cloudiator.iaas.node.messaging.NodeDeleteRequestListener;
 import org.cloudiator.iaas.node.messaging.NodeQueryListener;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class NodeAgent {
 
   private static final Injector INJECTOR = Guice
-      .createInjector(new NodeModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
+      .createInjector(new NodeModule(new NodeAgentContext()), new JpaModule("defaultPersistenceUnit", new JpaContext(
               Configuration.conf())), new MessageServiceModule(),
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
   private static final Logger LOGGER = LoggerFactory

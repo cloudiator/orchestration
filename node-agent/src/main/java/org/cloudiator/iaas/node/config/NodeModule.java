@@ -18,8 +18,17 @@
 
 package org.cloudiator.iaas.node.config;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
+import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import org.cloudiator.iaas.node.CompositeNodeDeletionStrategy;
 import org.cloudiator.iaas.node.CompositeNodeSchedulingStrategy;
 import org.cloudiator.iaas.node.FaasNodeDeletionStrategy;
@@ -29,6 +38,7 @@ import org.cloudiator.iaas.node.NodeDeletionStrategy;
 import org.cloudiator.iaas.node.NodeSchedulingStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeDeletionStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeSchedulingStrategy;
+import org.cloudiator.iaas.node.messaging.NodeRequestWorkerFactory;
 
 
 /**
@@ -36,11 +46,28 @@ import org.cloudiator.iaas.node.VirtualMachineNodeSchedulingStrategy;
  */
 public class NodeModule extends AbstractModule {
 
+  private final NodeAgentContext nodeAgentContext;
+
+  public NodeModule(NodeAgentContext nodeAgentContext) {
+    checkNotNull(nodeAgentContext, "nodeAgentContext is null");
+    this.nodeAgentContext = nodeAgentContext;
+  }
+
   @Override
   protected void configure() {
 
     bind(Init.class).asEagerSingleton();
     bind(NodeSchedulingStrategy.class).to(CompositeNodeSchedulingStrategy.class);
+
+    install(new FactoryModuleBuilder().build(NodeRequestWorkerFactory.class));
+    final int parallelNodes = nodeAgentContext.parallelNodes();
+
+    final LoggingThreadPoolExecutor nodeExecutor = new LoggingThreadPoolExecutor(
+        parallelNodes, parallelNodes, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
+
+    bind(ExecutorService.class).annotatedWith(Names.named(NODE_EXECUTION_SERVICE_NAME)).toInstance(
+        nodeExecutor
+    );
 
     Multibinder<NodeSchedulingStrategy> multibinder = Multibinder
         .newSetBinder(binder(), NodeSchedulingStrategy.class);
