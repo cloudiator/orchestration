@@ -21,6 +21,7 @@ package org.cloudiator.iaas.node.config;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
@@ -39,6 +40,8 @@ import org.cloudiator.iaas.node.NodeSchedulingStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeDeletionStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeSchedulingStrategy;
 import org.cloudiator.iaas.node.messaging.NodeRequestWorkerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -46,6 +49,8 @@ import org.cloudiator.iaas.node.messaging.NodeRequestWorkerFactory;
  */
 public class NodeModule extends AbstractModule {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(NodeModule.class);
   private final NodeAgentContext nodeAgentContext;
 
   public NodeModule(NodeAgentContext nodeAgentContext) {
@@ -68,6 +73,13 @@ public class NodeModule extends AbstractModule {
     bind(ExecutorService.class).annotatedWith(Names.named(NODE_EXECUTION_SERVICE_NAME)).toInstance(
         nodeExecutor
     );
+
+    LOGGER.info(String
+        .format("Allowing parallel execution of %s node requests", parallelNodes));
+
+    LOGGER.info(String.format("Registering shutdown hook for node execution service %s",
+        nodeExecutor));
+    MoreExecutors.addDelayedShutdownHook(nodeExecutor, 5, TimeUnit.MINUTES);
 
     Multibinder<NodeSchedulingStrategy> multibinder = Multibinder
         .newSetBinder(binder(), NodeSchedulingStrategy.class);
