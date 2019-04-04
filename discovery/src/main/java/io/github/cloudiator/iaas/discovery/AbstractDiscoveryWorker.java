@@ -26,6 +26,8 @@ import de.uniulm.omi.cloudiator.sword.multicloud.exception.MultiCloudException;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
@@ -41,6 +43,8 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   private final DiscoveryQueue discoveryQueue;
   private final DiscoveryService discoveryService;
   private final DiscoveryErrorHandler discoveryErrorHandler;
+
+  public static final Map<String, Integer> DISCOVERY_STATUS = new HashMap<>();
 
   @Inject
   public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService,
@@ -73,11 +77,17 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   @Override
   public void run() {
     LOGGER.info(String.format("%s is starting new discovery run", this));
+
+    final String id = this.getClass().getSimpleName();
+    DISCOVERY_STATUS.put(id, 0);
+
     try {
       StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
           .forEach(discovery -> {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));
             discoveryQueue.add(discovery);
+            final Integer current = DISCOVERY_STATUS.get(id);
+            DISCOVERY_STATUS.put(id, current + 1);
           });
     } catch (MultiCloudException e) {
       LOGGER.error(String.format(

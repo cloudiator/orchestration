@@ -25,6 +25,7 @@ import io.github.cloudiator.iaas.discovery.config.DiscoveryModule;
 import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.DeleteCloudSubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.DiscoveryStatusSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
@@ -62,6 +63,8 @@ public class DiscoveryAgent {
     locationQuerySubscriber.run();
 
     injector.getInstance(DeleteCloudSubscriber.class).run();
+
+    injector.getInstance(DiscoveryStatusSubscriber.class).run();
 
     final CloudQuerySubscriber cloudQuerySubscriber = injector
         .getInstance(CloudQuerySubscriber.class);
