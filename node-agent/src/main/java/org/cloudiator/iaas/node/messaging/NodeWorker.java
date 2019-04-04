@@ -62,7 +62,7 @@ public class NodeWorker implements Runnable {
   }
 
   @Transactional
-  synchronized Node persistNode(Node node) {
+  Node persistNode(Node node) {
     nodeDomainRepository.save(node);
     return node;
   }
@@ -91,7 +91,9 @@ public class NodeWorker implements Runnable {
                   .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.getId())
           .userId(userId).build();
 
-      TransactionRetryer.retry(() -> persistNode(pending));
+      synchronized (NodeWorker.class) {
+        TransactionRetryer.retry(() -> persistNode(pending));
+      }
 
       final Node running = nodeStateMachine
           .apply(pending, NodeState.RUNNING, new Object[]{nodeCandidate});
