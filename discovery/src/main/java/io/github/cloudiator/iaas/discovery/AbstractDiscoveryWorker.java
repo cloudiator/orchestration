@@ -29,6 +29,7 @@ import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,10 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
 
   protected abstract Iterable<T> resources(DiscoveryService discoveryService);
 
+  protected Predicate<T> filter() {
+    return t -> true;
+  }
+
   @Override
   public final long period() {
     return 60;
@@ -82,7 +87,8 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     DISCOVERY_STATUS.put(id, 0);
 
     try {
-      StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
+      StreamSupport.stream(resources(discoveryService).spliterator(), false).filter(filter())
+          .map(Discovery::new)
           .forEach(discovery -> {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));
             discoveryQueue.add(discovery);

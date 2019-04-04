@@ -22,20 +22,36 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import io.github.cloudiator.persistance.LocationDomainRepository;
+import java.util.function.Predicate;
 
 /**
  * Created by daniel on 01.06.17.
  */
 public class LocationDiscoveryWorker extends AbstractDiscoveryWorker<Location> {
 
+  private final LocationDomainRepository locationDomainRepository;
+
   @Inject
   public LocationDiscoveryWorker(DiscoveryQueue discoveryQueue,
-      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler) {
+      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
+      LocationDomainRepository locationDomainRepository) {
     super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    this.locationDomainRepository = locationDomainRepository;
   }
 
   @Override
   protected Iterable<Location> resources(DiscoveryService discoveryService) {
     return discoveryService.listLocations();
+  }
+
+  @Override
+  protected Predicate<Location> filter() {
+    return new Predicate<Location>() {
+      @Override
+      public boolean test(Location location) {
+        return locationDomainRepository.findById(location.id()) == null;
+      }
+    };
   }
 }
