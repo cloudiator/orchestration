@@ -121,7 +121,9 @@ public class VirtualMachineRequestWorker implements Runnable {
               stopTime - startTime);
 
       //persist the vm
-      persistVirtualMachine(update);
+      synchronized (VirtualMachineRequestWorker.class) {
+        persistVirtualMachine(update);
+      }
 
       messageInterface.reply(virtualMachineRequest.getId(),
           VirtualMachineCreatedResponse.newBuilder()

@@ -19,6 +19,7 @@
 package io.github.cloudiator.iaas.vm.state;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
@@ -34,6 +35,7 @@ import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
 import org.cloudiator.messages.Vm.VirtualMachineEvent;
 import org.cloudiator.messaging.services.VirtualMachineService;
 
+@Singleton
 public class VirtualMachineStateMachine implements ErrorAwareStateMachine<ExtendedVirtualMachine> {
 
   private final ErrorAwareStateMachine<ExtendedVirtualMachine> delegate;
@@ -71,7 +73,7 @@ public class VirtualMachineStateMachine implements ErrorAwareStateMachine<Extend
   }
 
   @Transactional
-  ExtendedVirtualMachine save(ExtendedVirtualMachine virtualMachine) {
+  synchronized ExtendedVirtualMachine save(ExtendedVirtualMachine virtualMachine) {
     virtualMachineDomainRepository.save(virtualMachine);
     return virtualMachine;
   }
