@@ -46,6 +46,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   private final DiscoveryErrorHandler discoveryErrorHandler;
 
   public static final Map<String, Integer> DISCOVERY_STATUS = new HashMap<>();
+  private static final String TOTAL_NAME = "total";
 
   @Inject
   public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService,
@@ -56,6 +57,9 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     this.discoveryService = discoveryService;
     checkNotNull(discoveryErrorHandler, "discoveryErrorHandler is null");
     this.discoveryErrorHandler = discoveryErrorHandler;
+
+    //initialize total counter
+    DISCOVERY_STATUS.put(TOTAL_NAME, 0);
   }
 
   protected abstract Iterable<T> resources(DiscoveryService discoveryService);
@@ -66,7 +70,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
 
   @Override
   public final long period() {
-    return 60;
+    return 30;
   }
 
   @Override
@@ -95,6 +99,11 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
             final Integer current = DISCOVERY_STATUS.get(id);
             DISCOVERY_STATUS.put(id, current + 1);
           });
+
+      synchronized (DISCOVERY_STATUS) {
+        DISCOVERY_STATUS
+            .put(TOTAL_NAME, DISCOVERY_STATUS.get(TOTAL_NAME) + DISCOVERY_STATUS.get(id));
+      }
     } catch (MultiCloudException e) {
       LOGGER.error(String.format(
           "%s caught multi cloud exception %s during discovery run. Exception was caught and send to error handler %s.",
