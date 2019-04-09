@@ -75,6 +75,7 @@ public class CloudAddedSubscriber implements Runnable {
             Error.newBuilder().setCode(409).setMessage(String
                 .format("The cloud %s is already registered",
                     cloudToBeCreated)).build());
+        return;
       }
 
       final ExtendedCloud createdCloud = cloudStateMachine

@@ -108,7 +108,9 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",
           e);
     } catch (ExecutionException e) {
-      throw new NodeSchedulingException(String.format("Could not schedule node %s.", pending), e);
+      throw new NodeSchedulingException(String
+          .format("Could not schedule node %s due to exception: %s.", pending,
+              e.getCause().getMessage()), e);
     }
   }
 
