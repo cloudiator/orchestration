@@ -21,9 +21,11 @@ package org.cloudiator.iaas.node.messaging;
 import com.google.common.base.MoreObjects;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import javax.inject.Inject;
 import org.cloudiator.iaas.node.NodeDeletionStrategy;
+import org.cloudiator.iaas.node.NodeStateMachine;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeDeleteMessage;
 import org.cloudiator.messages.Node.NodeDeleteResponseMessage;
@@ -39,14 +41,17 @@ public class NodeDeleteRequestListener implements Runnable {
   private final MessageInterface messageInterface;
   private final NodeDeletionStrategy nodeDeletionStrategy;
   private final NodeDomainRepository nodeDomainRepository;
+  private final NodeStateMachine nodeStateMachine;
 
   @Inject
   public NodeDeleteRequestListener(MessageInterface messageInterface,
       NodeDeletionStrategy nodeDeletionStrategy,
-      NodeDomainRepository nodeDomainRepository) {
+      NodeDomainRepository nodeDomainRepository,
+      NodeStateMachine nodeStateMachine) {
     this.messageInterface = messageInterface;
     this.nodeDeletionStrategy = nodeDeletionStrategy;
     this.nodeDomainRepository = nodeDomainRepository;
+    this.nodeStateMachine = nodeStateMachine;
   }
 
   @Transactional
@@ -86,18 +91,7 @@ public class NodeDeleteRequestListener implements Runnable {
 
               LOGGER.info(String.format("%s is requests deletion of node %s.", this, node));
 
-              boolean b = nodeDeletionStrategy.deleteNode(node);
-
-              if (!b) {
-                LOGGER.error(String.format("%s was not able to delete node %s", this, node));
-                messageInterface.reply(NodeDeleteResponseMessage.class, id,
-                    Error.newBuilder().setCode(500).setMessage("Unable to delete node " + node)
-                        .build());
-                return;
-              }
-
-              LOGGER.debug(String.format("%s is deleting node %s from the database.", this, node));
-              deleteNode(node);
+              final Node apply = nodeStateMachine.apply(node, NodeState.DELETED, null);
 
               LOGGER.info(String.format("%s has successfully deleted node %s.", this, node));
               messageInterface.reply(id, NodeDeleteResponseMessage.newBuilder().build());
