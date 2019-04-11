@@ -71,6 +71,9 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
 
     LOGGER.info(String.format("%s is running", this));
 
+    final Iterable<VirtualMachine> virtualMachines = computeService.discoveryService()
+        .listVirtualMachines();
+
     for (ExtendedVirtualMachine extendedVirtualMachine : virtualMachineDomainRepository.findAll()
         .stream().filter(
             extendedVirtualMachine -> extendedVirtualMachine.state()
@@ -80,7 +83,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
       LOGGER.debug(
           String.format("Checking if virtual machine %s still exists", extendedVirtualMachine));
 
-      final boolean stillExists = checkIfStillExists(extendedVirtualMachine);
+      final boolean stillExists = checkIfStillExists(extendedVirtualMachine, virtualMachines);
 
       if (!stillExists) {
         LOGGER.warn(String.format("Virtual machine %s does not longer exist, marking failed",
@@ -94,9 +97,10 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
 
   }
 
-  private boolean checkIfStillExists(ExtendedVirtualMachine extendedVirtualMachine) {
+  private boolean checkIfStillExists(ExtendedVirtualMachine extendedVirtualMachine,
+      Iterable<VirtualMachine> virtualMachines) {
 
-    for (VirtualMachine virtualMachine : computeService.discoveryService().listVirtualMachines()) {
+    for (VirtualMachine virtualMachine : virtualMachines) {
       if (virtualMachine.id().equals(extendedVirtualMachine.id())) {
         return true;
       }
