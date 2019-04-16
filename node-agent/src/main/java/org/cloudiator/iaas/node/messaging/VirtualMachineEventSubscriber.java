@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 public class VirtualMachineEventSubscriber implements Runnable {
 
+  public static final String FAILURE_MESSAGE = "Node %s is affected by failure of vm with id %s. Marking node as failed.";
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeStateMachine nodeStateMachine;
@@ -80,12 +81,13 @@ public class VirtualMachineEventSubscriber implements Runnable {
               }
 
               LOGGER.warn(String.format(
-                  "Node %s is affected by failure of vm with id %s. Marking node as failed.",
+                  FAILURE_MESSAGE,
                   affectedNode, content.getVm().getId()));
 
               //fail the affected node
               nodeStateMachine.fail(affectedNode, new Object[0],
-                  new IllegalStateException("Underlying virtual machine failed."));
+                  new IllegalStateException(
+                      String.format(FAILURE_MESSAGE, affectedNode, content.getVm().getId())));
 
 
             }
