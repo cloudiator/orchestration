@@ -19,9 +19,11 @@
 package org.cloudiator.iaas.node.messaging;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import io.github.cloudiator.util.CollectorsUtil;
+import java.util.List;
 import org.cloudiator.iaas.node.NodeStateMachine;
 import org.cloudiator.messages.Vm.VirtualMachineEvent;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachineState;
@@ -49,6 +51,11 @@ public class VirtualMachineEventSubscriber implements Runnable {
     this.nodeStateMachine = nodeStateMachine;
   }
 
+  @Transactional
+  List<Node> findNodeByTenant(String userId) {
+    return nodeDomainRepository.findByTenant(userId);
+  }
+
   @Override
   public void run() {
     messageInterface.subscribe(VirtualMachineEvent.class, VirtualMachineEvent.parser(),
@@ -65,7 +72,7 @@ public class VirtualMachineEventSubscriber implements Runnable {
                       content.getVm().getId()));
 
               //search the corresponding node
-              final Node affectedNode = nodeDomainRepository.findByTenant(userId).stream()
+              final Node affectedNode = findNodeByTenant(userId).stream()
                   .filter(node -> {
                     if (!node.originId().isPresent()) {
                       return false;
