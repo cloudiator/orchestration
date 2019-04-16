@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transitions;
@@ -36,32 +35,37 @@ import org.cloudiator.messages.Vm.VirtualMachineEvent;
 import org.cloudiator.messaging.services.VirtualMachineService;
 
 @Singleton
-public class VirtualMachineStateMachine implements ErrorAwareStateMachine<ExtendedVirtualMachine> {
+public class VirtualMachineStateMachine implements
+    ErrorAwareStateMachine<ExtendedVirtualMachine, LocalVirtualMachineState> {
 
-  private final ErrorAwareStateMachine<ExtendedVirtualMachine> delegate;
+  private final ErrorAwareStateMachine<ExtendedVirtualMachine, LocalVirtualMachineState> delegate;
   private final VirtualMachineDomainRepository virtualMachineDomainRepository;
   private final VirtualMachineService virtualMachineService;
 
-  @Inject public VirtualMachineStateMachine(
+  @Inject
+  public VirtualMachineStateMachine(
       VirtualMachineDomainRepository virtualMachineDomainRepository,
       VirtualMachineService virtualMachineService) {
     this.virtualMachineDomainRepository = virtualMachineDomainRepository;
     this.virtualMachineService = virtualMachineService;
     //noinspection unchecked
-    delegate = StateMachineBuilder.<ExtendedVirtualMachine>builder().errorTransition(error())
+    delegate = StateMachineBuilder.<ExtendedVirtualMachine, LocalVirtualMachineState>builder()
+        .errorTransition(error())
         .addHook(
-            new StateMachineHook<ExtendedVirtualMachine>() {
+            new StateMachineHook<ExtendedVirtualMachine, LocalVirtualMachineState>() {
               @Override
-              public void pre(ExtendedVirtualMachine extendedVirtualMachine, State to) {
+              public void pre(ExtendedVirtualMachine extendedVirtualMachine,
+                  LocalVirtualMachineState to) {
                 //intentionally left empty
               }
 
               @Override
-              public void post(State from, ExtendedVirtualMachine extendedVirtualMachine) {
+              public void post(LocalVirtualMachineState from,
+                  ExtendedVirtualMachine extendedVirtualMachine) {
                 VirtualMachineStateMachine.this.virtualMachineService
                     .announceEvent(VirtualMachineEvent.newBuilder().setFrom(
                         VirtualMachineStateConverter.INSTANCE
-                            .apply((LocalVirtualMachineState) from))
+                            .apply(from))
                         .setTo(VirtualMachineStateConverter.INSTANCE
                             .apply(extendedVirtualMachine.state()))
                         .setVm(VirtualMachineMessageToVirtualMachine.INSTANCE
@@ -78,9 +82,9 @@ public class VirtualMachineStateMachine implements ErrorAwareStateMachine<Extend
     return virtualMachine;
   }
 
-  private ErrorTransition<ExtendedVirtualMachine> error() {
+  private ErrorTransition<ExtendedVirtualMachine, LocalVirtualMachineState> error() {
 
-    return Transitions.<ExtendedVirtualMachine>errorTransitionBuilder()
+    return Transitions.<ExtendedVirtualMachine, LocalVirtualMachineState>errorTransitionBuilder()
         .action((o, arguments, throwable) -> {
 
           o.setState(LocalVirtualMachineState.ERROR);
@@ -99,7 +103,8 @@ public class VirtualMachineStateMachine implements ErrorAwareStateMachine<Extend
   }
 
   @Override
-  public ExtendedVirtualMachine apply(ExtendedVirtualMachine object, State to, Object[] arguments) {
+  public ExtendedVirtualMachine apply(ExtendedVirtualMachine object, LocalVirtualMachineState to,
+      Object[] arguments) {
     return delegate.apply(object, to, arguments);
   }
 }

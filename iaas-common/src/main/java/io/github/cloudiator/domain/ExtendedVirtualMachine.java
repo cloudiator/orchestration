@@ -27,11 +27,12 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine.VirtualMachineState;
 import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 import java.util.Optional;
 import java.util.Set;
 
-public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
+public class ExtendedVirtualMachine implements VirtualMachine, Stateful<LocalVirtualMachineState> {
 
   private final VirtualMachine delegate;
   private final String userId;

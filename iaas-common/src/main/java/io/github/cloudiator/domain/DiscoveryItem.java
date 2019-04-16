@@ -20,7 +20,7 @@ package io.github.cloudiator.domain;
 
 import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 
-public interface DiscoveryItem extends Stateful {
+public interface DiscoveryItem extends Stateful<DiscoveryItemState> {
 
   @Override
   DiscoveryItemState state();

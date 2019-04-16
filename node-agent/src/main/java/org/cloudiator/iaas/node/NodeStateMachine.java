@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
@@ -41,10 +40,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
+public class NodeStateMachine implements ErrorAwareStateMachine<Node, NodeState> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeStateMachine.class);
-  private final ErrorAwareStateMachine<Node> stateMachine;
+  private final ErrorAwareStateMachine<Node, NodeState> stateMachine;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeDeletionStrategy nodeDeletionStrategy;
   private final NodeSchedulingStrategy nodeSchedulingStrategy;
@@ -57,33 +56,35 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
       NodeSchedulingStrategy nodeSchedulingStrategy) {
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<Node>builder().errorTransition(error())
+    stateMachine = StateMachineBuilder.<Node, NodeState>builder().errorTransition(error())
         .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.PENDING).to(NodeState.RUNNING)
+            Transitions.<Node, NodeState>transitionBuilder().from(NodeState.PENDING)
+                .to(NodeState.RUNNING)
                 .action(pendingToRunning())
                 .build())
         .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.RUNNING).to(NodeState.DELETED)
-                .action(delete())
-                .build())
-        .addTransition(
-            Transitions.<Node>transitionBuilder().from(NodeState.ERROR)
+            Transitions.<Node, NodeState>transitionBuilder().from(NodeState.RUNNING)
                 .to(NodeState.DELETED)
                 .action(delete())
                 .build())
-        .addHook(new StateMachineHook<Node>() {
+        .addTransition(
+            Transitions.<Node, NodeState>transitionBuilder().from(NodeState.ERROR)
+                .to(NodeState.DELETED)
+                .action(delete())
+                .build())
+        .addHook(new StateMachineHook<Node, NodeState>() {
           @Override
-          public void pre(Node node, State to) {
+          public void pre(Node node, NodeState to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, Node node) {
+          public void post(NodeState from, Node node) {
 
             final NodeEvent nodeEvent = NodeEvent.newBuilder()
                 .setNode(NodeToNodeMessageConverter.INSTANCE.apply(node))
                 .setFrom(NodeToNodeMessageConverter.NODE_STATE_CONVERTER.apply(
-                    (NodeState) from))
+                    from))
                 .setTo(NodeToNodeMessageConverter.NODE_STATE_CONVERTER.apply(node.state())).build();
 
             LOGGER.debug(String
@@ -145,9 +146,9 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
     };
   }
 
-  private ErrorTransition<Node> error() {
+  private ErrorTransition<Node, NodeState> error() {
 
-    return Transitions.<Node>errorTransitionBuilder()
+    return Transitions.<Node, NodeState>errorTransitionBuilder()
         .action((o, arguments, throwable) -> {
 
           final NodeBuilder builder = NodeBuilder.of(o).state(NodeState.ERROR);
@@ -160,7 +161,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node> {
   }
 
   @Override
-  public Node apply(Node object, State to, Object[] arguments) {
+  public Node apply(Node object, NodeState to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 
