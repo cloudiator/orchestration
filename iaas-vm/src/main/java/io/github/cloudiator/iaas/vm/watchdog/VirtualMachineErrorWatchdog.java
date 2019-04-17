@@ -53,7 +53,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
 
   @Override
   public long period() {
-    return 60;
+    return 2;
   }
 
   @Override
@@ -63,7 +63,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
 
   @Override
   public TimeUnit timeUnit() {
-    return TimeUnit.SECONDS;
+    return TimeUnit.MINUTES;
   }
 
   @Override

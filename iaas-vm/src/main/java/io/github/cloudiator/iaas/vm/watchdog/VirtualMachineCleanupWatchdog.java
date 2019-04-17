@@ -44,7 +44,7 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
 
   private static final Map<VirtualMachine, Long> MARKED_FOR_DELETION = new HashMap<>();
 
-  private static final long TIMEOUT = 120000;
+  private static final long TIMEOUT = 600000;
 
 
   @Inject
@@ -57,7 +57,7 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
 
   @Override
   public long period() {
-    return 60;
+    return 4;
   }
 
   @Override
@@ -67,7 +67,7 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
 
   @Override
   public TimeUnit timeUnit() {
-    return TimeUnit.SECONDS;
+    return TimeUnit.MINUTES;
   }
 
   @Override
