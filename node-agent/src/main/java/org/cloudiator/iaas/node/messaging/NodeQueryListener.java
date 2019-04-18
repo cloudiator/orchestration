@@ -77,8 +77,9 @@ public class NodeQueryListener implements Runnable {
         });
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private NodeQueryResponse handleResponse(@Nullable String id, String userId) {
+  NodeQueryResponse handleResponse(@Nullable String id, String userId) {
     checkNotNull(userId, "userId is null");
     if (id == null || id.isEmpty()) {
       return handleMultiple(userId);
@@ -93,7 +94,8 @@ public class NodeQueryListener implements Runnable {
     if (node == null) {
       return NodeQueryResponse.newBuilder().build();
     }
-    return NodeQueryResponse.newBuilder().addNodes(NODE_TO_NODE_MESSAGE_CONVERTER.apply(node)).build();
+    return NodeQueryResponse.newBuilder().addNodes(NODE_TO_NODE_MESSAGE_CONVERTER.apply(node))
+        .build();
   }
 
   private NodeQueryResponse handleMultiple(String userId) {
