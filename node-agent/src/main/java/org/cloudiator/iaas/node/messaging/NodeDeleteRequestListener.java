@@ -39,24 +39,16 @@ public class NodeDeleteRequestListener implements Runnable {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(NodeDeleteRequestListener.class);
   private final MessageInterface messageInterface;
-  private final NodeDeletionStrategy nodeDeletionStrategy;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeStateMachine nodeStateMachine;
 
   @Inject
   public NodeDeleteRequestListener(MessageInterface messageInterface,
-      NodeDeletionStrategy nodeDeletionStrategy,
       NodeDomainRepository nodeDomainRepository,
       NodeStateMachine nodeStateMachine) {
     this.messageInterface = messageInterface;
-    this.nodeDeletionStrategy = nodeDeletionStrategy;
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeStateMachine = nodeStateMachine;
-  }
-
-  @Transactional
-  void deleteNode(Node node) {
-    nodeDomainRepository.delete(node.id());
   }
 
   @Override

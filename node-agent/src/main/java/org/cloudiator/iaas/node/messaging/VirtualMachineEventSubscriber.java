@@ -51,6 +51,7 @@ public class VirtualMachineEventSubscriber implements Runnable {
     this.nodeStateMachine = nodeStateMachine;
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
   List<Node> findNodeByTenant(String userId) {
     return nodeDomainRepository.findByTenant(userId);
