@@ -95,7 +95,7 @@ public class VirtualMachineEventSubscriber implements Runnable {
               //fail the affected node
               nodeStateMachine.fail(affectedNode, new Object[0],
                   new IllegalStateException(
-                      String.format(FAILURE_MESSAGE, affectedNode, content.getVm().getId())));
+                      String.format(FAILURE_MESSAGE, affectedNode.id(), content.getVm().getId())));
 
 
             }
