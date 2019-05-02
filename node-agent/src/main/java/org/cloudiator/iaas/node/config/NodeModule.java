@@ -62,7 +62,6 @@ public class NodeModule extends AbstractModule {
   protected void configure() {
 
     bind(Init.class).asEagerSingleton();
-    bind(NodeSchedulingStrategy.class).to(CompositeNodeSchedulingStrategy.class);
 
     install(new FactoryModuleBuilder().build(NodeRequestWorkerFactory.class));
     final int parallelNodes = nodeAgentContext.parallelNodes();
@@ -85,6 +84,7 @@ public class NodeModule extends AbstractModule {
         .newSetBinder(binder(), NodeSchedulingStrategy.class);
     multibinder.addBinding().to(VirtualMachineNodeSchedulingStrategy.class);
     multibinder.addBinding().to(FaasNodeSchedulingStrategy.class);
+    bind(NodeSchedulingStrategy.class).to(CompositeNodeSchedulingStrategy.class);
 
     Multibinder<NodeDeletionStrategy> nodeDeletionStrategyMultibinder = Multibinder
         .newSetBinder(binder(), NodeDeletionStrategy.class);

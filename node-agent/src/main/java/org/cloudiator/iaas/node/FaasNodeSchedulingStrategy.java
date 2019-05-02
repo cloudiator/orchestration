@@ -8,6 +8,7 @@ import de.uniulm.omi.cloudiator.domain.OperatingSystems;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
+import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
@@ -64,7 +65,7 @@ public class FaasNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
   @Override
   public boolean canSchedule(Node pending) {
-    return false;
+    return retrieveCandidate(pending).type().equals(NodeCandidateType.FAAS);
   }
 
   @Override

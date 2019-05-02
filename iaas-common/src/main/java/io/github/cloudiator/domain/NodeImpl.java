@@ -185,6 +185,7 @@ public class NodeImpl implements Node {
         .add("id", id)
         .add("originId", id)
         .add("userId", userId)
+        .add("state", nodeState)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)
         .add("type", nodeType)
