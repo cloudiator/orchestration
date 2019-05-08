@@ -78,6 +78,8 @@ public class VirtualMachineAgent {
 
     LOGGER.info(String.format("%s is starting.", VirtualMachineAgent.class.getName()));
 
+    LOGGER.info("Using configuration: " + Configuration.conf());
+
     LOGGER.info(String.format(
         "%s is submitting virtual machine request queue dispatcher to its execution service %s.",
         VirtualMachineAgent.class.getName(),

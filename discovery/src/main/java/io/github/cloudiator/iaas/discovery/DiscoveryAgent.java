@@ -34,11 +34,15 @@ import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by daniel on 25.01.17.
  */
 public class DiscoveryAgent {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryAgent.class);
 
   private static Injector injector = Guice
       .createInjector(new DiscoveryModule(), new MessageServiceModule(),
@@ -47,6 +51,8 @@ public class DiscoveryAgent {
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
 
   public static void main(String[] args) {
+
+    LOGGER.info("Using configuration: " + Configuration.conf());
 
     final CloudAddedSubscriber instance = injector.getInstance(CloudAddedSubscriber.class);
     instance.run();
