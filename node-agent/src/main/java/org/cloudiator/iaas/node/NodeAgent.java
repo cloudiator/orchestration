@@ -46,6 +46,8 @@ public class NodeAgent {
 
   public static void main(String[] args) {
 
+    LOGGER.info("Using configuration: " + Configuration.conf());
+
     LOGGER.debug("Starting listeners.");
     LOGGER.debug("Starting " + NodeRequestListener.class);
     INJECTOR.getInstance(NodeRequestListener.class).run();

@@ -49,6 +49,8 @@ public class InstallAgent {
 
     LOGGER.debug("Starting InstallAgent...");
 
+    LOGGER.info("Using configuration: " + Configuration.conf());
+
     //TODO: change to use queue and worker instead of single instance
     final InstallEventSubscriber installEventSubscriber =
         injector.getInstance(InstallEventSubscriber.class);
