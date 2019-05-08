@@ -18,10 +18,16 @@
 
 package io.github.cloudiator.persistance;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import de.uniulm.omi.cloudiator.domain.LoginNameSupplier;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.OneToOne;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
@@ -33,6 +39,10 @@ class ImageModel extends ResourceModel implements LoginNameSupplier {
   private String loginUsernameOverride;
   @Nullable
   private String loginPasswordOverride;
+
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private DiscoveryItemState state;
 
   /**
    * Owned relations
@@ -51,11 +61,16 @@ class ImageModel extends ResourceModel implements LoginNameSupplier {
       CloudModel cloudModel, @Nullable LocationModel locationModel,
       @Nullable String loginUsernameOverride,
       @Nullable String loginPasswordOverride,
-      OperatingSystemModel operatingSystemModel) {
+      OperatingSystemModel operatingSystemModel, DiscoveryItemState state) {
     super(cloudUniqueId, providerId, name, cloudModel, locationModel);
     this.loginUsernameOverride = loginUsernameOverride;
     this.loginPasswordOverride = loginPasswordOverride;
+
+    checkNotNull(operatingSystemModel, "operatingSystemModel is null");
     this.operatingSystemModel = operatingSystemModel;
+
+    checkNotNull(state, "state is null");
+    this.state = state;
   }
 
   public OperatingSystemModel operatingSystem() {
@@ -72,5 +87,18 @@ class ImageModel extends ResourceModel implements LoginNameSupplier {
 
   public Optional<String> getLoginPasswordOverride() {
     return Optional.ofNullable(loginPasswordOverride);
+  }
+
+  public DiscoveryItemState getState() {
+    return state;
+  }
+
+  public ImageModel setState(DiscoveryItemState state) {
+    this.state = state;
+    return this;
+  }
+
+  public TenantModel getTenant() {
+    return getCloudModel().getTenantModel();
   }
 }

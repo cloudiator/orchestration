@@ -26,12 +26,15 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.util.NameGenerator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public class NodeBuilder {
 
+  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   private NodeProperties nodeProperties;
   private LoginCredential loginCredential;
   private NodeType nodeType;
@@ -46,6 +49,7 @@ public class NodeBuilder {
   private String originId;
 
   private NodeBuilder() {
+    this.ipAddresses = new HashSet<>();
   }
 
   private NodeBuilder(Node node) {
@@ -73,9 +77,12 @@ public class NodeBuilder {
   }
 
   public static NodeBuilder of(VirtualMachine virtualMachine) {
-    NodeProperties nodeProperties = NodePropertiesBuilder
-        .of(virtualMachine.hardware().get(), virtualMachine.image().get(),
-            virtualMachine.location().get())
+
+    final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
+
+    final NodeProperties nodeProperties = NodePropertiesBuilder
+        .of(providerId, virtualMachine.hardware().orElse(null), virtualMachine.image().orElse(null),
+            virtualMachine.location().orElse(null))
         .build();
 
     LoginCredential loginCredential = null;
@@ -98,8 +105,7 @@ public class NodeBuilder {
 
     return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
         .loginCredential(loginCredential)
-        .nodeProperties(nodeProperties).generateId().originId(virtualMachine.id())
-        .name(virtualMachine.name());
+        .nodeProperties(nodeProperties).originId(virtualMachine.id());
   }
 
   public NodeBuilder nodeProperties(
@@ -142,6 +148,11 @@ public class NodeBuilder {
 
   public NodeBuilder name(String name) {
     this.name = name;
+    return this;
+  }
+
+  public NodeBuilder generateName(String groupName) {
+    this.name = NAME_GENERATOR.generate(groupName);
     return this;
   }
 

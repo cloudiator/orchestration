@@ -19,11 +19,15 @@
 package io.github.cloudiator.iaas.vm.config;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.google.inject.persist.PersistService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
+import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import io.github.cloudiator.domain.CloudState;
 import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.messaging.CloudMessageRepository;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.entities.User.TenantQueryRequest;
@@ -45,15 +49,21 @@ class Init {
   private final CloudMessageRepository cloudMessageRepository;
   private final CloudRegistry cloudRegistry;
   private final UserService userService;
+  private final ExecutionService executionService;
+  private final Set<Schedulable> schedulables;
 
   @Inject
   Init(PersistService persistService,
       CloudMessageRepository cloudMessageRepository,
-      CloudRegistry cloudRegistry, UserService userService) {
+      CloudRegistry cloudRegistry, UserService userService,
+      @Named("SCHEDULE_EXECUTION") ExecutionService executionService,
+      Set<Schedulable> schedulables) {
     this.persistService = persistService;
     this.cloudMessageRepository = cloudMessageRepository;
     this.cloudRegistry = cloudRegistry;
     this.userService = userService;
+    this.executionService = executionService;
+    this.schedulables = schedulables;
     run();
   }
 
@@ -62,12 +72,19 @@ class Init {
     try {
       startPersistService();
       restoreCloudRegistry();
+      submitSchedulable();
     } catch (Exception e) {
       System.err.println("Error while initializing. Message is " + e.getMessage() + ". Exiting.");
       e.printStackTrace();
       System.exit(1);
     }
 
+  }
+
+  private void submitSchedulable() {
+    LOGGER.info(String.format("Submitting schedulables %s to execution service %s.", schedulables,
+        executionService));
+    schedulables.forEach(executionService::schedule);
   }
 
   private void startPersistService() {

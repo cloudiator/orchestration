@@ -46,6 +46,7 @@ class NodeConverter implements OneWayConverter<NodeModel, Node> {
         .nodeType(nodeModel.getType())
         .userId(nodeModel.getTenantModel().getUserId())
         .state(nodeModel.getNodeState())
+        .nodeCandidate(nodeModel.getNodeCandidate())
         .reason(nodeModel.getReason())
         .diagnostic(nodeModel.getDiagnostic());
 

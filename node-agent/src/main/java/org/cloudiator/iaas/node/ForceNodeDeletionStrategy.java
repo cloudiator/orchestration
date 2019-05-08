@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,14 +16,20 @@
  * under the License.
  */
 
-package io.github.cloudiator.persistance;
+package org.cloudiator.iaas.node;
 
-import java.util.List;
+import io.github.cloudiator.domain.Node;
 
-public interface NodeGroupModelRepository extends ModelRepository<NodeGroupModel> {
+public class ForceNodeDeletionStrategy implements NodeDeletionStrategy {
 
-  NodeGroupModel findByTenantAndDomainId(String userId, String domainId);
+  @Override
+  public boolean supportsNode(Node node) {
+    return true;
+  }
 
-  List<NodeGroupModel> findByTenant(String userId);
-
+  @Override
+  public boolean deleteNode(Node node) {
+    //do nothing;
+    return true;
+  }
 }

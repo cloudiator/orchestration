@@ -177,10 +177,8 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     @Override
     public NodeState applyBack(NodeEntities.NodeState nodeState) {
       switch (nodeState) {
-        case NODE_STATE_CREATED:
-          return NodeState.CREATED;
-        case NODE_STATE_FAILED:
-          return NodeState.FAILED;
+        case NODE_STATE_PENDING:
+          return NodeState.PENDING;
         case NODE_STATE_RUNNING:
           return NodeState.RUNNING;
         case NODE_STATE_ERROR:
@@ -197,14 +195,12 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     public NodeEntities.NodeState apply(NodeState nodeState) {
 
       switch (nodeState) {
-        case CREATED:
-          return NodeEntities.NodeState.NODE_STATE_CREATED;
+        case PENDING:
+          return NodeEntities.NodeState.NODE_STATE_PENDING;
         case ERROR:
           return NodeEntities.NodeState.NODE_STATE_ERROR;
         case RUNNING:
           return NodeEntities.NodeState.NODE_STATE_RUNNING;
-        case FAILED:
-          return NodeEntities.NodeState.NODE_STATE_FAILED;
         case DELETED:
           return NodeEntities.NodeState.NODE_STATE_DELETED;
         default:

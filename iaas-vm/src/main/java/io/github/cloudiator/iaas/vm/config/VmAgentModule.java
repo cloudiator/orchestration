@@ -22,17 +22,24 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
+import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
+import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
+import de.uniulm.omi.cloudiator.util.execution.Schedulable;
+import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import io.github.cloudiator.iaas.vm.VirtualMachineAgent;
 import io.github.cloudiator.iaas.vm.VmAgentContext;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestWorkerFactory;
+import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineCleanupWatchdog;
+import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineErrorWatchdog;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +76,20 @@ public class VmAgentModule extends AbstractModule {
     bind(ExecutorService.class).annotatedWith(Names.named("VM_WORKERS")).toInstance(
         vmExecutor
     );
+
+    Multibinder<Schedulable> schedulablesBinder = Multibinder
+        .newSetBinder(binder(), Schedulable.class);
+    if (vmAgentContext.cleanupEnabled()) {
+      LOGGER
+          .warn("Automatic cleanup of orphaned virtual machines is enabled. This will automatically"
+              + " delete virtual machines that are no longer managed by Cloudiator.");
+      schedulablesBinder.addBinding().to(VirtualMachineCleanupWatchdog.class);
+    }
+    schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
+
+    bind(ExecutionService.class).annotatedWith(Names.named("SCHEDULE_EXECUTION")).toInstance(
+        new ScheduledThreadPoolExecutorExecutionService(
+            new LoggingScheduledThreadPoolExecutor(2)));
 
     LOGGER.info(String
         .format("Allowing parallel execution of %s virtual machine requests", parallelVMStarts));

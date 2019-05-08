@@ -18,9 +18,10 @@
 
 package io.github.cloudiator.messaging;
 
-import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavorBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
+import io.github.cloudiator.domain.DiscoveredHardware;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.HardwareFlavor.Builder;
 
@@ -28,32 +29,36 @@ import org.cloudiator.messages.entities.IaasEntities.HardwareFlavor.Builder;
  * Created by daniel on 09.06.17.
  */
 public class HardwareMessageToHardwareConverter implements
-    TwoWayConverter<IaasEntities.HardwareFlavor, HardwareFlavor> {
+    TwoWayConverter<IaasEntities.HardwareFlavor, DiscoveredHardware> {
 
   public static final HardwareMessageToHardwareConverter INSTANCE = new HardwareMessageToHardwareConverter();
 
   private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
+  private static final DiscoveryItemStateConverter DISCOVERY_ITEM_STATE_CONVERTER = DiscoveryItemStateConverter.INSTANCE;
 
   private HardwareMessageToHardwareConverter() {
   }
 
   @Override
-  public IaasEntities.HardwareFlavor applyBack(HardwareFlavor hardwareFlavor) {
+  public IaasEntities.HardwareFlavor applyBack(DiscoveredHardware hardwareFlavor) {
     Builder builder = IaasEntities.HardwareFlavor.newBuilder()
         .setCores(hardwareFlavor.numberOfCores())
         .setId(hardwareFlavor.id()).setProviderId(hardwareFlavor.providerId())
-        .setRam(hardwareFlavor.mbRam()).setName(hardwareFlavor.name());
+        .setRam(hardwareFlavor.mbRam()).setName(hardwareFlavor.name())
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(hardwareFlavor.state()))
+        .setUserId(hardwareFlavor.userId());
     if (hardwareFlavor.gbDisk().isPresent()) {
       builder.setDisk(hardwareFlavor.gbDisk().get());
     }
     if (hardwareFlavor.location().isPresent()) {
-      builder.setLocation(LOCATION_CONVERTER.applyBack(hardwareFlavor.location().get()));
+      builder.setLocation(LOCATION_CONVERTER.applyBack(
+          (DiscoveredLocation) hardwareFlavor.location().get()));
     }
     return builder.build();
   }
 
   @Override
-  public HardwareFlavor apply(IaasEntities.HardwareFlavor hardwareFlavor) {
+  public DiscoveredHardware apply(IaasEntities.HardwareFlavor hardwareFlavor) {
 
     final HardwareFlavorBuilder hardwareFlavorBuilder = HardwareFlavorBuilder.newBuilder()
         .cores(hardwareFlavor.getCores())
@@ -68,6 +73,8 @@ public class HardwareMessageToHardwareConverter implements
       hardwareFlavorBuilder.gbDisk(hardwareFlavor.getDisk());
     }
 
-    return hardwareFlavorBuilder.build();
+    return new DiscoveredHardware(hardwareFlavorBuilder.build(),
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(hardwareFlavor.getState()),
+        hardwareFlavor.getUserId());
   }
 }

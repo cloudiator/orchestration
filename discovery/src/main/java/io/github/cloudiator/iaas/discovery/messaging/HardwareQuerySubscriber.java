@@ -19,6 +19,7 @@
 package io.github.cloudiator.iaas.discovery.messaging;
 
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
+import io.github.cloudiator.domain.DiscoveredHardware;
 import io.github.cloudiator.messaging.HardwareMessageToHardwareConverter;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
 import java.util.stream.Collectors;
@@ -88,7 +89,7 @@ public class HardwareQuerySubscriber implements Runnable {
 
 
   private void replyForUserIdAndHardwareId(String requestId, String userId, String hardwareId) {
-    final HardwareFlavor hardwareFlavor = hardwareDomainRepository
+    final DiscoveredHardware hardwareFlavor = hardwareDomainRepository
         .findByTenantAndId(userId, hardwareId);
     if (hardwareFlavor == null) {
 

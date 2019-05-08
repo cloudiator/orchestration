@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface Node extends Identifiable, Stateful {
+public interface Node extends Identifiable, Stateful<NodeState> {
 
   Optional<String> originId();
 

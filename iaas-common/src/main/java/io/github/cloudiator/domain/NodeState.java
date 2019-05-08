@@ -22,8 +22,7 @@ import de.uniulm.omi.cloudiator.util.stateMachine.State;
 
 public enum NodeState implements State {
 
-  CREATED,
-  FAILED,
+  PENDING,
   RUNNING,
   ERROR,
   DELETED

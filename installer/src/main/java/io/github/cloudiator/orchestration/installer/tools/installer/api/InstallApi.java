@@ -54,6 +54,17 @@ public interface InstallApi extends AutoCloseable {
   void installDocker() throws RemoteException;
 
   /**
+
+   * Download and install Alluxio
+   */
+  void installAlluxio() throws RemoteException;
+  
+  /**
+   * Download and install DLMSAgent
+   */
+  void installDlmsAgent() throws RemoteException;
+  
+  /**
    * Fetch and start Cloudiator Spark Worker container
    */
   void installSparkWorker() throws RemoteException;

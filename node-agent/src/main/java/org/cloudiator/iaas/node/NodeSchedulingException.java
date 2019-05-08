@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package org.cloudiator.iaas.node;
 
-import de.uniulm.omi.cloudiator.domain.Identifiable;
-import java.util.List;
+public class NodeSchedulingException extends Exception {
 
-public interface NodeGroup extends Identifiable {
+  public NodeSchedulingException(String s) {
+    super(s);
+  }
 
-  String userId();
-
-  List<Node> getNodes();
-
+  public NodeSchedulingException(String s, Throwable throwable) {
+    super(s, throwable);
+  }
 }

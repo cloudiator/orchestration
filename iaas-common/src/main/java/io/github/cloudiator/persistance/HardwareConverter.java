@@ -21,6 +21,7 @@ package io.github.cloudiator.persistance;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavorBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import io.github.cloudiator.domain.DiscoveredHardware;
 import javax.annotation.Nullable;
 
 /**
@@ -32,16 +33,17 @@ class HardwareConverter implements OneWayConverter<HardwareModel, HardwareFlavor
 
   @Nullable
   @Override
-  public HardwareFlavor apply(@Nullable HardwareModel hardwareModel) {
+  public DiscoveredHardware apply(@Nullable HardwareModel hardwareModel) {
     if (hardwareModel == null) {
       return null;
     }
-    return HardwareFlavorBuilder.newBuilder().name(hardwareModel.getName())
+    return new DiscoveredHardware(HardwareFlavorBuilder.newBuilder().name(hardwareModel.getName())
         .providerId(hardwareModel.getProviderId()).id(hardwareModel.getCloudUniqueId())
         .location(locationConverter.apply(hardwareModel.getLocationModel()))
         .mbRam(hardwareModel.hardwareOffer().getMbOfRam())
         .gbDisk(hardwareModel.hardwareOffer().getDiskSpace())
-        .cores(hardwareModel.hardwareOffer().getNumberOfCores()).build();
+        .cores(hardwareModel.hardwareOffer().getNumberOfCores()).build(), hardwareModel.getState(),
+        hardwareModel.getTenant().getUserId());
 
   }
 }

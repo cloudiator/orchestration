@@ -24,7 +24,6 @@ import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
@@ -36,17 +35,16 @@ import io.github.cloudiator.domain.ExtendedCloudImpl;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter;
 import io.github.cloudiator.messaging.CloudMessageToCloudConverter.CloudStateConverter;
 import io.github.cloudiator.persistance.CloudDomainRepository;
-import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Cloud.CloudEvent;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> {
+public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud, CloudState> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudStateMachine.class);
-  private final ErrorAwareStateMachine<ExtendedCloud> stateMachine;
+  private final ErrorAwareStateMachine<ExtendedCloud, CloudState> stateMachine;
   private final CloudDomainRepository cloudDomainRepository;
   private final CloudRegistry cloudRegistry;
   private final CloudService cloudService;
@@ -60,33 +58,35 @@ public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> 
     this.cloudService = cloudService;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<ExtendedCloud>builder().errorTransition(error())
+    stateMachine = StateMachineBuilder.<ExtendedCloud, CloudState>builder().errorTransition(error())
         .addTransition(
-            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.NEW).to(CloudState.OK)
+            Transitions.<ExtendedCloud, CloudState>transitionBuilder().from(CloudState.NEW)
+                .to(CloudState.OK)
                 .action(newToOk())
                 .build())
         .addTransition(
-            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.OK)
+            Transitions.<ExtendedCloud, CloudState>transitionBuilder().from(CloudState.OK)
                 .to(CloudState.DELETED)
                 .action(delete())
                 .build())
         .addTransition(
-            Transitions.<ExtendedCloud>transitionBuilder().from(CloudState.ERROR)
+            Transitions.<ExtendedCloud, CloudState>transitionBuilder().from(CloudState.ERROR)
                 .to(CloudState.DELETED)
                 .action(delete())
                 .build())
-        .addHook(new StateMachineHook<ExtendedCloud>() {
+        .addHook(new StateMachineHook<ExtendedCloud, CloudState>() {
           @Override
-          public void pre(ExtendedCloud cloud, State to) {
+          public void pre(ExtendedCloud cloud, CloudState to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, ExtendedCloud cloud) {
-            final CloudEvent cloudEvent = CloudEvent.newBuilder().setCloud(
-                CloudMessageToCloudConverter.INSTANCE.applyBack(cloud))
+          public void post(CloudState from, ExtendedCloud cloud) {
+            final CloudEvent cloudEvent = CloudEvent.newBuilder().setUserId(cloud.userId())
+                .setCloud(
+                    CloudMessageToCloudConverter.INSTANCE.applyBack(cloud))
                 .setFrom(CloudStateConverter.INSTANCE.applyBack(
-                    (CloudState) from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
+                    from)).setTo(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
                 .build();
             LOGGER.debug(String
                 .format(
@@ -143,9 +143,9 @@ public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> 
 
   }
 
-  private ErrorTransition<ExtendedCloud> error() {
+  private ErrorTransition<ExtendedCloud, CloudState> error() {
 
-    return Transitions.<ExtendedCloud>errorTransitionBuilder()
+    return Transitions.<ExtendedCloud, CloudState>errorTransitionBuilder()
         .action((extendedCloud, arguments, t) -> {
 
           final ExtendedCloudBuilder builder = ExtendedCloudBuilder.of(extendedCloud)
@@ -165,8 +165,7 @@ public class CloudStateMachine implements ErrorAwareStateMachine<ExtendedCloud> 
   }
 
   @Override
-  public ExtendedCloud apply(ExtendedCloud object, State to, Object[] arguments)
-      throws ExecutionException {
+  public ExtendedCloud apply(ExtendedCloud object, CloudState to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

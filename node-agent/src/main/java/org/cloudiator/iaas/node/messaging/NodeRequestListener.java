@@ -18,26 +18,36 @@
 
 package org.cloudiator.iaas.node.messaging;
 
+import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+
 import com.google.inject.Inject;
-import org.cloudiator.iaas.node.NodeRequestQueue;
-import org.cloudiator.iaas.node.NodeRequestQueue.NodeRequest;
+import com.google.inject.Singleton;
+import java.util.concurrent.ExecutorService;
+import javax.inject.Named;
+import org.cloudiator.iaas.node.messaging.NodeWorker.NodeRequest;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class NodeRequestListener implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(NodeRequestListener.class);
   private final MessageInterface messageInterface;
-  private final NodeRequestQueue nodeRequestQueue;
+  private final ExecutorService nodeExecutorService;
+  private final NodeRequestWorkerFactory nodeRequestWorkerFactory;
+
 
   @Inject
   public NodeRequestListener(MessageInterface messageInterface,
-      NodeRequestQueue nodeRequestQueue) {
+      @Named(NODE_EXECUTION_SERVICE_NAME)
+          ExecutorService nodeExecutorService,
+      NodeRequestWorkerFactory nodeRequestWorkerFactory) {
     this.messageInterface = messageInterface;
-    this.nodeRequestQueue = nodeRequestQueue;
+    this.nodeExecutorService = nodeExecutorService;
+    this.nodeRequestWorkerFactory = nodeRequestWorkerFactory;
   }
 
 
@@ -45,8 +55,9 @@ public class NodeRequestListener implements Runnable {
   public void run() {
     messageInterface.subscribe(NodeRequestMessage.class, NodeRequestMessage.parser(),
         (id, content) -> {
-          LOGGER.info(String.format("Receiving new node request %s. Adding to queue.", content));
-          nodeRequestQueue.addRequest(NodeRequest.of(content, id));
+          LOGGER.info(String.format("Receiving new node request %s. ", content));
+
+          nodeExecutorService.submit(nodeRequestWorkerFactory.create(NodeRequest.of(id, content)));
         });
   }
 }

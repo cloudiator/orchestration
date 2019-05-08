@@ -19,12 +19,17 @@
 package io.github.cloudiator.persistance;
 
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import io.github.cloudiator.domain.LocalVirtualMachineState;
 import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -74,6 +79,10 @@ class VirtualMachineModel extends Model {
   @Nullable
   private IpGroupModel ipGroup;
 
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private LocalVirtualMachineState state;
+
   /**
    * Empty constructor for hibernate.
    */
@@ -86,18 +95,24 @@ class VirtualMachineModel extends Model {
       @Nullable String locationId,
       @Nullable LoginCredentialModel loginCredential,
       @Nullable String imageId,
-      @Nullable String hardwareId, @Nullable IpGroupModel ipGroup) {
+      @Nullable String hardwareId, @Nullable IpGroupModel ipGroup, LocalVirtualMachineState state) {
 
+    checkNotNull(cloudUniqueId, "cloudUniqueId is null");
     this.cloudUniqueId = cloudUniqueId;
+    checkNotNull(providerId, "providerId is null");
     this.providerId = providerId;
+    checkNotNull(name, "name is null");
     this.name = name;
+    checkNotNull(cloudId, "cloudId is null");
     this.cloudId = cloudId;
+    checkNotNull(tenantModel, "tenantModel is null");
     this.tenantModel = tenantModel;
     this.locationId = locationId;
     this.loginCredential = loginCredential;
     this.imageId = imageId;
     this.hardwareId = hardwareId;
     this.ipGroup = ipGroup;
+    this.state = state;
   }
 
 
@@ -151,5 +166,14 @@ class VirtualMachineModel extends Model {
 
   public TenantModel getTenantModel() {
     return tenantModel;
+  }
+
+  public LocalVirtualMachineState getState() {
+    return state;
+  }
+
+  public VirtualMachineModel setState(LocalVirtualMachineState state) {
+    this.state = state;
+    return this;
   }
 }

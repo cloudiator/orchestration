@@ -61,6 +61,7 @@
 
   <logger level="DEBUG" name="org.cloudiator.iaas.node"/>
   <logger level="DEBUG" name="org.cloudiator.messaging"/>
+  <logger level="DEBUG" name="de.uniulm.omi.cloudiator.util.stateMachine"/>
 
 
   <root level="WARN">

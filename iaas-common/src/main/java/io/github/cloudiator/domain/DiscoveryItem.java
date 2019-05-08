@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,21 +16,16 @@
  * under the License.
  */
 
-package org.cloudiator.iaas.node;
+package io.github.cloudiator.domain;
 
+import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 
-import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeCandidate;
-import java.util.function.Function;
+public interface DiscoveryItem extends Stateful<DiscoveryItemState> {
 
+  @Override
+  DiscoveryItemState state();
 
-public interface NodeCandidateIncarnationStrategy extends Function<NodeCandidate, Node> {
+  void setState(DiscoveryItemState state);
 
-  interface NodeCandidateIncarnationFactory {
-
-    boolean canIncarnate(NodeCandidate nodeCandidate);
-
-    NodeCandidateIncarnationStrategy create(String groupName, String userId);
-  }
-
+  String userId();
 }

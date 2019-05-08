@@ -20,6 +20,7 @@ package io.github.cloudiator.iaas.discovery.messaging;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
+import io.github.cloudiator.domain.DiscoveredImage;
 import io.github.cloudiator.messaging.ImageMessageToImageConverter;
 import io.github.cloudiator.persistance.ImageDomainRepository;
 import java.util.stream.Collectors;
@@ -88,7 +89,7 @@ public class ImageQuerySubscriber implements Runnable {
 
 
   private void replyForUserIdAndImageId(String requestId, String userId, String imageId) {
-    final Image image = imageDomainRepository
+    final DiscoveredImage image = imageDomainRepository
         .findByTenantAndId(userId, imageId);
     if (image == null) {
       messageInterface.reply(requestId, ImageQueryResponse.newBuilder().build());

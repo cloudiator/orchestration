@@ -25,6 +25,7 @@ import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import io.github.cloudiator.messaging.HardwareMessageRepository;
 import io.github.cloudiator.messaging.ImageMessageRepository;
 import io.github.cloudiator.messaging.LocationMessageRepository;
@@ -49,6 +50,7 @@ class VirtualMachineConverter implements
     this.imageMessageRepository = imageMessageRepository;
   }
 
+  @Nullable
   private HardwareFlavor getHardwareFlavor(VirtualMachineModel virtualMachineModel) {
     if (virtualMachineModel.getHardwareId() == null) {
       return null;
@@ -58,6 +60,7 @@ class VirtualMachineConverter implements
             virtualMachineModel.getHardwareId());
   }
 
+  @Nullable
   private Image getImage(VirtualMachineModel virtualMachineModel) {
     if (virtualMachineModel.getImageId() == null) {
       return null;
@@ -66,6 +69,7 @@ class VirtualMachineConverter implements
         virtualMachineModel.getImageId());
   }
 
+  @Nullable
   private Location getLocation(VirtualMachineModel virtualMachineModel) {
     if (virtualMachineModel.getLocationId() == null) {
       return null;
@@ -77,7 +81,7 @@ class VirtualMachineConverter implements
 
   @Nullable
   @Override
-  public VirtualMachine apply(@Nullable VirtualMachineModel virtualMachineModel) {
+  public ExtendedVirtualMachine apply(@Nullable VirtualMachineModel virtualMachineModel) {
     if (virtualMachineModel == null) {
       return null;
     }
@@ -94,6 +98,7 @@ class VirtualMachineConverter implements
         ipAddressModel -> virtualMachineBuilder
             .addIpAddress(ipAddressConverter.apply(ipAddressModel)));
 
-    return virtualMachineBuilder.build();
+    return new ExtendedVirtualMachine(virtualMachineBuilder.build(),
+        virtualMachineModel.getTenantModel().getUserId(), virtualMachineModel.getState());
   }
 }

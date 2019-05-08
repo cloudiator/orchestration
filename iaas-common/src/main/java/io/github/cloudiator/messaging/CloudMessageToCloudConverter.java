@@ -50,7 +50,8 @@ public class CloudMessageToCloudConverter implements
         .api(API_CONVERTER.apply(cloud.getApi()))
         .configuration(CONFIGURATION_CONVERTER.apply(cloud.getConfiguration()))
         .cloudType(CLOUD_TYPE_CONVERTER.apply(cloud.getCloudType()))
-        .state(CloudStateConverter.INSTANCE.apply(cloud.getState()));
+        .state(CloudStateConverter.INSTANCE.apply(cloud.getState()))
+        .userId(cloud.getUserId());
 
     if (!Strings.isNullOrEmpty(cloud.getEndpoint())) {
       cloudBuilder.endpoint(cloud.getEndpoint());
@@ -71,7 +72,8 @@ public class CloudMessageToCloudConverter implements
         .setApi(API_CONVERTER.applyBack(cloud.api()))
         .setConfiguration(CONFIGURATION_CONVERTER.applyBack(cloud.configuration()))
         .setCloudType(CLOUD_TYPE_CONVERTER.applyBack(cloud.cloudType()))
-        .setState(CloudStateConverter.INSTANCE.applyBack(cloud.state()));
+        .setState(CloudStateConverter.INSTANCE.applyBack(cloud.state()))
+        .setUserId(cloud.userId());
 
     if (cloud.endpoint().isPresent()) {
       cloudBuilder.setEndpoint(cloud.endpoint().get());

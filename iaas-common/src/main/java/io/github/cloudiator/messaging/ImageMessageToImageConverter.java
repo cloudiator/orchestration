@@ -18,37 +18,44 @@
 
 package io.github.cloudiator.messaging;
 
-import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.ImageBuilder;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
+import io.github.cloudiator.domain.DiscoveredImage;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import org.cloudiator.messages.entities.IaasEntities;
 import org.cloudiator.messages.entities.IaasEntities.Image.Builder;
 
 /**
  * Created by daniel on 07.06.17.
  */
-public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntities.Image, Image> {
+public class ImageMessageToImageConverter implements
+    TwoWayConverter<IaasEntities.Image, DiscoveredImage> {
 
   public static final ImageMessageToImageConverter INSTANCE = new ImageMessageToImageConverter();
   private static final LocationMessageToLocationConverter LOCATION_CONVERTER = LocationMessageToLocationConverter.INSTANCE;
   private OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
+  private static final DiscoveryItemStateConverter DISCOVERY_ITEM_STATE_CONVERTER = DiscoveryItemStateConverter.INSTANCE;
+
   private ImageMessageToImageConverter() {
   }
 
   @Override
-  public IaasEntities.Image applyBack(Image image) {
+  public IaasEntities.Image applyBack(DiscoveredImage image) {
     Builder builder = IaasEntities.Image.newBuilder().setId(image.id())
         .setProviderId(image.providerId())
         .setName(image.name())
-        .setOperationSystem(operatingSystemConverter.applyBack(image.operatingSystem()));
+        .setOperationSystem(operatingSystemConverter.applyBack(image.operatingSystem()))
+        .setState(DISCOVERY_ITEM_STATE_CONVERTER.applyBack(image.state()))
+        .setUserId(image.userId());
     if (image.location().isPresent()) {
-      builder.setLocation(LOCATION_CONVERTER.applyBack(image.location().get()));
+      builder
+          .setLocation(LOCATION_CONVERTER.applyBack((DiscoveredLocation) image.location().get()));
     }
     return builder.build();
   }
 
   @Override
-  public Image apply(IaasEntities.Image image) {
+  public DiscoveredImage apply(IaasEntities.Image image) {
     ImageBuilder builder = ImageBuilder.newBuilder()
         .id(image.getId())
         .providerId(image.getProviderId())
@@ -57,6 +64,7 @@ public class ImageMessageToImageConverter implements TwoWayConverter<IaasEntitie
     if (image.hasLocation()) {
       builder.location(LOCATION_CONVERTER.apply(image.getLocation()));
     }
-    return builder.build();
+    return new DiscoveredImage(builder.build(),
+        DISCOVERY_ITEM_STATE_CONVERTER.apply(image.getState()), image.getUserId());
   }
 }

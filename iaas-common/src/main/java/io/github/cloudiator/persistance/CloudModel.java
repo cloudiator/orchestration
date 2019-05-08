@@ -26,6 +26,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -72,6 +73,7 @@ class CloudModel extends Model {
 
   @Column(nullable = true)
   @Nullable
+  @Lob
   private String diagnostic;
 
 

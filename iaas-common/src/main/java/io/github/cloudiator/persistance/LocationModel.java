@@ -18,8 +18,11 @@
 
 package io.github.cloudiator.persistance;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableSet;
 import de.uniulm.omi.cloudiator.domain.LocationScope;
+import io.github.cloudiator.domain.DiscoveryItemState;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -49,6 +52,10 @@ class LocationModel extends Model {
 
   @ManyToOne(optional = false)
   private CloudModel cloudModel;
+
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private DiscoveryItemState state;
 
   @ManyToOne
   @Nullable
@@ -80,15 +87,22 @@ class LocationModel extends Model {
   public LocationModel(String cloudUniqueId, String providerId, String name,
       CloudModel cloudModel, @Nullable LocationModel parent,
       @Nullable GeoLocationModel geoLocationModel, @Nullable LocationScope locationScope,
-      Boolean isAssignable) {
+      Boolean isAssignable, DiscoveryItemState state) {
+    checkNotNull(cloudUniqueId, "cloudUniqueId is null");
     this.cloudUniqueId = cloudUniqueId;
+    checkNotNull(providerId, "providerId is null");
     this.providerId = providerId;
+    checkNotNull(name, "name is null");
     this.name = name;
+    checkNotNull(cloudModel, "cloudModel is null");
     this.cloudModel = cloudModel;
     this.parent = parent;
     this.geoLocationModel = geoLocationModel;
     this.locationScope = locationScope;
+    checkNotNull(isAssignable, "isAssignable is null");
     this.isAssignable = isAssignable;
+    checkNotNull(state, "state is null");
+    this.state = state;
   }
 
   public String getCloudUniqueId() {
@@ -128,11 +142,6 @@ class LocationModel extends Model {
     return children;
   }
 
-  public void setChildren(
-      List<LocationModel> children) {
-    this.children = children;
-  }
-
   @Nullable
   public GeoLocationModel getGeoLocationModel() {
     return geoLocationModel;
@@ -147,16 +156,8 @@ class LocationModel extends Model {
     return locationScope;
   }
 
-  public void setLocationScope(@Nullable LocationScope locationScope) {
-    this.locationScope = locationScope;
-  }
-
   public Boolean getAssignable() {
     return isAssignable;
-  }
-
-  public void setAssignable(Boolean assignable) {
-    isAssignable = assignable;
   }
 
   public Set<LocationModel> hierachy() {
@@ -175,5 +176,18 @@ class LocationModel extends Model {
 
   public void setCloudModel(CloudModel cloudModel) {
     this.cloudModel = cloudModel;
+  }
+
+  public DiscoveryItemState getState() {
+    return state;
+  }
+
+  public LocationModel setState(DiscoveryItemState state) {
+    this.state = state;
+    return this;
+  }
+
+  public TenantModel getTenant() {
+    return getCloudModel().getTenantModel();
   }
 }

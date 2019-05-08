@@ -21,6 +21,7 @@ package io.github.cloudiator.persistance;
 import de.uniulm.omi.cloudiator.sword.domain.Location;
 import de.uniulm.omi.cloudiator.sword.domain.LocationBuilder;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import io.github.cloudiator.domain.DiscoveredLocation;
 import javax.annotation.Nullable;
 
 /**
@@ -32,14 +33,15 @@ class LocationConverter implements OneWayConverter<LocationModel, Location> {
 
   @Nullable
   @Override
-  public Location apply(@Nullable LocationModel locationModel) {
+  public DiscoveredLocation apply(@Nullable LocationModel locationModel) {
     if (locationModel == null) {
       return null;
     }
-    return LocationBuilder.newBuilder().id(locationModel.getCloudUniqueId())
+    return new DiscoveredLocation(LocationBuilder.newBuilder().id(locationModel.getCloudUniqueId())
         .providerId(locationModel.getProviderId())
         .name(locationModel.getName()).scope(locationModel.getLocationScope())
         .geoLocation(GEO_LOCATION_CONVERTER.apply(locationModel.getGeoLocationModel()))
-        .assignable(locationModel.getAssignable()).parent(apply(locationModel.getParent())).build();
+        .assignable(locationModel.getAssignable()).parent(apply(locationModel.getParent())).build(),
+        locationModel.getState(), locationModel.getTenant().getUserId());
   }
 }

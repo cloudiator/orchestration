@@ -18,12 +18,30 @@
 
 package org.cloudiator.iaas.node.config;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
-import org.cloudiator.iaas.node.*;
-import org.cloudiator.iaas.node.CompositeNodeCandidateIncarnationStrategy.CompositeNodeCandidateIncarnationFactory;
-import org.cloudiator.iaas.node.NodeCandidateIncarnationStrategy.NodeCandidateIncarnationFactory;
-import org.cloudiator.iaas.node.VirtualMachineNodeIncarnationStrategy.VirtualMachineNodeIncarnationFactory;
+import com.google.inject.name.Names;
+import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import org.cloudiator.iaas.node.CompositeNodeDeletionStrategy;
+import org.cloudiator.iaas.node.CompositeNodeSchedulingStrategy;
+import org.cloudiator.iaas.node.FaasNodeDeletionStrategy;
+import org.cloudiator.iaas.node.FaasNodeSchedulingStrategy;
+import org.cloudiator.iaas.node.Init;
+import org.cloudiator.iaas.node.NodeDeletionStrategy;
+import org.cloudiator.iaas.node.NodeSchedulingStrategy;
+import org.cloudiator.iaas.node.VirtualMachineNodeDeletionStrategy;
+import org.cloudiator.iaas.node.VirtualMachineNodeSchedulingStrategy;
+import org.cloudiator.iaas.node.messaging.NodeRequestWorkerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -31,16 +49,42 @@ import org.cloudiator.iaas.node.VirtualMachineNodeIncarnationStrategy.VirtualMac
  */
 public class NodeModule extends AbstractModule {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(NodeModule.class);
+  private final NodeAgentContext nodeAgentContext;
+
+  public NodeModule(NodeAgentContext nodeAgentContext) {
+    checkNotNull(nodeAgentContext, "nodeAgentContext is null");
+    this.nodeAgentContext = nodeAgentContext;
+  }
+
   @Override
   protected void configure() {
 
     bind(Init.class).asEagerSingleton();
-    bind(NodeCandidateIncarnationFactory.class).to(CompositeNodeCandidateIncarnationFactory.class);
 
-    Multibinder<NodeCandidateIncarnationFactory> multibinder = Multibinder
-        .newSetBinder(binder(), NodeCandidateIncarnationFactory.class);
-    multibinder.addBinding().to(VirtualMachineNodeIncarnationFactory.class);
-    multibinder.addBinding().to(FaasNodeIncarnationStrategy.FaasNodeIncarnationFactory.class);
+    install(new FactoryModuleBuilder().build(NodeRequestWorkerFactory.class));
+    final int parallelNodes = nodeAgentContext.parallelNodes();
+
+    final LoggingThreadPoolExecutor nodeExecutor = new LoggingThreadPoolExecutor(
+        parallelNodes, parallelNodes, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
+
+    bind(ExecutorService.class).annotatedWith(Names.named(NODE_EXECUTION_SERVICE_NAME)).toInstance(
+        nodeExecutor
+    );
+
+    LOGGER.info(String
+        .format("Allowing parallel execution of %s node requests", parallelNodes));
+
+    LOGGER.info(String.format("Registering shutdown hook for node execution service %s",
+        nodeExecutor));
+    MoreExecutors.addDelayedShutdownHook(nodeExecutor, 5, TimeUnit.MINUTES);
+
+    Multibinder<NodeSchedulingStrategy> multibinder = Multibinder
+        .newSetBinder(binder(), NodeSchedulingStrategy.class);
+    multibinder.addBinding().to(VirtualMachineNodeSchedulingStrategy.class);
+    multibinder.addBinding().to(FaasNodeSchedulingStrategy.class);
+    bind(NodeSchedulingStrategy.class).to(CompositeNodeSchedulingStrategy.class);
 
     Multibinder<NodeDeletionStrategy> nodeDeletionStrategyMultibinder = Multibinder
         .newSetBinder(binder(), NodeDeletionStrategy.class);

@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
 import static jersey.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.Inject;
@@ -26,13 +27,17 @@ import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
+import io.github.cloudiator.domain.ExtendedVirtualMachine;
+import io.github.cloudiator.domain.LocalVirtualMachineState;
 import io.github.cloudiator.iaas.vm.EnrichVirtualMachine;
 import io.github.cloudiator.iaas.vm.VirtualMachineRequestToTemplateConverter;
 import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
 import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
+import java.util.concurrent.Callable;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -99,10 +104,14 @@ public class VirtualMachineRequestWorker implements Runnable {
       Exchange result = createVirtualMachineWorkflow
           .execute(Exchange.of(virtualMachineTemplate));
 
-      VirtualMachine virtualMachine = result.getData(VirtualMachine.class).get();
+      checkState(result.getData(VirtualMachine.class).isPresent(),
+          "No virtual machine created by workflow.");
+
+      ExtendedVirtualMachine virtualMachine = new ExtendedVirtualMachine(
+          result.getData(VirtualMachine.class).get(), userId, LocalVirtualMachineState.RUNNING);
 
       //decorate virtual machine
-      final VirtualMachine update = enrichVirtualMachine
+      final ExtendedVirtualMachine update = enrichVirtualMachine
           .update(userId,
               virtualMachineTemplate,
               virtualMachine);
@@ -114,7 +123,12 @@ public class VirtualMachineRequestWorker implements Runnable {
               stopTime - startTime);
 
       //persist the vm
-      persistVirtualMachine(update, userId);
+      synchronized (VirtualMachineRequestWorker.class) {
+        TransactionRetryer.retry((Callable<Void>) () -> {
+          persistVirtualMachine(update);
+          return null;
+        });
+      }
 
       messageInterface.reply(virtualMachineRequest.getId(),
           VirtualMachineCreatedResponse.newBuilder()
@@ -133,8 +147,8 @@ public class VirtualMachineRequestWorker implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void persistVirtualMachine(VirtualMachine vm, String userId) {
-    virtualMachineDomainRepository.save(vm, userId);
+  void persistVirtualMachine(ExtendedVirtualMachine vm) {
+    virtualMachineDomainRepository.save(vm);
   }
 
   @Override

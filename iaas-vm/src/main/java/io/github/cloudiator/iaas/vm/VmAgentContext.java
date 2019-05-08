@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm;
 
+import static io.github.cloudiator.iaas.vm.Constants.VM_CLEANUP_ENABLED;
 import static io.github.cloudiator.iaas.vm.Constants.VM_PARALLEL_STARTS;
 
 import com.typesafe.config.Config;
@@ -39,6 +40,10 @@ public class VmAgentContext {
 
   public int parallelVMStarts() {
     return config.getInt(VM_PARALLEL_STARTS);
+  }
+
+  public boolean cleanupEnabled() {
+    return config.getBoolean(VM_CLEANUP_ENABLED);
   }
 
 }
