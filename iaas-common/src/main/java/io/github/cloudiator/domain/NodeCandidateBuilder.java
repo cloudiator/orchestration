@@ -18,19 +18,14 @@
 
 package io.github.cloudiator.domain;
 
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import de.uniulm.omi.cloudiator.sword.domain.Image;
-import de.uniulm.omi.cloudiator.sword.domain.Location;
-
 public class NodeCandidateBuilder {
 
   private String id;
   private NodeCandidateType type;
-  private Cloud cloud;
-  private Image image;
-  private HardwareFlavor hardwareFlavor;
-  private Location location;
+  private ExtendedCloud cloud;
+  private DiscoveredImage image;
+  private DiscoveredHardware hardwareFlavor;
+  private DiscoveredLocation location;
   private double price;
   private double pricePerInvocation;
   private double memoryPrice;
@@ -53,22 +48,22 @@ public class NodeCandidateBuilder {
     return this;
   }
 
-  public NodeCandidateBuilder cloud(Cloud cloud) {
+  public NodeCandidateBuilder cloud(ExtendedCloud cloud) {
     this.cloud = cloud;
     return this;
   }
 
-  public NodeCandidateBuilder image(Image image) {
+  public NodeCandidateBuilder image(DiscoveredImage image) {
     this.image = image;
     return this;
   }
 
-  public NodeCandidateBuilder hardware(HardwareFlavor hardwareFlavor) {
+  public NodeCandidateBuilder hardware(DiscoveredHardware hardwareFlavor) {
     this.hardwareFlavor = hardwareFlavor;
     return this;
   }
 
-  public NodeCandidateBuilder location(Location location) {
+  public NodeCandidateBuilder location(DiscoveredLocation location) {
     this.location = location;
     return this;
   }
