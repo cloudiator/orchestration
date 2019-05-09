@@ -11,7 +11,7 @@ if [ "$TRAVIS_REPO_SLUG" == "cloudiator/orchestration" ] && \
    [ "$TRAVIS_BRANCH" == "master" ]; then
   echo "Publishing Maven snapshot..."
 
-  mvn -q clean javadoc:aggregate deploy --settings="ci/settings.xml" -DskipTests=true
+  mvn -q javadoc:aggregate deploy sonar:sonar --settings="ci/settings.xml" -DskipTests=true
 
   echo "Maven snapshot published."
 

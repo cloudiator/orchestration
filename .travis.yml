@@ -4,7 +4,6 @@ jdk:
 language: java
 install: travis_wait mvn -q install -U -DskipTests=true
 script: travis_wait mvn -q org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.javadoc.skip=true
-  sonar:sonar
 after_success:
 - travis_wait ci/deploy_snapshot.sh
 - ci/publish-javadoc-to-gh-pages.sh
