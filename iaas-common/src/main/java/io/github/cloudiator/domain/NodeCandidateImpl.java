@@ -29,17 +29,17 @@ public class NodeCandidateImpl implements NodeCandidate {
 
   private final String id;
   private final NodeCandidateType type;
-  private final Cloud cloud;
-  private final Image image;
-  private final HardwareFlavor hardwareFlavor;
-  private final Location location;
+  private final ExtendedCloud cloud;
+  private final DiscoveredImage image;
+  private final DiscoveredHardware hardwareFlavor;
+  private final DiscoveredLocation location;
   private final double price;
   private final double pricePerInvocation;
   private final double memoryPrice;
   private final Environment environment;
 
-  NodeCandidateImpl(String id, NodeCandidateType type, Cloud cloud, Image image,
-      HardwareFlavor hardwareFlavor, Location location, double price,
+  NodeCandidateImpl(String id, NodeCandidateType type, ExtendedCloud cloud, DiscoveredImage image,
+      DiscoveredHardware hardwareFlavor, DiscoveredLocation location, double price,
       double pricePerInvocation, double memoryPrice, Environment environment) {
     this.id = id;
     this.type = type;
@@ -64,22 +64,22 @@ public class NodeCandidateImpl implements NodeCandidate {
   }
 
   @Override
-  public Cloud cloud() {
+  public ExtendedCloud cloud() {
     return cloud;
   }
 
   @Override
-  public Image image() {
+  public DiscoveredImage image() {
     return image;
   }
 
   @Override
-  public HardwareFlavor hardware() {
+  public DiscoveredHardware hardware() {
     return hardwareFlavor;
   }
 
   @Override
-  public Location location() {
+  public DiscoveredLocation location() {
     return location;
   }
 
