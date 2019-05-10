@@ -70,9 +70,9 @@ public class InstallerHelper {
             String trustStoreFile = Configuration.conf().getString("installer.ems.truststore.file");
             String trustStoreType = Configuration.conf().getString("installer.ems.truststore.type");
             String trustStorePassword = Configuration.conf().getString("installer.ems.truststore.password");
-            LOGGER.debug("Keystore and Truststore configuration:\n"
-                    + " keystore: type={}, file={}\n truststore: type={}, file={}",
-                    keyStoreType, keyStoreFile, trustStoreType, trustStoreFile);
+            LOGGER.debug("Keystore and Truststore configuration:");
+            LOGGER.debug("   Keystore:   type={}, file={}", keyStoreType, keyStoreFile);
+            LOGGER.debug("   Truststore: type={}, file={}", trustStoreType, trustStoreFile);
 
             // Load keystore and truststore
             KeyStore keyStore = KeyStore.getInstance(keyStoreType);
@@ -84,7 +84,7 @@ public class InstallerHelper {
             try (FileInputStream fis = new FileInputStream(trustStoreFile)) {
                 trustStore.load(fis, trustStorePassword.toCharArray());
             }
-            LOGGER.debug("Tuststore loaded: entries={}", trustStore.size());
+            LOGGER.debug("Truststore loaded: entries={}", trustStore.size());
 
             response = ClientBuilderImpl
                     .newBuilder()
