@@ -22,10 +22,10 @@ import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AddByoNodeSubscriber implements Runnable {
+public class AddByonNodeSubscriber implements Runnable {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(AddByoNodeSubscriber.class);
+      LoggerFactory.getLogger(AddByonNodeSubscriber.class);
   private static final int ILLEGAL_CLOUD_ID = 400;
   private static final int SERVER_ERROR = 500;
   private final MessageInterface messagingService;
@@ -33,7 +33,7 @@ public class AddByoNodeSubscriber implements Runnable {
   private volatile Subscription subscription;
 
   @Inject
-  public AddByoNodeSubscriber(MessageInterface messageInterface) {
+  public AddByonNodeSubscriber(MessageInterface messageInterface) {
     this.messagingService = messageInterface;
   }
 
@@ -43,12 +43,12 @@ public class AddByoNodeSubscriber implements Runnable {
         AddByoNodeRequest.parser(), (requestId, request) -> {
           try {
             ByonData data = request.getByonRequest();
-            ByoNode node = AddByoNodeSubscriber.this
+            ByoNode node = AddByonNodeSubscriber.this
                 .handleRequest(requestId, request.getUserId(), data);
             publishCreationEvent(node.getId(), data);
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
-            AddByoNodeSubscriber.this.sendErrorResponse(requestId,
+            AddByonNodeSubscriber.this.sendErrorResponse(requestId,
                 "exception occurred: " + ex.getMessage(), SERVER_ERROR);
           }
         });
