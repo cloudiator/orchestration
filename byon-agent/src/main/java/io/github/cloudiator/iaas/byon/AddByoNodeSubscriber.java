@@ -1,4 +1,4 @@
-package io.github.cloudiator.byon;
+package io.github.cloudiator.iaas.byon;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -12,7 +12,6 @@ import org.cloudiator.messages.Byon.ByoNodeAddedResponse;
 import org.cloudiator.messages.Byon.ByonData;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeEvent;
-import org.cloudiator.messages.Node.NodeStatus;
 import org.cloudiator.messages.NodeEntities.Node;
 import org.cloudiator.messages.NodeEntities.NodeProperties;
 import org.cloudiator.messages.NodeEntities.NodeType;
@@ -64,7 +63,7 @@ public class AddByoNodeSubscriber implements Runnable {
             setNodeType(NodeType.BYON).
             setId(nodeId).
             build()).
-            setNodeStatus(NodeStatus.CREATED).
+            //setNodeStatus(NodeStatus.CREATED).
             build());
 
   }

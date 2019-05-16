@@ -25,8 +25,11 @@
 		<version>0.3.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
+	<artifactId>byon-agent</artifactId>
 
-	<artifactId>byon</artifactId>
+  <properties>
+    <docker.tag>manual</docker.tag>
+  </properties>
 
 	<dependencies>
 		<dependency>
@@ -37,16 +40,82 @@
 			<groupId>io.github.cloudiator.sword</groupId>
 			<artifactId>multicloud</artifactId>
 		</dependency>
+    <dependency>
+      <groupId>io.github.cloudiator.common</groupId>
+      <artifactId>common-all</artifactId>
+    </dependency>
 		<dependency>
 			<groupId>io.github.cloudiator.iaas</groupId>
 			<artifactId>iaas-common</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.1.7</version>
-		</dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-persist</artifactId>
+      <version>${guice.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+    </dependency>
 	</dependencies>
 
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <configuration>
+          <to>
+            registry.hub.docker.com/cloudiator/byon-agent:${docker.tag}
+          </to>
+          <container>
+            <useCurrentTimestamp>true</useCurrentTimestamp>
+          </container>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/src.xml</descriptor>
+          </descriptors>
+          <finalName>byon-agent</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+          <archive>
+            <manifest>
+              <mainClass>io.github.cloudiator.iaas.byon.ByonAgent</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
