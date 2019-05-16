@@ -39,7 +39,7 @@ public class NodeImpl extends BaseNodeImpl implements Node {
   private final NodeState nodeState;
   private final String userId;
 
-  NodeImpl(NodeProperties nodeProperties,
+  public NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
       String userId, @Nullable String diagnostic, @Nullable String reason,

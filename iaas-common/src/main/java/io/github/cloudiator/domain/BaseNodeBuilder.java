@@ -35,6 +35,10 @@ public class BaseNodeBuilder extends AbstractNodeBuilder<BaseNodeBuilder> {
     super(virtualMachine);
   }
 
+  public static BaseNodeBuilder newBuilder() {
+    return new BaseNodeBuilder();
+  }
+
   public static BaseNodeBuilder of(Node node) {
     checkNotNull(node, "node is null");
     return new BaseNodeBuilder(node);
