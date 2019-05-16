@@ -6,9 +6,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import javax.inject.Inject;
-import org.cloudiator.messages.Byon.AddByoNodeRequest;
-import org.cloudiator.messages.Byon.ByoNode;
-import org.cloudiator.messages.Byon.ByoNodeAddedResponse;
+import org.cloudiator.messages.Byon.AddByonNodeRequest;
+import org.cloudiator.messages.Byon.ByonNode;
+import org.cloudiator.messages.Byon.ByonNodeAddedResponse;
 import org.cloudiator.messages.Byon.ByonData;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeEvent;
@@ -39,12 +39,12 @@ public class AddByonNodeSubscriber implements Runnable {
 
   @Override
   public void run() {
-    subscription = messagingService.subscribe(AddByoNodeRequest.class,
-        AddByoNodeRequest.parser(), (requestId, request) -> {
+    subscription = messagingService.subscribe(AddByonNodeRequest.class,
+        AddByonNodeRequest.parser(), (requestId, request) -> {
           try {
             ByonData data = request.getByonRequest();
-            ByoNode node = AddByonNodeSubscriber.this
-                .handleRequest(requestId, request.getUserId(), data);
+            ByonNode node = AddByonNodeSubscriber.this
+                .handleRequest(requestId, data);
             publishCreationEvent(node.getId(), data);
           } catch (Exception ex) {
             LOGGER.error("exception occurred.", ex);
@@ -68,11 +68,11 @@ public class AddByonNodeSubscriber implements Runnable {
 
   }
 
-  private ByoNode handleRequest(String requestId, String userId, ByonData byonRequest) {
-    LOGGER.info("byo node creating unique identifier");
+  private ByonNode handleRequest(String requestId, ByonData byonRequest) {
+    LOGGER.info("byon node creating unique identifier");
     String nodeId = createId(byonRequest);
-    ByoNode node = ByoNode.newBuilder().setNodeData(byonRequest).setId(nodeId).build();
-    LOGGER.info("byo node registered. sending response");
+    ByonNode node = ByonNode.newBuilder().setNodeData(byonRequest).setId(nodeId).build();
+    LOGGER.info("byon node registered. sending response");
     sendSuccessResponse(requestId, node);
     LOGGER.info("response sent.");
     return node;
@@ -113,9 +113,9 @@ public class AddByonNodeSubscriber implements Runnable {
     }
   }
 
-  private final void sendSuccessResponse(String messageId, ByoNode node) {
+  private final void sendSuccessResponse(String messageId, ByonNode node) {
     messagingService.reply(messageId,
-        ByoNodeAddedResponse.newBuilder().setByoNode(node).build());
+        ByonNodeAddedResponse.newBuilder().setByonNode(node).build());
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
