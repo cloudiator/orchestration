@@ -55,7 +55,7 @@ public class BaseNodeBuilder extends AbstractNodeBuilder<BaseNodeBuilder> {
 
   @Override
   public BaseNode build() {
-    return new BaseNodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, name,
-        diagnostic, reason, nodeCandidate, originId);
+    return new BaseNodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id,
+        name, diagnostic, reason, nodeCandidate);
   }
 }

@@ -62,7 +62,7 @@ public class BaseNodetoByonNodeMessageConverter implements TwoWayConverter<BaseN
       String diagnostic = baseNode.diagnostic().orElse(null);
       String reason = baseNode.reason().orElse(null);
       String nodeCandidate = baseNode.nodeCandidate().orElse(null);
-      String originId = baseNode.originId().orElse(null);
+      String id = baseNode.id();
 
       NodeBuilder builder = NodeBuilder.newBuilder();
       Node node = builder.nodeProperties(nodeProperties)
@@ -73,7 +73,7 @@ public class BaseNodetoByonNodeMessageConverter implements TwoWayConverter<BaseN
           .diagnostic(diagnostic)
           .reason(reason)
           .nodeCandidate(nodeCandidate)
-          .originId(originId).build();
+          .id(id).build();
 
       return node;
     }

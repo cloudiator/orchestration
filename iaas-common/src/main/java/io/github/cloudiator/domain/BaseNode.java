@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.domain;
 
+import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
@@ -26,9 +27,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-public interface BaseNode {
+public interface BaseNode extends Identifiable {
 
-  Optional<String> originId();
+  @Override
+  String id();
+
 
   String name();
 

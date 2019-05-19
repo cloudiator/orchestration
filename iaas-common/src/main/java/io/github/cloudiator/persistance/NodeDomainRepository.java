@@ -28,15 +28,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-public class NodeDomainRepository {
+public class NodeDomainRepository extends AbstractNodeDomainRepository {
 
   private final NodeModelRepository nodeModelRepository;
-  private final OperatingSystemDomainRepository operatingSystemDomainRepository;
-  private final GeoLocationDomainRepository geoLocationDomainRepository;
-  private final NodePropertiesModelRepository nodePropertiesModelRepository;
   private final TenantModelRepository tenantModelRepository;
-  private final LoginCredentialDomainRepository loginCredentialDomainRepository;
-  private final IpAddressDomainRepository ipAddressDomainRepository;
   private NodeConverter nodeConverter = new NodeConverter();
 
   @Inject
@@ -48,13 +43,11 @@ public class NodeDomainRepository {
       TenantModelRepository tenantModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository) {
-    this.nodeModelRepository = nodeModelRepository;
-    this.operatingSystemDomainRepository = operatingSystemDomainRepository;
-    this.geoLocationDomainRepository = geoLocationDomainRepository;
-    this.nodePropertiesModelRepository = nodePropertiesModelRepository;
-    this.tenantModelRepository = tenantModelRepository;
-    this.loginCredentialDomainRepository = loginCredentialDomainRepository;
-    this.ipAddressDomainRepository = ipAddressDomainRepository;
+      super(operatingSystemDomainRepository, geoLocationDomainRepository,
+          nodePropertiesModelRepository, loginCredentialDomainRepository,
+          ipAddressDomainRepository);
+      this.nodeModelRepository = nodeModelRepository;
+      this.tenantModelRepository = tenantModelRepository;
   }
 
   public Node findByTenantAndId(String userId, String nodeId) {
@@ -141,51 +134,4 @@ public class NodeDomainRepository {
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
 
   }
-
-  @Nullable
-  private IpGroupModel generateIpModel(Node domain) {
-    IpGroupModel ipGroupModel = null;
-    if (!domain.ipAddresses().isEmpty()) {
-      ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
-    }
-    return ipGroupModel;
-  }
-
-  @Nullable
-  private LoginCredentialModel generateLoginCredential(Node domain) {
-    LoginCredentialModel loginCredentialModel = null;
-    if (domain.loginCredential().isPresent()) {
-      loginCredentialModel = loginCredentialDomainRepository
-          .saveAndGet(domain.loginCredential().get());
-    }
-    return loginCredentialModel;
-  }
-
-  private NodePropertiesModel generateNodeProperties(Node domain) {
-
-    final NodeProperties nodeProperties = domain.nodeProperties();
-
-    OperatingSystemModel operatingSystemModel = null;
-    if (nodeProperties.operatingSystem().isPresent()) {
-      operatingSystemModel = operatingSystemDomainRepository
-          .saveAndGet(nodeProperties.operatingSystem().get());
-    }
-
-    GeoLocationModel geoLocationModel = null;
-    if (nodeProperties.geoLocation().isPresent()) {
-      geoLocationModel = geoLocationDomainRepository.saveAndGet(nodeProperties.geoLocation().get());
-    }
-
-    final NodePropertiesModel nodePropertiesModel = new NodePropertiesModel(
-        nodeProperties.providerId(),
-        nodeProperties.numberOfCores().orElse(null), nodeProperties.memory().orElse(null),
-        nodeProperties.disk().orElse(null),
-        operatingSystemModel, geoLocationModel);
-
-    nodePropertiesModelRepository.save(nodePropertiesModel);
-
-    return nodePropertiesModel;
-
-  }
-
 }

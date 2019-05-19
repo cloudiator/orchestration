@@ -18,38 +18,32 @@
 
 package io.github.cloudiator.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpVersion;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddressImpl;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddresses;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
 public class NodeImpl extends BaseNodeImpl implements Node {
 
-  private final String id;
   private final NodeState nodeState;
   private final String userId;
+  @Nullable
+  private final String originId;
 
   public NodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
       String userId, @Nullable String diagnostic, @Nullable String reason,
       @Nullable String nodeCandidate, @Nullable String originId) {
-    super(nodeProperties, loginCredential, nodeType, ipAddresses, name,
-        diagnostic, reason, nodeCandidate, originId);
+    super(nodeProperties, loginCredential, nodeType, ipAddresses, id,
+        name, diagnostic, reason, nodeCandidate);
 
-    this.id = id;
     this.nodeState = nodeState;
     this.userId = userId;
+    this.originId = originId;
   }
 
   @Override
@@ -57,23 +51,37 @@ public class NodeImpl extends BaseNodeImpl implements Node {
     return userId;
   }
 
-  @Override
-  public String id() {
-    return id;
+  public NodeState state() {
+    return nodeState;
   }
 
   @Override
-  public NodeState state() {
-    return nodeState;
+  public Optional<String> originId() {
+    return Optional.ofNullable(originId);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Node that = (Node) o;
+    return super.equals(o) &&
+        Objects.equals(nodeState, that.state()) &&
+        Objects.equals(userId, that.userId()) &&
+        Objects.equals(originId, that.originId());
   }
 
   @Override
   public String toString() {
     String baseStr = super.toString();
     String headStr = MoreObjects.toStringHelper(this)
-        .add("id", id)
         .add("userId", userId)
         .add("state", nodeState)
+        .add("originId", originId)
         .toString();
 
     return headStr + baseStr;

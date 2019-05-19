@@ -28,9 +28,11 @@ import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.util.NameGenerator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
+  protected String id;
   protected NodeProperties nodeProperties;
   protected LoginCredential loginCredential;
   protected NodeType nodeType;
@@ -39,13 +41,13 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   protected String diagnostic;
   protected String reason;
   protected String nodeCandidate;
-  protected String originId;
 
   protected AbstractNodeBuilder() {
     this.ipAddresses = new HashSet<>();
   }
 
   protected AbstractNodeBuilder(Node node) {
+    id = node.id();
     nodeProperties = node.nodeProperties();
     loginCredential = node.loginCredential().orElse(null);
     nodeType = node.type();
@@ -54,7 +56,6 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
     diagnostic = node.diagnostic().orElse(null);
     reason = node.reason().orElse(null);
     nodeCandidate = node.nodeCandidate().orElse(null);
-    originId = node.originId().orElse(null);
   }
 
   protected AbstractNodeBuilder(VirtualMachine virtualMachine) {
@@ -88,7 +89,16 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
     ipAddresses = virtualMachine.ipAddresses();
     this.loginCredential = loginCredential;
     this.nodeProperties = nodeProperties;
-    originId = virtualMachine.id();
+  }
+
+  public T generateId() {
+    this.id = UUID.randomUUID().toString();
+    return self();
+  }
+
+  public T id(String id) {
+    this.id = id;
+    return self();
   }
 
   public T nodeProperties(
@@ -111,11 +121,6 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   public T ipAddresses(
       Set<IpAddress> ipAddresses) {
     this.ipAddresses = ipAddresses;
-    return self();
-  }
-
-  public T originId(String originId) {
-    this.originId = originId;
     return self();
   }
 

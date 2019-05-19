@@ -85,7 +85,7 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
     }
 
     if (!Strings.isNullOrEmpty(node.getOriginId())) {
-      builder.originId(node.getOriginId());
+      builder.id(node.getId());
     }
 
     final BaseNode baseNode = builder.build();

@@ -26,12 +26,14 @@ import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddresses;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
 public class BaseNodeImpl implements BaseNode {
 
+  private final String id;
   private final NodeProperties nodeProperties;
   @Nullable
   private final LoginCredential loginCredential;
@@ -44,8 +46,6 @@ public class BaseNodeImpl implements BaseNode {
   private final String reason;
   @Nullable
   private final String nodeCandidate;
-  @Nullable
-  private final String originId;
 
   BaseNodeImpl() {
     NodeProperties defaultProps = new NodePropertiesImpl("<unknown>",
@@ -54,6 +54,7 @@ public class BaseNodeImpl implements BaseNode {
     Set<IpAddress> addresses = new HashSet<>();
     addresses.add(address);
 
+    this.id = null;
     this.nodeProperties = defaultProps;
     this.loginCredential = null;
     this.nodeType = NodeType.UNKOWN;
@@ -62,19 +63,18 @@ public class BaseNodeImpl implements BaseNode {
     this.diagnostic = null;
     this.reason = null;
     this.nodeCandidate = null;
-    this.originId = null;
   }
 
   BaseNodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String name, @Nullable String diagnostic,
-      @Nullable String reason, @Nullable String nodeCandidate,
-      @Nullable String originId) {
+      Set<IpAddress> ipAddresses, String id, String name, @Nullable String diagnostic,
+      @Nullable String reason, @Nullable String nodeCandidate) {
 
     checkNotNull(nodeProperties, "nodeProperties is null");
     checkNotNull(nodeType, "nodeType is null");
     checkNotNull(ipAddresses, "ipAddresses is null");
 
+    this.id = id;
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
@@ -83,7 +83,11 @@ public class BaseNodeImpl implements BaseNode {
     this.diagnostic = diagnostic;
     this.reason = reason;
     this.nodeCandidate = nodeCandidate;
-    this.originId = originId;
+  }
+
+  @Override
+  public String id() {
+    return id;
   }
 
   @Nullable
@@ -111,11 +115,6 @@ public class BaseNodeImpl implements BaseNode {
       }
     }
     return null;
-  }
-
-  @Override
-  public Optional<String> originId() {
-    return Optional.ofNullable(originId);
   }
 
   @Override
@@ -180,10 +179,30 @@ public class BaseNodeImpl implements BaseNode {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BaseNode that = (BaseNode) o;
+    return Objects.equals(id, that.id()) &&
+      Objects.equals(nodeProperties, that.nodeProperties()) &&
+      Objects.equals(loginCredential, that.loginCredential()) &&
+      Objects.equals(nodeType, that.type()) &&
+      Objects.equals(ipAddresses, that.ipAddresses()) &&
+      Objects.equals(name, that.name()) &&
+      Objects.equals(diagnostic, that.diagnostic()) &&
+      Objects.equals(reason, that.reason()) &&
+      Objects.equals(nodeCandidate, that.nodeCandidate());
+}
+
+  @Override
   public String toString() {
     String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
-        .add("originId", originId)
+        .add("id", id)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)
         .add("type", nodeType)

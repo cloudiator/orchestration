@@ -34,9 +34,9 @@ import java.util.UUID;
 
 public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
-  private String id;
   private NodeState state;
   private String userId;
+  private String originId;
 
   private NodeBuilder() {
     super();
@@ -44,13 +44,14 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
   private NodeBuilder(Node node) {
     super(node);
-    id = node.id();
     state = node.state();
     userId = node.userId();
+    originId = node.originId().orElse(null);
   }
 
   private NodeBuilder(VirtualMachine virtualMachine) {
     super(virtualMachine);
+    originId = virtualMachine.id();
   }
 
   public static NodeBuilder newBuilder() {
@@ -66,16 +67,6 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     return new NodeBuilder(virtualMachine);
   }
 
-  public NodeBuilder generateId() {
-    this.id = UUID.randomUUID().toString();
-    return this;
-  }
-
-  public NodeBuilder id(String id) {
-    this.id = id;
-    return this;
-  }
-
   public NodeBuilder state(NodeState state) {
     this.state = state;
     return this;
@@ -83,6 +74,11 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
   public NodeBuilder userId(String userId) {
     this.userId = userId;
+    return this;
+  }
+
+  public NodeBuilder originId(String originId) {
+    this.originId = originId;
     return this;
   }
 
