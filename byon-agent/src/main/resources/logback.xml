@@ -59,7 +59,7 @@
     </encoder>
   </appender>
 
-  <logger level="DEBUG" name="org.cloudiator.iaas.byon"/>
+  <logger level="DEBUG" name="io.github.cloudiator.iaas.byon"/>
   <logger level="DEBUG" name="org.cloudiator.messaging"/>
 
 
