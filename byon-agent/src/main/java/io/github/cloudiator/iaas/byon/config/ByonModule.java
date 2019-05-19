@@ -1,6 +1,8 @@
 package io.github.cloudiator.iaas.byon.config;
 
 import com.google.inject.AbstractModule;
+import io.github.cloudiator.iaas.byon.AddByonNodeSubscriber;
+import io.github.cloudiator.iaas.byon.Init;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +12,7 @@ public class ByonModule  extends AbstractModule {
 
   @Override
   protected void configure() {
-    LOGGER.error("set bindings");
+    bind(Init.class).asEagerSingleton();
+    bind(AddByonNodeSubscriber.class).asEagerSingleton();
   }
 }

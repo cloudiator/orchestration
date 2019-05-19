@@ -16,16 +16,13 @@
  * under the License.
  */
 
-package org.cloudiator.iaas.node;
+package io.github.cloudiator.iaas.byon;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by daniel on 31.05.17.
- */
 public class Init {
 
   private static final Logger LOGGER = LoggerFactory
