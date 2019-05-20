@@ -243,28 +243,19 @@ public class UnixInstaller extends AbstractInstaller {
 
   @Override
   public void installAlluxio() throws RemoteException {
-    //download Alluxio
-    this.remoteConnection.executeCommand("sudo wget " +
-        Configuration.conf().getString("installer.alluxio.download") + "  -O "
-        + UnixInstaller.TOOL_PATH
-        + ALLUXIO_ARCHIVE);
+	LOGGER.debug(String.format("Configuring alluxio with docker on node %s", node.id()));
+	this.remoteConnection.executeCommand("sudo docker network create alluxio_nw");
 
-    LOGGER.debug(String.format("Installing and staring alluxio on node %s", node.id()));
-    this.remoteConnection.executeCommand("sudo mkdir -p " + ALLUXIO_DIR);
+	this.remoteConnection.executeCommand("sudo docker volume create ufs");
 
-    this.remoteConnection.executeCommand(
-        "sudo tar zxvf " + ALLUXIO_ARCHIVE + " -C " + ALLUXIO_DIR
-            + " --strip-components=1");
+	LOGGER.debug(String.format("Starting alluxio with master hostname %s", Configuration.conf().getString("installer.alluxio.master.host") ));
+	this.remoteConnection.executeCommand("sudo docker run -d -p 19999:19999 -p 19998:19998 -p 29999:29999 -p "
+		+ "29998:29998 -p 30000:30000 --net=alluxio_nw --name=alluxio_worker --shm-size=1G -e "
+		+ "ALLUXIO_WORKER_MEMORY_SIZE=1G -v ufs:/opt/alluxio/underFSStorage -e ALLUXIO_MASTER_HOSTNAME="
+		+ Configuration.conf().getString("installer.alluxio.master.host") + " alluxio/alluxio worker");
 
-    this.remoteConnection.executeCommand(
-        "sudo cp " + ALLUXIO_DIR + "/conf/alluxio-site.properties.template " + ALLUXIO_DIR
-            + "/conf/alluxio-site.properties");
-
-    this.remoteConnection.executeCommand(
-        "sudo echo alluxio.master.hostname=>> " + ALLUXIO_DIR + "/conf/alluxio-site.properties "
-            + Configuration.conf().getString("installer.alluxio.master.host"));
-
-    LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));
+	LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));
+  
   }
 
 
@@ -276,6 +267,7 @@ public class UnixInstaller extends AbstractInstaller {
     CommandTask installDlmsAgent = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.dlmsagent.download")
         + "  -O " + UnixInstaller.TOOL_PATH + DLMS_AGENT_JAR);
+    installDlmsAgent.call();
 
     String alluxio_metrics_url = Configuration.conf().getString("installer.dlmsagent.metrics.url");
     String dlms_agent_jms_url = Configuration.conf().getString("installer.dlmsagent.jmsurl");
@@ -295,8 +287,8 @@ public class UnixInstaller extends AbstractInstaller {
             + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
     LOGGER.debug("Dlms agent start command: " + startCommand);
 
-    installDlmsAgent = new CommandTask(this.remoteConnection, startCommand);
-    installDlmsAgent.call();
+    CommandTask startDlmsAgent = new CommandTask(this.remoteConnection, startCommand);
+    startDlmsAgent.call();
 
     LOGGER.debug(
         String.format("DLMSAgent started successfully on node %s", node.id()));
