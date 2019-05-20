@@ -20,36 +20,31 @@
 package io.github.cloudiator.messaging;
 
 import com.google.inject.Inject;
-import de.uniulm.omi.cloudiator.util.StreamUtil;
-import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.ByonNode;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.cloudiator.messages.Node.NodeQueryMessage;
-import org.cloudiator.messaging.ResponseException;
 import org.cloudiator.messaging.services.NodeService;
 
-public class ByonMessageRepository implements MessageRepository<BaseNode> {
+public class ByonNodeMessageRepository implements MessageRepository<ByonNode> {
 
   /* change hier : ByonService statt NodeService
    */
   private final NodeService nodeService;
-  private static final BaseNodetoByonNodeMessageConverter NODE_MESSAGE_CONVERTER = BaseNodetoByonNodeMessageConverter.INSTANCE;
+  private static final ByonToByonMessageConverter NODE_MESSAGE_CONVERTER = ByonToByonMessageConverter.INSTANCE;
 
   @Inject
-  public ByonMessageRepository(NodeService nodeService) {
+  public ByonNodeMessageRepository(NodeService nodeService) {
     this.nodeService = nodeService;
   }
 
   @Nullable
   @Override
-  public BaseNode getById(String userId, String id) {
+  public ByonNode getById(String userId, String id) {
       throw new IllegalStateException("Single ByonNode can not be queried");
   }
 
   @Override
-  public List<BaseNode> getAll(String userId) {
+  public List<ByonNode> getAll(String userId) {
 
     if(userId != null) {
       throw new IllegalStateException("ByonNode can not be associated with a user id");

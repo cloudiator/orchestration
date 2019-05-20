@@ -87,6 +87,7 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     return this;
   }
 
+  @Override
   public Node build() {
     return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state,
         userId, diagnostic, reason, nodeCandidate, originId);

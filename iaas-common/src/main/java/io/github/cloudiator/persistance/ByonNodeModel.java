@@ -19,27 +19,27 @@
 package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 @Entity
-class BaseNodeModel  extends Model {
+class ByonNodeModel extends Model {
 
   @Column(nullable = false, unique = true)
   private String domainId;
 
   @Column(nullable = false)
   private String name;
+
+  @Column(nullable = false)
+  private boolean allocated;
 
   @OneToOne(optional = false, orphanRemoval = true)
   private NodePropertiesModel nodeProperties;
@@ -67,11 +67,11 @@ class BaseNodeModel  extends Model {
   /**
    * Empty constructor for hibernate
    */
-  protected BaseNodeModel() {
+  protected ByonNodeModel() {
 
   }
 
-  BaseNodeModel(String domainId, String name,
+  ByonNodeModel(String domainId, String name,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential,
       @Nullable IpGroupModel ipGroup, @Nullable String nodeCandidate,
@@ -83,6 +83,7 @@ class BaseNodeModel  extends Model {
 
     this.domainId = domainId;
     this.name = name;
+    this.allocated = false;
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.ipGroup = ipGroup;
@@ -121,12 +122,16 @@ class BaseNodeModel  extends Model {
     return name;
   }
 
+  public boolean getAllocated() {
+    return allocated;
+  }
+
   @Nullable
   public String getDiagnostic() {
     return diagnostic;
   }
 
-  public BaseNodeModel setDiagnostic(@Nullable String diagnostic) {
+  public ByonNodeModel setDiagnostic(@Nullable String diagnostic) {
     this.diagnostic = diagnostic;
     return this;
   }
@@ -136,7 +141,7 @@ class BaseNodeModel  extends Model {
     return reason;
   }
 
-  public BaseNodeModel setReason(@Nullable String reason) {
+  public ByonNodeModel setReason(@Nullable String reason) {
     this.reason = reason;
     return this;
   }
@@ -146,19 +151,24 @@ class BaseNodeModel  extends Model {
     return this.name;
   }
 
-  public BaseNodeModel setNodeProperties(
+  public boolean setAllocated(boolean allocated) {
+    this.allocated = allocated;
+    return this.allocated;
+  }
+
+  public ByonNodeModel setNodeProperties(
       NodePropertiesModel nodeProperties) {
     this.nodeProperties = nodeProperties;
     return this;
   }
 
-  public BaseNodeModel setLoginCredential(
+  public ByonNodeModel setLoginCredential(
       @Nullable LoginCredentialModel loginCredential) {
     this.loginCredential = loginCredential;
     return this;
   }
 
-  public BaseNodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
+  public ByonNodeModel setIpGroup(@Nullable IpGroupModel ipGroup) {
     this.ipGroup = ipGroup;
     return this;
   }

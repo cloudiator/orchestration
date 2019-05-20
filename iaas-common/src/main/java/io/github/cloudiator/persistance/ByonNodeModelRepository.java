@@ -21,10 +21,10 @@ package io.github.cloudiator.persistance;
 import java.util.List;
 import javax.annotation.Nullable;
 
-interface BaseNodeModelRepository  extends ModelRepository<BaseNodeModel> {
+interface ByonNodeModelRepository extends ModelRepository<ByonNodeModel> {
 
-  List<BaseNodeModel> get();
+  List<ByonNodeModel> get();
 
   @Nullable
-  BaseNodeModel getByDomainId(String domainId);
+  ByonNodeModel getByDomainId(String domainId);
 }

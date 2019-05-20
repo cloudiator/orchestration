@@ -19,7 +19,8 @@
 package io.github.cloudiator.persistance;
 
 import com.google.inject.Inject;
-import io.github.cloudiator.domain.BaseNode;
+import io.github.cloudiator.domain.AbstractNode;
+import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.NodeProperties;
 import javax.annotation.Nullable;
 
@@ -55,7 +56,7 @@ abstract class AbstractNodeDomainRepository {
   }
 
   @Nullable
-  protected IpGroupModel generateIpModel(BaseNode domain) {
+  protected IpGroupModel generateIpModel(AbstractNode domain) {
     IpGroupModel ipGroupModel = null;
     if (!domain.ipAddresses().isEmpty()) {
       ipGroupModel = ipAddressDomainRepository.saveAndGet(domain.ipAddresses());
@@ -64,7 +65,7 @@ abstract class AbstractNodeDomainRepository {
   }
 
   @Nullable
-  protected LoginCredentialModel generateLoginCredential(BaseNode domain) {
+  protected LoginCredentialModel generateLoginCredential(AbstractNode domain) {
     LoginCredentialModel loginCredentialModel = null;
     if (domain.loginCredential().isPresent()) {
       loginCredentialModel = loginCredentialDomainRepository
@@ -73,7 +74,7 @@ abstract class AbstractNodeDomainRepository {
     return loginCredentialModel;
   }
 
-  protected NodePropertiesModel generateNodeProperties(BaseNode domain) {
+  protected NodePropertiesModel generateNodeProperties(AbstractNode domain) {
 
     final NodeProperties nodeProperties = domain.nodeProperties();
 

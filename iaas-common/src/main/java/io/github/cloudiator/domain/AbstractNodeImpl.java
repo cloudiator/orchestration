@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-public class BaseNodeImpl implements BaseNode {
+public class AbstractNodeImpl implements AbstractNode {
 
   private final String id;
   private final NodeProperties nodeProperties;
@@ -47,7 +47,7 @@ public class BaseNodeImpl implements BaseNode {
   @Nullable
   private final String nodeCandidate;
 
-  BaseNodeImpl() {
+  AbstractNodeImpl() {
     NodeProperties defaultProps = new NodePropertiesImpl("<unknown>",
         null,null,null,null,null);
     IpAddress address = IpAddresses.of("0.0.0.0");
@@ -65,7 +65,7 @@ public class BaseNodeImpl implements BaseNode {
     this.nodeCandidate = null;
   }
 
-  BaseNodeImpl(NodeProperties nodeProperties,
+  AbstractNodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, @Nullable String diagnostic,
       @Nullable String reason, @Nullable String nodeCandidate) {
@@ -186,17 +186,17 @@ public class BaseNodeImpl implements BaseNode {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    BaseNode that = (BaseNode) o;
+    ByonNode that = (ByonNode) o;
     return Objects.equals(id, that.id()) &&
-      Objects.equals(nodeProperties, that.nodeProperties()) &&
-      Objects.equals(loginCredential, that.loginCredential()) &&
-      Objects.equals(nodeType, that.type()) &&
-      Objects.equals(ipAddresses, that.ipAddresses()) &&
-      Objects.equals(name, that.name()) &&
-      Objects.equals(diagnostic, that.diagnostic()) &&
-      Objects.equals(reason, that.reason()) &&
-      Objects.equals(nodeCandidate, that.nodeCandidate());
-}
+        Objects.equals(nodeProperties, that.nodeProperties()) &&
+        Objects.equals(loginCredential, that.loginCredential()) &&
+        Objects.equals(nodeType, that.type()) &&
+        Objects.equals(ipAddresses, that.ipAddresses()) &&
+        Objects.equals(name, that.name()) &&
+        Objects.equals(diagnostic, that.diagnostic()) &&
+        Objects.equals(reason, that.reason()) &&
+        Objects.equals(nodeCandidate, that.nodeCandidate());
+  }
 
   @Override
   public String toString() {

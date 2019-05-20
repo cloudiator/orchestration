@@ -19,28 +19,29 @@
 package io.github.cloudiator.persistance;
 
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
-import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.BaseNodeBuilder;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeBuilder;
 import io.github.cloudiator.domain.NodeType;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 
-class BaseNodeConverter  implements OneWayConverter<BaseNodeModel, BaseNode> {
+class ByonNodeConverter  implements OneWayConverter<ByonNodeModel, ByonNode> {
   private final NodePropertiesConverter nodePropertiesConverter = new NodePropertiesConverter();
   private final LoginCredentialConverter loginCredentialConverter = new LoginCredentialConverter();
   private final IpAddressConverter ipAddressConverter = new IpAddressConverter();
 
   @Nullable
   @Override
-  public BaseNode apply(@Nullable BaseNodeModel nodeModel) {
+  public ByonNode apply(@Nullable ByonNodeModel nodeModel) {
     if (nodeModel == null) {
       return null;
     }
 
-    BaseNodeBuilder nodeBuilder = BaseNodeBuilder.newBuilder()
+    ByonNodeBuilder nodeBuilder = ByonNodeBuilder.newBuilder()
         .id(nodeModel.getDomainId())
         .name(nodeModel.getName())
+        .allocated(nodeModel.getAllocated())
         .loginCredential(loginCredentialConverter.apply(nodeModel.getLoginCredential()))
         .nodeProperties(nodePropertiesConverter.apply(nodeModel.getNodeProperties()))
         .nodeType(NodeType.BYON)

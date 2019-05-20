@@ -27,11 +27,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-public interface BaseNode extends Identifiable {
+public interface AbstractNode extends Identifiable {
 
   @Override
   String id();
-
 
   String name();
 

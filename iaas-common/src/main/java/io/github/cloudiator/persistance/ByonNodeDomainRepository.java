@@ -22,21 +22,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.ByonNode;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 
-class BaseNodeDomainRepository extends AbstractNodeDomainRepository {
+class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
 
-  private final BaseNodeModelRepository baseNodeModelRepository;
-  private BaseNodeConverter baseNodeConverter = new BaseNodeConverter();
+  private final ByonNodeModelRepository byonNodeModelRepository;
+  private ByonNodeConverter byonNodeConverter = new ByonNodeConverter();
 
   @Inject
-  public BaseNodeDomainRepository(
-      BaseNodeModelRepository baseNodeModelRepository,
+  public ByonNodeDomainRepository(
+      ByonNodeModelRepository byonNodeModelRepository,
       OperatingSystemDomainRepository operatingSystemDomainRepository,
       GeoLocationDomainRepository geoLocationDomainRepository,
       NodePropertiesModelRepository nodePropertiesModelRepository,
@@ -45,39 +43,39 @@ class BaseNodeDomainRepository extends AbstractNodeDomainRepository {
     super(operatingSystemDomainRepository, geoLocationDomainRepository,
         nodePropertiesModelRepository, loginCredentialDomainRepository,
         ipAddressDomainRepository);
-    this.baseNodeModelRepository = baseNodeModelRepository;
+    this.byonNodeModelRepository = byonNodeModelRepository;
   }
 
-  public List<BaseNode> find() {
-    return baseNodeModelRepository.get().stream().map(baseNodeConverter)
+  public List<ByonNode> find() {
+    return byonNodeModelRepository.get().stream().map(byonNodeConverter)
         .collect(Collectors.toList());
   }
 
-  BaseNodeModel saveAndGet(BaseNode domain) {
+  ByonNodeModel saveAndGet(ByonNode domain) {
     boolean found = false;
-    List<BaseNode> baseNodes = find();
+    List<ByonNode> byonNodes = find();
 
-    BaseNodeModel baseNodeModel = null;
+    ByonNodeModel byonNodeModel = null;
     //equality not determined via userId and id, see NodeDomainrepository,
-    //but on BaseNode object level
-    for(BaseNode node: baseNodes) {
+    //but on ByonNode object level
+    for(ByonNode node: byonNodes) {
       if(node.equals(domain)) {
-        baseNodeModel = createModel(node);
+        byonNodeModel = createModel(node);
         found = true;
       }
     }
 
     if(found == false) {
-      baseNodeModel = createModel(domain);
+      byonNodeModel = createModel(domain);
     } else {
-      baseNodeModel = updateModel(domain, baseNodeModel);
+      byonNodeModel = updateModel(domain, byonNodeModel);
     }
 
-    baseNodeModelRepository.save(baseNodeModel);
-    return baseNodeModel;
+    byonNodeModelRepository.save(byonNodeModel);
+    return byonNodeModel;
   }
 
-  public void save(BaseNode domain) {
+  public void save(ByonNode domain) {
     checkNotNull(domain, "domain is null");
     saveAndGet(domain);
   }
@@ -87,39 +85,39 @@ class BaseNodeDomainRepository extends AbstractNodeDomainRepository {
     //todo: delete group when last member leaves?
 
     checkNotNull(id, "id is null");
-    BaseNodeModel byDomainId = baseNodeModelRepository.getByDomainId(id);
+    ByonNodeModel byDomainId = byonNodeModelRepository.getByDomainId(id);
 
     checkState(byDomainId != null, "Node with the id %s does not exist.", id);
-    baseNodeModelRepository.delete(byDomainId);
+    byonNodeModelRepository.delete(byDomainId);
   }
 
-  private BaseNodeModel createModel(BaseNode domain) {
+  private ByonNodeModel createModel(ByonNode domain) {
 
     final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
     final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
     final IpGroupModel ipGroupModel = generateIpModel(domain);
 
-    return new BaseNodeModel(domain.id(), domain.name(), nodePropertiesModel,
+    return new ByonNodeModel(domain.id(), domain.name(), nodePropertiesModel,
         loginCredentialModel, ipGroupModel, domain.nodeCandidate().orElse(null),
         domain.diagnostic().orElse(null), domain.reason().orElse(null));
   }
 
-  private BaseNodeModel updateModel(BaseNode domain, BaseNodeModel baseNodeModel) {
+  private ByonNodeModel updateModel(ByonNode domain, ByonNodeModel byonNodeModel) {
 
-    checkState(domain.id().equals(baseNodeModel.getDomainId()), "domain id does not match");
+    checkState(domain.id().equals(byonNodeModel.getDomainId()), "domain id does not match");
 
     final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
     final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
     final IpGroupModel ipGroupModel = generateIpModel(domain);
 
-    baseNodeModel.setName(domain.name());
-    baseNodeModel.setNodeProperties(nodePropertiesModel);
-    baseNodeModel.setLoginCredential(loginCredentialModel);
-    baseNodeModel.setIpGroup(ipGroupModel);
-    baseNodeModel.setDiagnostic(domain.diagnostic().orElse(null));
-    baseNodeModel.setReason(domain.reason().orElse(null));
-    baseNodeModel.setNodeCandidate(domain.nodeCandidate().orElse(null));
+    byonNodeModel.setName(domain.name());
+    byonNodeModel.setNodeProperties(nodePropertiesModel);
+    byonNodeModel.setLoginCredential(loginCredentialModel);
+    byonNodeModel.setIpGroup(ipGroupModel);
+    byonNodeModel.setDiagnostic(domain.diagnostic().orElse(null));
+    byonNodeModel.setReason(domain.reason().orElse(null));
+    byonNodeModel.setNodeCandidate(domain.nodeCandidate().orElse(null));
 
-    return baseNodeModel;
+    return byonNodeModel;
   }
 }

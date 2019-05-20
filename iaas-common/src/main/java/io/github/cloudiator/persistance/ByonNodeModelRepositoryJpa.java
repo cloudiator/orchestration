@@ -28,18 +28,18 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-class BaseNodeModelRepositoryJpa  extends BaseModelRepositoryJpa<BaseNodeModel> implements
-    BaseNodeModelRepository {
+class ByonNodeModelRepositoryJpa  extends BaseModelRepositoryJpa<ByonNodeModel> implements
+    ByonNodeModelRepository {
 
   @Inject
-  protected BaseNodeModelRepositoryJpa(
+  protected ByonNodeModelRepositoryJpa(
       Provider<EntityManager> entityManager,
-      TypeLiteral<BaseNodeModel> type) {
+      TypeLiteral<ByonNodeModel> type) {
     super(entityManager, type);
   }
 
   @Override
-  public List<BaseNodeModel> get() {
+  public List<ByonNodeModel> get() {
     String queryString = String
         .format(
             "select node from %s",
@@ -51,12 +51,12 @@ class BaseNodeModelRepositoryJpa  extends BaseModelRepositoryJpa<BaseNodeModel> 
 
   @Nullable
   @Override
-  public BaseNodeModel getByDomainId(String domainId) {
+  public ByonNodeModel getByDomainId(String domainId) {
     checkNotNull(domainId, "domainId is null");
     String queryString = String
         .format("select node from %s node where node.domainId = :domainId", type.getName());
     Query query = em().createQuery(queryString).setParameter("domainId", domainId);
-    @SuppressWarnings("unchecked") List<BaseNodeModel> nodes = query.getResultList();
+    @SuppressWarnings("unchecked") List<ByonNodeModel> nodes = query.getResultList();
     return nodes.stream().findFirst().orElse(null);
   }
 }

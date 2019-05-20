@@ -21,41 +21,48 @@ package io.github.cloudiator.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 
-public class BaseNodeBuilder extends AbstractNodeBuilder<BaseNodeBuilder> {
+public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
+  private boolean allocated;
 
-  private BaseNodeBuilder() {
+  private ByonNodeBuilder() {
     super();
   }
 
-  private BaseNodeBuilder(Node node) {
+  private ByonNodeBuilder(ByonNode node) {
     super(node);
+    allocated = node.allocated();
   }
 
-  private BaseNodeBuilder(VirtualMachine virtualMachine) {
+  private ByonNodeBuilder(VirtualMachine virtualMachine) {
     super(virtualMachine);
   }
 
-  public static BaseNodeBuilder newBuilder() {
-    return new BaseNodeBuilder();
+  public static ByonNodeBuilder newBuilder() {
+    return new ByonNodeBuilder();
   }
 
-  public static BaseNodeBuilder of(Node node) {
+  public static ByonNodeBuilder of(ByonNode node) {
     checkNotNull(node, "node is null");
-    return new BaseNodeBuilder(node);
+    return new ByonNodeBuilder(node);
   }
 
-  public static BaseNodeBuilder of(VirtualMachine virtualMachine) {
-    return new BaseNodeBuilder(virtualMachine);
+  public static ByonNodeBuilder of(VirtualMachine virtualMachine) {
+    return new ByonNodeBuilder(virtualMachine);
   }
 
-  @Override
-  protected BaseNodeBuilder self() {
+  public ByonNodeBuilder allocated(boolean allocated) {
+    this.allocated = allocated;
     return this;
   }
 
   @Override
-  public BaseNode build() {
-    return new BaseNodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id,
-        name, diagnostic, reason, nodeCandidate);
+  protected ByonNodeBuilder self() {
+    return this;
+  }
+
+  @Override
+  public ByonNode build() {
+    return new ByonNodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id,
+        name, diagnostic, reason, nodeCandidate, allocated);
   }
 }

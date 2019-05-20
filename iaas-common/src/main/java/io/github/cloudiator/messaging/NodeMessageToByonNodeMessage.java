@@ -3,19 +3,18 @@ package io.github.cloudiator.messaging;
 import com.google.common.base.Strings;
 import de.uniulm.omi.cloudiator.util.OneWayConverter;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
-import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.BaseNodeBuilder;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeBuilder;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonData;
-import org.cloudiator.messages.Byon.ByonNode;
 import org.cloudiator.messages.NodeEntities;
 import org.cloudiator.messages.NodeEntities.NodeState;
 
-public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntities.Node, ByonNode> {
+public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntities.Node, Byon.ByonNode> {
   private static final IpAddressMessageToIpAddress IP_ADDRESS_CONVERTER = new IpAddressMessageToIpAddress();
   private static final NodeTypeToNodeTypeMessage NODE_TYPE_CONVERTER = new NodeTypeToNodeTypeMessage();
   private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
@@ -24,9 +23,9 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
   public static final NodeStateConverter NODE_STATE_CONVERTER = new NodeStateConverter();
 
   @Override
-  public NodeEntities.Node applyBack(ByonNode byonNode) {
+  public NodeEntities.Node applyBack(Byon.ByonNode byonNode) {
+    //change hier, allocated Feld fehlt
     final ByonData data = byonNode.getNodeData();
-    //change hier, id-Feld aus ByonNode kicken
     final NodeBuilder builder = NodeBuilder.newBuilder().id(byonNode.getId())
         //change hier, Feld fehlt
         .name("<unknown>")
@@ -34,6 +33,7 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
         .nodeType(NODE_TYPE_CONVERTER.applyBack(NodeEntities.NodeType.BYON)).ipAddresses(
             data.getIpAddressList().stream().map(IP_ADDRESS_CONVERTER)
                 .collect(Collectors.toSet()))
+        //change hier, anpassen: wenn allocated -> RUNNING; UNRECOGNIZED sonst
         .state(NODE_STATE_CONVERTER.applyBack(NodeState.UNRECOGNIZED));
 
     if (data.hasLoginCredentials()) {
@@ -64,8 +64,11 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
   }
 
   @Override
-  public ByonNode apply(NodeEntities.Node node) {
-    final BaseNodeBuilder builder = BaseNodeBuilder.newBuilder().name(node.getName())
+  public Byon.ByonNode apply(NodeEntities.Node node) {
+    boolean allocated = (node.getState() == NodeState.NODE_STATE_RUNNING) ?
+        true : false;
+    final ByonNodeBuilder builder = ByonNodeBuilder.newBuilder().name(node.getName())
+        .allocated(allocated)
         .nodeProperties(NODE_PROPERTIES_CONVERTER.apply(node.getNodeProperties()))
         //change hier, inkonsistent
         .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType()))
@@ -88,43 +91,8 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
       builder.id(node.getId());
     }
 
-    final BaseNode baseNode = builder.build();
+    final ByonNode byonNode = builder.build();
 
-    return BaseNodeToByonNode.INSTANCE.apply(baseNode);
-  }
-
-  private static class BaseNodeToByonNode implements
-      OneWayConverter<BaseNode, ByonNode> {
-    private static final BaseNodeToByonNode INSTANCE = new BaseNodeToByonNode();
-
-    private BaseNodeToByonNode() {
-    }
-
-    @Nullable
-    @Override
-    public ByonNode apply(@Nullable BaseNode baseNode) {
-      /* change hier setze Name
-       */
-      ByonData.Builder builder = ByonData.newBuilder()
-          .addAllIpAddress(
-              baseNode.ipAddresses().stream().map(IP_ADDRESS_CONVERTER::applyBack)
-                  .collect(Collectors.toList()))
-          .setProperties(NODE_PROPERTIES_CONVERTER.applyBack(baseNode.nodeProperties()));
-
-      /* change hier
-        builder.reason(baseNode.reason().orElse(null));
-        builder.diagnostic(baseNode.diagnostic().orElse(null));
-        builder.nodeCandidate(baseNode.nodeCandidate().orElse(null));
-        builder.originId(baseNode.originId().orElse(null));
-      */
-
-      ByonData data = builder.build();
-      /* change hier kicke id
-       */
-      ByonNode byonNode = ByonNode.newBuilder().setId("<unknown>")
-          .setNodeData(data).build();
-
-      return byonNode;
-    }
+    return ByonToByonMessageConverter.INSTANCE.apply(byonNode);
   }
 }
