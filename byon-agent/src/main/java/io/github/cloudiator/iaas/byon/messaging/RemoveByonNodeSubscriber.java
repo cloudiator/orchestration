@@ -16,30 +16,30 @@
  * under the License.
  */
 
-
-package io.github.cloudiator.iaas.byon;
+package io.github.cloudiator.iaas.byon.messaging;
 
 import com.google.inject.Inject;
-import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
+import javax.transaction.Transactional;
+import org.cloudiator.messages.Byon.ByonNodeRemovedResponse;
+import org.cloudiator.messages.Byon.RemoveByonNodeRequest;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Byon.ByonNodeQueryRequest;
-import org.cloudiator.messages.Byon.ByonNodeQueryResponse;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByonNodeQuerySubscriber implements Runnable {
+public class RemoveByonNodeSubscriber  implements Runnable {
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(ByonNodeQuerySubscriber.class);
+      LoggerFactory.getLogger(RemoveByonNodeSubscriber.class);
   private final MessageInterface messageInterface;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
-  public ByonNodeQuerySubscriber(MessageInterface messageInterface,
+  public RemoveByonNodeSubscriber(MessageInterface messageInterface,
       ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
     this.domainRepository = domainRepository;
@@ -47,15 +47,18 @@ public class ByonNodeQuerySubscriber implements Runnable {
 
   @Override
   public void run() {
-    subscription = messageInterface.subscribe(ByonNodeQueryRequest.class,
-        ByonNodeQueryRequest.parser(),
+    subscription = messageInterface.subscribe(RemoveByonNodeRequest.class,
+        RemoveByonNodeRequest.parser(),
         (requestId, request) -> {
           try {
-            String id = request.getId();
-            ByonNodeQueryResponse byonNodeQueryResponse = ByonNodeQueryResponse.newBuilder()
-                .setByonNode(ByonToByonMessageConverter.INSTANCE.apply(domainRepository.findById(id)))
-                .build();
-            messageInterface.reply(requestId, byonNodeQueryResponse);
+            String id =  request.getId();
+            LOGGER.debug(String.format("%s retrieved request to delete"
+                    + "byon node with id %s.", this, id));
+            deleteByonNode(id);
+            LOGGER.info("byon node deleted. sending response");
+            messageInterface.reply(requestId,
+                ByonNodeRemovedResponse.newBuilder().build());
+            LOGGER.info("response sent.");
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
@@ -63,8 +66,13 @@ public class ByonNodeQuerySubscriber implements Runnable {
         });
   }
 
+  @Transactional
+  private void deleteByonNode(String id) {
+    domainRepository.delete(id);
+  }
+
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
-    messageInterface.reply(ByonNodeQueryResponse.class, messageId,
+    messageInterface.reply(ByonNodeRemovedResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 }

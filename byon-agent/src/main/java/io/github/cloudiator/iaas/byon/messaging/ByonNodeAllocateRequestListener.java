@@ -16,33 +16,35 @@
  * under the License.
  */
 
-package io.github.cloudiator.iaas.byon;
+package io.github.cloudiator.iaas.byon.messaging;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.iaas.byon.Constants;
+import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
 import org.cloudiator.messages.General.Error;
 import javax.transaction.Transactional;
 import org.cloudiator.messages.Byon;
-import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
-import org.cloudiator.messages.Byon.ByonNodeDeletedResponse;
+import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
+import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByonNodeDeleteRequestListener  implements Runnable {
+public class ByonNodeAllocateRequestListener implements Runnable {
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(ByonNodeDeleteRequestListener.class);
+      LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
   private final MessageInterface messageInterface;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
-  public ByonNodeDeleteRequestListener(MessageInterface messageInterface,
+  public ByonNodeAllocateRequestListener(MessageInterface messageInterface,
       ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
     this.domainRepository = domainRepository;
@@ -50,19 +52,19 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
 
   @Override
   public void run() {
-    subscription = messageInterface.subscribe(ByonNodeDeleteRequestMessage.class,
-        ByonNodeDeleteRequestMessage.parser(),
+    subscription = messageInterface.subscribe(ByonNodeAllocateRequestMessage.class,
+        ByonNodeAllocateRequestMessage.parser(),
         (requestId, request) -> {
           try {
             Byon.ByonNode messageNode = request.getByonNode();
             String id = messageNode.getId();
-            LOGGER.debug(String.format("%s retrieved request to delete"
+            LOGGER.debug(String.format("%s retrieved request to allocate"
                 + "byon node with id %s.", this, id));
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-            deleteByonNode(node);
-            LOGGER.info("byon node deleted. sending response");
+            allocateByonNode(node);
+            LOGGER.info("byon node allocated. sending response");
             messageInterface.reply(requestId,
-                ByonNodeDeletedResponse.newBuilder().build());
+                ByonNodeAllocatedResponse.newBuilder().build());
             LOGGER.info("response sent.");
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
@@ -74,38 +76,38 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         });
   }
 
-  private void isDeletable(String id) throws UsageException {
+  private void isAllocatable(String id) throws UsageException {
     boolean matchingId = false;
-    boolean allocated = false;
+    boolean unAllocated = false;
     List<ByonNode> nodes = domainRepository.find();
 
     for(ByonNode node: nodes) {
       matchingId = node.id().equals(id);
-      allocated = node.allocated();
-      if(matchingId && allocated) {
+      unAllocated = !node.allocated();
+      if(matchingId && unAllocated) {
         return;
       }
     }
 
     if (!matchingId) {
-      throw new UsageException(String.format("%s cannot delete node, as id %s"
+      throw new UsageException(String.format("%s cannot allocate node, as id %s"
           + "is unknown", this, id));
     }
     else {
-      throw new UsageException(String.format("%s cannot delete node, as node"
-          + "is already deleted.", this, id));
+      throw new UsageException(String.format("%s cannot allocate node, as node"
+          + "is already allocated", this, id));
     }
   }
 
   @Transactional
-  private void deleteByonNode(ByonNode node) throws UsageException {
-    //allocated node must reside in the system
-    isDeletable(node.id());
+  private void allocateByonNode(ByonNode node) throws UsageException {
+    //unallocated node must reside in the system
+    isAllocatable(node.id());
     domainRepository.save(node);
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
-    messageInterface.reply(ByonNodeDeletedResponse.class, messageId,
+    messageInterface.reply(ByonNodeAllocatedResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 }

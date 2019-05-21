@@ -1,7 +1,7 @@
 package io.github.cloudiator.iaas.byon.config;
 
 import com.google.inject.AbstractModule;
-import io.github.cloudiator.iaas.byon.AddByonNodeSubscriber;
+import io.github.cloudiator.iaas.byon.messaging.AddByonNodeSubscriber;
 import io.github.cloudiator.iaas.byon.Init;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -16,9 +16,10 @@
  * under the License.
  */
 
-package io.github.cloudiator.iaas.byon;
+package io.github.cloudiator.iaas.byon.messaging;
 
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;

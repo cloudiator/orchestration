@@ -22,6 +22,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.iaas.byon.config.ByonModule;
+import io.github.cloudiator.iaas.byon.messaging.AddByonNodeSubscriber;
+import io.github.cloudiator.iaas.byon.messaging.ByonNodeAllocateRequestListener;
+import io.github.cloudiator.iaas.byon.messaging.ByonNodeDeleteRequestListener;
+import io.github.cloudiator.iaas.byon.messaging.ByonNodeQuerySubscriber;
+import io.github.cloudiator.iaas.byon.messaging.RemoveByonNodeSubscriber;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
@@ -36,8 +41,7 @@ public final class ByonAgent {
       .createInjector(new ByonModule(), new JpaModule("defaultPersistenceUnit", new JpaContext(
               Configuration.conf())), new MessageServiceModule(),
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(ByonAgent.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ByonAgent.class);
 
   /**
    * the main method.
