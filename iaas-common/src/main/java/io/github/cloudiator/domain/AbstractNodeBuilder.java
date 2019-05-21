@@ -58,7 +58,7 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
     nodeCandidate = node.nodeCandidate().orElse(null);
   }
 
-  protected AbstractNodeBuilder(VirtualMachine virtualMachine) {
+  protected AbstractNodeBuilder(VirtualMachine virtualMachine, boolean isExternal) {
 
     final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
 
@@ -85,7 +85,11 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
       }
     }
 
-    nodeType = NodeType.VM;
+    if (isExternal) {
+      nodeType = NodeType.BYON;
+    } else {
+      nodeType = NodeType.VM;
+    }
     ipAddresses = virtualMachine.ipAddresses();
     this.loginCredential = loginCredential;
     this.nodeProperties = nodeProperties;
@@ -110,11 +114,6 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   public T loginCredential(
       LoginCredential loginCredential) {
     this.loginCredential = loginCredential;
-    return self();
-  }
-
-  public T nodeType(NodeType nodeType) {
-    this.nodeType = nodeType;
     return self();
   }
 
@@ -150,5 +149,6 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   }
 
   protected abstract T self();
+  public abstract T nodeType(NodeType nodeType);
   public abstract AbstractNode build();
 }

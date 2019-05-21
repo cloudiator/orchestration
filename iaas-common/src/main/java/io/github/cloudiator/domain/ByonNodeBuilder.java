@@ -34,7 +34,7 @@ public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
   }
 
   private ByonNodeBuilder(VirtualMachine virtualMachine) {
-    super(virtualMachine);
+    super(virtualMachine, true);
   }
 
   public static ByonNodeBuilder newBuilder() {
@@ -61,8 +61,13 @@ public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
   }
 
   @Override
+  public ByonNodeBuilder nodeType(NodeType nodeType) {
+    throw new IllegalArgumentException("No type is set constant to BYON");
+  }
+
+  @Override
   public ByonNode build() {
-    return new ByonNodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id,
+    return new ByonNodeImpl(nodeProperties, loginCredential, ipAddresses, id,
         name, diagnostic, reason, nodeCandidate, allocated);
   }
 }

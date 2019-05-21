@@ -1,24 +1,20 @@
-package io.github.cloudiator.messaging;
+package io.github.cloudiator.domain;
 
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
-import io.github.cloudiator.domain.AbstractNode;
-import io.github.cloudiator.domain.AbstractNodeBuilder;
-import io.github.cloudiator.domain.ByonNode;
-import io.github.cloudiator.domain.ByonNodeBuilder;
-import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeBuilder;
-import io.github.cloudiator.domain.NodeProperties;
-import io.github.cloudiator.domain.NodeType;
 import java.util.Set;
 
 public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> {
+  public static final ByonNodeToNodeConverter INSTANCE = new ByonNodeToNodeConverter();
+
+  private ByonNodeToNodeConverter(){
+  }
 
   @Override
   public ByonNode applyBack(Node node) {
     CommonFieldsWrapper wrapper = new CommonFieldsWrapper(node);
-    boolean allocated = false;
+    boolean allocated = node.state().equals(NodeState.RUNNING);
 
     ByonNodeBuilder builder = ByonNodeBuilder.newBuilder();
     ByonNode byonNode =
@@ -41,6 +37,8 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
   @Override
   public Node apply(ByonNode byonNode) {
     CommonFieldsWrapper wrapper = new CommonFieldsWrapper(byonNode);
+    boolean allocated = byonNode.allocated();
+    NodeState state = allocated ? NodeState.RUNNING : NodeState.DELETED;
 
     NodeBuilder builder = NodeBuilder.newBuilder();
     Node node =
@@ -54,6 +52,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
             .reason(wrapper.reason)
             .nodeCandidate(wrapper.nodeCandidate)
             .id(wrapper.id)
+            .state(state)
             .build();
 
     return node;

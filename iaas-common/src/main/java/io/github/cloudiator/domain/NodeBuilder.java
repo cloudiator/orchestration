@@ -49,9 +49,13 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     originId = node.originId().orElse(null);
   }
 
-  private NodeBuilder(VirtualMachine virtualMachine) {
-    super(virtualMachine);
+  private NodeBuilder(VirtualMachine virtualMachine, boolean isExternal) {
+    super(virtualMachine, isExternal);
     originId = virtualMachine.id();
+  }
+
+  private NodeBuilder(VirtualMachine virtualMachine) {
+    this(virtualMachine, false);
   }
 
   public static NodeBuilder newBuilder() {
@@ -61,6 +65,10 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
   public static NodeBuilder of(Node node) {
     checkNotNull(node, "node is null");
     return new NodeBuilder(node);
+  }
+
+  public static NodeBuilder of(VirtualMachine virtualMachine, boolean isExternal) {
+    return new NodeBuilder(virtualMachine, isExternal);
   }
 
   public static NodeBuilder of(VirtualMachine virtualMachine) {
@@ -82,8 +90,16 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     return this;
   }
 
+
+
   @Override
   protected NodeBuilder self() {
+    return this;
+  }
+
+  @Override
+  public NodeBuilder nodeType(NodeType nodeType) {
+    this.nodeType = nodeType;
     return this;
   }
 

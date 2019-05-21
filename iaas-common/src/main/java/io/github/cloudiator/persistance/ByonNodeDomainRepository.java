@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
+public class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
 
   private final ByonNodeModelRepository byonNodeModelRepository;
   private ByonNodeConverter byonNodeConverter = new ByonNodeConverter();
@@ -44,6 +44,10 @@ class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
         nodePropertiesModelRepository, loginCredentialDomainRepository,
         ipAddressDomainRepository);
     this.byonNodeModelRepository = byonNodeModelRepository;
+  }
+
+  public ByonNode findById(String id) {
+    return byonNodeConverter.apply(byonNodeModelRepository.getByDomainId(id));
   }
 
   public List<ByonNode> find() {

@@ -1,22 +1,37 @@
+/*
+ * Copyright (c) 2014-2018 University of Ulm
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.github.cloudiator.iaas.byon;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.iaas.byon.util.IdCreator;
+import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
+import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.AddByonNodeRequest;
-import org.cloudiator.messages.Byon.ByonNode;
 import org.cloudiator.messages.Byon.ByonNodeAddedResponse;
 import org.cloudiator.messages.Byon.ByonData;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.NodeEntities.NodeProperties;
 import org.cloudiator.messages.NodeEntities.NodeType;
-import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
-import org.cloudiator.messages.entities.IaasEntities.Location;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
@@ -26,36 +41,53 @@ public class AddByonNodeSubscriber implements Runnable {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(AddByonNodeSubscriber.class);
-  private static final int ILLEGAL_CLOUD_ID = 400;
-  private static final int SERVER_ERROR = 500;
-  private final MessageInterface messagingService;
+  private final MessageInterface messageInterface;
+  private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
-  public AddByonNodeSubscriber(MessageInterface messageInterface) {
-    this.messagingService = messageInterface;
+  public AddByonNodeSubscriber(MessageInterface messageInterface,
+      ByonNodeDomainRepository domainRepository) {
+    this.messageInterface = messageInterface;
+    this.domainRepository = domainRepository;
   }
 
   @Override
   public void run() {
-    subscription = messagingService.subscribe(AddByonNodeRequest.class,
+    subscription = messageInterface.subscribe(AddByonNodeRequest.class,
         AddByonNodeRequest.parser(), (requestId, request) -> {
           try {
-            ByonData data = request.getByonRequest();
-            ByonNode node = AddByonNodeSubscriber.this
-                .handleRequest(requestId, data);
-            publishCreationEvent(node.getId(), data);
+            Byon.ByonData data = request.getByonRequest();
+            Byon.ByonNode byonNode = buildMessageNode(data);
+            ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(byonNode);
+            persistNode(node);
+            LOGGER.info("byon node registered. sending response");
+            sendSuccessResponse(requestId, node);
+            LOGGER.info("response sent.");
+            publishCreationEvent(node.id(), data);
           } catch (Exception ex) {
-            LOGGER.error("exception occurred.", ex);
+            LOGGER.error("Exception occurred.", ex);
             AddByonNodeSubscriber.this.sendErrorResponse(requestId,
-                "exception occurred: " + ex.getMessage(), SERVER_ERROR);
+                "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
           }
         });
   }
 
+  @Transactional
+  private void persistNode(ByonNode node) {
+    domainRepository.save(node);
+  }
+
+  private Byon.ByonNode buildMessageNode(Byon.ByonData data) {
+    return Byon.ByonNode.newBuilder()
+        .setId(IdCreator.createId(data))
+        .setNodeData(data)
+        .build();
+  }
+
   private final void publishCreationEvent(String nodeId, ByonData data) {
-    messagingService.publish(NodeEvent.newBuilder()
+    messageInterface.publish(NodeEvent.newBuilder()
         .setNode(Node.newBuilder().
             addAllIpAddresses(data.getIpAddressList()).
             setLoginCredential(data.getLoginCredentials()).
@@ -68,58 +100,14 @@ public class AddByonNodeSubscriber implements Runnable {
 
   }
 
-  private ByonNode handleRequest(String requestId, ByonData byonRequest) {
-    LOGGER.info("byon node creating unique identifier");
-    String nodeId = createId(byonRequest);
-    ByonNode node = ByonNode.newBuilder().setNodeData(byonRequest).setId(nodeId).build();
-    LOGGER.info("byon node registered. sending response");
-    sendSuccessResponse(requestId, node);
-    LOGGER.info("response sent.");
-    return node;
-  }
-
-  private final String createId(ByonData data) {
-    String result = "";
-    try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      //digestLocation(md, data.getProperties().getLocation());
-      byte[] digest = md.digest();
-      BigInteger bigInt = new BigInteger(1, digest);
-      result = bigInt.toString(16);
-    } catch (NoSuchAlgorithmException ex) {
-      LOGGER.error("cannot digest location, using random integer ", ex);
-      result = UUID.randomUUID().toString();
-    }
-    return result;
-  }
-
-  private final void digestHardware(MessageDigest md, NodeProperties prop)
-      throws UnsupportedEncodingException {
-    md.update(String.valueOf(prop.getNumberOfCores()).getBytes("UTF-8"));
-    md.update(String.valueOf(prop.getMemory()).getBytes("UTF-8"));
-    md.update(String.valueOf(prop.getDisk()).getBytes("UTF-8"));
-  }
-
-  private final void digestLocation(MessageDigest md, Location loc)
-      throws UnsupportedEncodingException {
-    if (loc.getName() != null) {
-      md.update(loc.getName().getBytes("UTF-8"));
-    }
-    if (loc.getLocationScope() != null) {
-      md.update(loc.getLocationScope().name().getBytes("UTF-8"));
-    }
-    if (loc.getParent() != null) {
-      digestLocation(md, loc.getParent());
-    }
-  }
-
   private final void sendSuccessResponse(String messageId, ByonNode node) {
-    messagingService.reply(messageId,
-        ByonNodeAddedResponse.newBuilder().setByonNode(node).build());
+    messageInterface.reply(messageId,
+        ByonNodeAddedResponse.newBuilder().
+            setByonNode(ByonToByonMessageConverter.INSTANCE.apply(node)).build());
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
-    messagingService.reply(VirtualMachineCreatedResponse.class, messageId,
+    messageInterface.reply(ByonNodeAddedResponse.class, messageId,
         Error.newBuilder().setCode(errorCode).setMessage(errorMessage).build());
   }
 

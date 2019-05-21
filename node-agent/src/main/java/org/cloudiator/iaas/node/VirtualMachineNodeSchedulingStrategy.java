@@ -23,18 +23,24 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.concurrent.ExecutionException;
+import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
+import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
+import org.cloudiator.messaging.services.ByonService;
 import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +52,15 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
 
   private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
   private final VirtualMachineService virtualMachineService;
+  private final ByonService byonService;
   private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
 
   @Inject
   public VirtualMachineNodeSchedulingStrategy(VirtualMachineService virtualMachineService,
-      NodeCandidateMessageRepository nodeCandidateMessageRepository) {
+      ByonService byonService, NodeCandidateMessageRepository nodeCandidateMessageRepository) {
 
     this.virtualMachineService = virtualMachineService;
+    this.byonService = byonService;
     this.nodeCandidateMessageRepository = nodeCandidateMessageRepository;
   }
 
@@ -70,7 +78,8 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
 
   @Override
   public boolean canSchedule(Node pending) {
-    return retrieveCandidate(pending).type().equals(NodeCandidateType.IAAS);
+    NodeCandidateType type = retrieveCandidate(pending).type();
+    return type.equals(NodeCandidateType.IAAS) || type.equals(NodeCandidateType.BYON);
   }
 
   public Node schedule(Node pending) throws NodeSchedulingException {
@@ -101,8 +110,15 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
           .format("%s incarnated nodeCandidate %s as virtual machine %s.", this, nodeCandidate,
               virtualMachine));
 
-      return NodeBuilder.of(virtualMachine).state(NodeState.RUNNING).userId(pending.userId())
+      final boolean isExternal = nodeCandidate.type().equals(NodeCandidateType.BYON);
+      Node schedNode = NodeBuilder.of(virtualMachine, isExternal).state(NodeState.RUNNING).userId(pending.userId())
           .nodeCandidate(nodeCandidate.id()).id(pending.id()).name(pending.name()).build();
+
+      if(isExternal) {
+        externalNodeAllocated(schedNode);
+      }
+
+      return schedNode;
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",
@@ -112,6 +128,16 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
           .format("Could not schedule node %s due to exception: %s.", pending,
               e.getCause().getMessage()), e);
     }
+  }
+
+  private void externalNodeAllocated(Node schedNode) throws NodeSchedulingException {
+    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(schedNode);
+    ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage  = ByonNodeAllocateRequestMessage
+        .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
+
+    final SettableFutureResponseCallback<ByonNodeAllocatedResponse, ByonNodeAllocatedResponse>
+        byonFuture = SettableFutureResponseCallback.create();
+    byonService.createByonPersistAllocAsync(byonNodeAllocateRequestMessage, byonFuture);
   }
 
   private VirtualMachineRequest generateRequest(Node pending, NodeCandidate nodeCandidate) {

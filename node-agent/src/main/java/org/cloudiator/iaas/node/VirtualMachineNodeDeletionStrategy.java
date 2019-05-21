@@ -21,13 +21,19 @@ package org.cloudiator.iaas.node;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeType;
+import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import java.util.concurrent.ExecutionException;
 import javax.inject.Inject;
+import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
+import org.cloudiator.messages.Byon.ByonNodeDeletedResponse;
 import org.cloudiator.messages.Vm.DeleteVirtualMachineRequestMessage;
 import org.cloudiator.messages.Vm.VirtualMachineDeletedResponse;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
+import org.cloudiator.messaging.services.ByonService;
 import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,16 +43,19 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineNodeDeletionStrategy.class);
   private final VirtualMachineService virtualMachineService;
+  private final ByonService byonService;
 
   @Inject
   public VirtualMachineNodeDeletionStrategy(
-      VirtualMachineService virtualMachineService) {
+      VirtualMachineService virtualMachineService, ByonService byonService) {
     this.virtualMachineService = virtualMachineService;
+    this.byonService = byonService;
   }
 
   @Override
   public boolean supportsNode(Node node) {
-    return node.type().equals(NodeType.VM);
+    return node.type().equals(NodeType.VM) ||
+      node.type().equals(NodeType.BYON);
   }
 
   @Override
@@ -64,6 +73,12 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
 
     try {
       future.get();
+      boolean isExternal = node.type().equals(NodeType.BYON);
+
+      if(isExternal) {
+        externalNodeDeleted(node);
+      }
+
       return true;
     } catch (InterruptedException e) {
       LOGGER.error(String.format("%s got interrupted while waiting for response.", this));
@@ -74,6 +89,16 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
               node, e.getCause().getMessage()), e);
       return false;
     }
+  }
+
+  private void externalNodeDeleted(Node node) {
+    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(node);
+    ByonNodeDeleteRequestMessage byonNodeDeleteRequestMessage = ByonNodeDeleteRequestMessage
+        .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
+
+    final SettableFutureResponseCallback<ByonNodeDeletedResponse, ByonNodeDeletedResponse>
+        byonFuture = SettableFutureResponseCallback.create();
+    byonService.createByonPersistDelAsync(byonNodeDeleteRequestMessage, byonFuture);
   }
 
   @Override

@@ -24,8 +24,9 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
 
   @Override
   public NodeEntities.Node applyBack(Byon.ByonNode byonNode) {
-    //change hier, allocated Feld fehlt
     final ByonData data = byonNode.getNodeData();
+    NodeState state = (data.getAllocated() == true) ? NodeState.NODE_STATE_RUNNING
+        : NodeState.UNRECOGNIZED;
     final NodeBuilder builder = NodeBuilder.newBuilder().id(byonNode.getId())
         //change hier, Feld fehlt
         .name("<unknown>")
@@ -33,8 +34,7 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
         .nodeType(NODE_TYPE_CONVERTER.applyBack(NodeEntities.NodeType.BYON)).ipAddresses(
             data.getIpAddressList().stream().map(IP_ADDRESS_CONVERTER)
                 .collect(Collectors.toSet()))
-        //change hier, anpassen: wenn allocated -> RUNNING; UNRECOGNIZED sonst
-        .state(NODE_STATE_CONVERTER.applyBack(NodeState.UNRECOGNIZED));
+        .state(NODE_STATE_CONVERTER.applyBack(state));
 
     if (data.hasLoginCredentials()) {
       builder.loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(data.getLoginCredentials()));
@@ -52,10 +52,6 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
     if (!Strings.isNullOrEmpty(data.getNodeCandidate())) {
       builder.dataCandidate(data.getNodeCandidate());
     }
-
-    if (!Strings.isNullOrEmpty(node.getOriginId())) {
-      nodeBuilder.originId(node.getOriginId());
-    }
     */
 
     final Node node = builder.build();
@@ -67,13 +63,16 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
   public Byon.ByonNode apply(NodeEntities.Node node) {
     boolean allocated = (node.getState() == NodeState.NODE_STATE_RUNNING) ?
         true : false;
-    final ByonNodeBuilder builder = ByonNodeBuilder.newBuilder().name(node.getName())
+    final ByonNodeBuilder builder = ByonNodeBuilder.newBuilder()
+        .id(node.getId())
+        .name(node.getName())
         .allocated(allocated)
         .nodeProperties(NODE_PROPERTIES_CONVERTER.apply(node.getNodeProperties()))
-        //change hier, inkonsistent
-        .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType()))
         .ipAddresses(node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
-        .collect(Collectors.toSet()));
+          .collect(Collectors.toSet()))
+        .loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()))
+        // change hier: Inkonsistenz?
+        .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType()));
 
     if (!Strings.isNullOrEmpty(node.getReason())) {
       builder.reason(node.getReason());
@@ -85,10 +84,6 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
 
     if (!Strings.isNullOrEmpty(node.getNodeCandidate())) {
       builder.nodeCandidate(node.getNodeCandidate());
-    }
-
-    if (!Strings.isNullOrEmpty(node.getOriginId())) {
-      builder.id(node.getId());
     }
 
     final ByonNode byonNode = builder.build();

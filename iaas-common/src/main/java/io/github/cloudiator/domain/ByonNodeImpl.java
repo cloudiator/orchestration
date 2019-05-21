@@ -30,11 +30,14 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
   private final boolean allocated;
 
   ByonNodeImpl(NodeProperties nodeProperties,
-      @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id, String name, @Nullable String diagnostic,
-      @Nullable String reason, @Nullable String nodeCandidate, boolean allocated) {
+      @Nullable LoginCredential loginCredential,
+      Set<IpAddress> ipAddresses, String id,
+      String name, @Nullable String diagnostic,
+      @Nullable String reason,
+      @Nullable String nodeCandidate,
+      boolean allocated) {
 
-    super(nodeProperties, loginCredential, nodeType, ipAddresses, id, name,
+    super(nodeProperties, loginCredential, NodeType.BYON, ipAddresses, id, name,
         diagnostic, reason, nodeCandidate);
     this.allocated = allocated;
   }
