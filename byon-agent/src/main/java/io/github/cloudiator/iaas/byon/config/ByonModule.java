@@ -13,6 +13,5 @@ public class ByonModule  extends AbstractModule {
   @Override
   protected void configure() {
     bind(Init.class).asEagerSingleton();
-    bind(AddByonNodeSubscriber.class).asEagerSingleton();
   }
 }
