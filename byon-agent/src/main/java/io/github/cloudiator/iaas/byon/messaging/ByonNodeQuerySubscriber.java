@@ -20,12 +20,18 @@
 package io.github.cloudiator.iaas.byon.messaging;
 
 import com.google.inject.Inject;
+import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Byon.ByonNodeQueryRequest;
 import org.cloudiator.messages.Byon.ByonNodeQueryResponse;
+import org.cloudiator.messages.entities.ByonEntities;
+import org.cloudiator.messages.entities.ByonEntities.QueryFilter;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
@@ -52,16 +58,32 @@ public class ByonNodeQuerySubscriber implements Runnable {
         ByonNodeQueryRequest.parser(),
         (requestId, request) -> {
           try {
-            String id = request.getId();
+            ByonEntities.QueryFilter filter = request.getFilter();
+            List<ByonNode> nodes = getFilteredNodes(filter);
             ByonNodeQueryResponse byonNodeQueryResponse = ByonNodeQueryResponse.newBuilder()
-                .setByonNode(ByonToByonMessageConverter.INSTANCE.apply(domainRepository.findById(id)))
-                .build();
+                .addAllByonNode(nodes.stream().map(ByonToByonMessageConverter.INSTANCE::apply)
+                    .collect(Collectors.toList())).build();
             messageInterface.reply(requestId, byonNodeQueryResponse);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
           }
         });
+  }
+
+  private List<ByonNode> getFilteredNodes(QueryFilter filter) {
+    switch(filter) {
+      case ALLOCATED:
+        return domainRepository.find().stream().filter(
+            node -> node.allocated() == true)
+            .collect((Collectors.toList()));
+      case UNALLOCATED:
+        return domainRepository.find().stream().filter(
+            node -> node.allocated() == false)
+            .collect((Collectors.toList()));
+      default:
+        return domainRepository.find();
+    }
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
