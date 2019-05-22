@@ -302,9 +302,11 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(
         String.format("Fetching and starting Spark Worker container on node %s", node.id()));
 
+    final String CONTAINER_NAME = "spark-worker";
     //download Docker install script
     CommandTask startSparkWorkerContainer = new CommandTask(this.remoteConnection,
-        "sudo docker run -d "
+        "sudo docker top " + CONTAINER_NAME + " || "
+            + " docker run -d "
             + " -e SPARK_MASTER_ENDPOINT=" + Configuration.conf()
             .getString("installer.spark.master.ip")
             + " -e SPARK_MASTER_PORT=" + Configuration.conf()
@@ -325,6 +327,7 @@ public class UnixInstaller extends AbstractInstaller {
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")
             + " --network host "
+            + " --name " + CONTAINER_NAME
             + " cloudiator/spark-worker:latest ");
 
     startSparkWorkerContainer.call();
