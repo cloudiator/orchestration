@@ -75,11 +75,11 @@ public class ByonNodeQuerySubscriber implements Runnable {
     switch(filter) {
       case ALLOCATED:
         return domainRepository.find().stream().filter(
-            node -> node.allocated() == true)
+            byonNode -> byonNode.allocated() == true)
             .collect((Collectors.toList()));
       case UNALLOCATED:
         return domainRepository.find().stream().filter(
-            node -> node.allocated() == false)
+            byonNode -> byonNode.allocated() == false)
             .collect((Collectors.toList()));
       default:
         return domainRepository.find();
