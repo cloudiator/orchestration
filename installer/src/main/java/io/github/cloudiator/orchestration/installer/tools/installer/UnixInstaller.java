@@ -306,7 +306,7 @@ public class UnixInstaller extends AbstractInstaller {
     //download Docker install script
     CommandTask startSparkWorkerContainer = new CommandTask(this.remoteConnection,
         "sudo docker top " + CONTAINER_NAME + " || "
-            + " docker run -d "
+            + " sudo docker run -d "
             + " -e SPARK_MASTER_ENDPOINT=" + Configuration.conf()
             .getString("installer.spark.master.ip")
             + " -e SPARK_MASTER_PORT=" + Configuration.conf()
