@@ -18,8 +18,11 @@
 
 package io.github.cloudiator.iaas.byon.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
+import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
@@ -29,6 +32,7 @@ import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.AddByonNodeRequest;
 import org.cloudiator.messages.Byon.ByonNodeAddedResponse;
 import org.cloudiator.messages.Byon.ByonData;
+import org.cloudiator.messages.Byon.ByonNodeEvent;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeEvent;
 import org.cloudiator.messages.NodeEntities.Node;
@@ -43,14 +47,16 @@ public class AddByonNodeSubscriber implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(AddByonNodeSubscriber.class);
   private final MessageInterface messageInterface;
+  private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
   public AddByonNodeSubscriber(MessageInterface messageInterface,
-      ByonNodeDomainRepository domainRepository) {
+      ByonPublisher publisher, ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
+    this.publisher = publisher;
     this.domainRepository = domainRepository;
   }
 
@@ -60,13 +66,14 @@ public class AddByonNodeSubscriber implements Runnable {
         AddByonNodeRequest.parser(), (requestId, request) -> {
           try {
             Byon.ByonData data = request.getByonRequest();
-            Byon.ByonNode byonNode = buildMessageNode(data);
+            checkState(!data.getAllocated(),"cannot add a node with state allocated");
+            Byon.ByonNode byonNode = ByonOperations.buildMessageNode(data);
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(byonNode);
             persistNode(node);
             LOGGER.info("byon node registered. sending response");
             sendSuccessResponse(requestId, node);
             LOGGER.info("response sent.");
-            publishCreationEvent(node.id(), data);
+            publisher.publishEvent(data);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             AddByonNodeSubscriber.this.sendErrorResponse(requestId,
@@ -78,27 +85,6 @@ public class AddByonNodeSubscriber implements Runnable {
   @Transactional
   private void persistNode(ByonNode node) {
     domainRepository.save(node);
-  }
-
-  private Byon.ByonNode buildMessageNode(Byon.ByonData data) {
-    return Byon.ByonNode.newBuilder()
-        .setId(IdCreator.createId(data))
-        .setNodeData(data)
-        .build();
-  }
-
-  private final void publishCreationEvent(String nodeId, ByonData data) {
-    messageInterface.publish(NodeEvent.newBuilder()
-        .setNode(Node.newBuilder().
-            addAllIpAddresses(data.getIpAddressList()).
-            setLoginCredential(data.getLoginCredentials()).
-            setNodeProperties(data.getProperties()).
-            setNodeType(NodeType.BYON).
-            setId(nodeId).
-            build()).
-            //setNodeStatus(NodeStatus.CREATED).
-            build());
-
   }
 
   private final void sendSuccessResponse(String messageId, ByonNode node) {

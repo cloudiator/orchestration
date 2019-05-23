@@ -18,10 +18,13 @@
 
 package io.github.cloudiator.iaas.byon.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
+import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
@@ -39,41 +42,60 @@ public class ByonNodeAllocateRequestListener implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
   private final MessageInterface messageInterface;
+  private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
   public ByonNodeAllocateRequestListener(MessageInterface messageInterface,
+      ByonPublisher publisher,
       ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
+    this.publisher = publisher;
     this.domainRepository = domainRepository;
   }
 
   @Override
   public void run() {
-    subscription = messageInterface.subscribe(ByonNodeAllocateRequestMessage.class,
-        ByonNodeAllocateRequestMessage.parser(),
-        (requestId, request) -> {
-          try {
-            Byon.ByonNode messageNode = request.getByonNode();
-            String id = messageNode.getId();
-            LOGGER.debug(String.format("%s retrieved request to allocate"
-                + "byon node with id %s.", this, id));
-            ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-            allocateByonNode(node);
-            LOGGER.info("byon node allocated. sending response");
-            messageInterface.reply(requestId,
-                ByonNodeAllocatedResponse.newBuilder().build());
-            LOGGER.info("response sent.");
-          } catch (UsageException ex) {
-            LOGGER.error("Usage Exception occurred.", ex);
-            sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
-          } catch (Exception ex) {
-            LOGGER.error("Exception occurred.", ex);
-            sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
-          }
-        });
+    subscription =
+        messageInterface.subscribe(
+            ByonNodeAllocateRequestMessage.class,
+            ByonNodeAllocateRequestMessage.parser(),
+            (requestId, request) -> {
+              try {
+                Byon.ByonNode messageNode = request.getByonNode();
+                Byon.ByonData data = messageNode.getNodeData();
+                checkState(
+                    data.getAllocated(),
+                    String.format(
+                        "setting %s node's state to allocated"
+                            + "is not possible due to the requesting node state being unallocated",
+                        data.getName()));
+                String id = messageNode.getId();
+                checkState(ByonOperations.allocatedStateChanges(domainRepository, id, true),
+                    ByonOperations.wrongStateChangeMessage(true, id));
+                LOGGER.debug(
+                    String.format(
+                        "%s retrieved request to allocate" + "byon node with id %s.", this, id));
+                ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
+                allocateByonNode(node);
+                LOGGER.info("byon node allocated. sending response");
+                messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
+                LOGGER.info("response sent.");
+                publisher.publishEvent(messageNode.getNodeData());
+              } catch (UsageException ex) {
+                LOGGER.error("Usage Exception occurred.", ex);
+                sendErrorResponse(
+                    requestId,
+                    "Usage Exception occurred: " + ex.getMessage(),
+                    Constants.SERVER_ERROR);
+              } catch (Exception ex) {
+                LOGGER.error("Exception occurred.", ex);
+                sendErrorResponse(
+                    requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
+              }
+            });
   }
 
   private void isAllocatable(String id) throws UsageException {

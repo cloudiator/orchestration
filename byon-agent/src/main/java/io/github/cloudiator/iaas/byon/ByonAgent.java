@@ -25,7 +25,6 @@ import io.github.cloudiator.iaas.byon.config.ByonModule;
 import io.github.cloudiator.iaas.byon.messaging.AddByonNodeSubscriber;
 import io.github.cloudiator.iaas.byon.messaging.ByonNodeAllocateRequestListener;
 import io.github.cloudiator.iaas.byon.messaging.ByonNodeDeleteRequestListener;
-import io.github.cloudiator.iaas.byon.messaging.ByonNodeQuerySubscriber;
 import io.github.cloudiator.iaas.byon.messaging.RemoveByonNodeSubscriber;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
@@ -57,9 +56,6 @@ public final class ByonAgent {
     INJECTOR.getInstance(AddByonNodeSubscriber.class).run();
     LOGGER.debug("Starting " + RemoveByonNodeSubscriber.class);
     INJECTOR.getInstance(RemoveByonNodeSubscriber.class).run();
-    //matchmaking-agent
-    LOGGER.debug("Starting " + ByonNodeQuerySubscriber.class);
-    INJECTOR.getInstance(ByonNodeQuerySubscriber.class).run();
     //node-agent
     LOGGER.debug("Starting " + ByonNodeAllocateRequestListener.class);
     INJECTOR.getInstance(ByonNodeAllocateRequestListener.class).run();

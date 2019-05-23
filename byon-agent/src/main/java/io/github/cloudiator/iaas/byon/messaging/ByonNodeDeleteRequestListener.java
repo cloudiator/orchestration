@@ -18,10 +18,12 @@
 
 package io.github.cloudiator.iaas.byon.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
+import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
@@ -39,14 +41,17 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeDeleteRequestListener.class);
   private final MessageInterface messageInterface;
+  private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
   public ByonNodeDeleteRequestListener(MessageInterface messageInterface,
+      ByonPublisher publisher,
       ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
+    this.publisher = publisher;
     this.domainRepository = domainRepository;
   }
 
@@ -57,7 +62,16 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         (requestId, request) -> {
           try {
             Byon.ByonNode messageNode = request.getByonNode();
+            Byon.ByonData data = messageNode.getNodeData();
+            checkState(
+                !data.getAllocated(),
+                String.format(
+                    "setting %s node's state to unallocated"
+                        + "is not possible due to the requesting node state being allocated",
+                    data.getName()));
             String id = messageNode.getId();
+            checkState(ByonOperations.allocatedStateChanges(domainRepository, id, false),
+                ByonOperations.wrongStateChangeMessage(false, id));
             LOGGER.debug(String.format("%s retrieved request to delete"
                 + "byon node with id %s.", this, id));
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
@@ -66,6 +80,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
             LOGGER.info("response sent.");
+            publisher.publishEvent(messageNode.getNodeData());
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
             sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);

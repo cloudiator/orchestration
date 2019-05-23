@@ -18,8 +18,11 @@
 
 package io.github.cloudiator.iaas.byon.messaging;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import io.github.cloudiator.iaas.byon.Constants;
+import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import javax.transaction.Transactional;
 import org.cloudiator.messages.Byon.ByonNodeRemovedResponse;
@@ -34,14 +37,17 @@ public class RemoveByonNodeSubscriber  implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(RemoveByonNodeSubscriber.class);
   private final MessageInterface messageInterface;
+  private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
   // private final CloudService cloudService;
   private volatile Subscription subscription;
 
   @Inject
   public RemoveByonNodeSubscriber(MessageInterface messageInterface,
+      ByonPublisher publisher,
       ByonNodeDomainRepository domainRepository) {
     this.messageInterface = messageInterface;
+    this.publisher = publisher;
     this.domainRepository = domainRepository;
   }
 
@@ -51,7 +57,12 @@ public class RemoveByonNodeSubscriber  implements Runnable {
         RemoveByonNodeRequest.parser(),
         (requestId, request) -> {
           try {
-            String id =  request.getId();
+            String id = request.getId();
+            checkState(
+                !ByonOperations.isAllocated(domainRepository, id),
+                String.format(
+                    "Cannot delete node with id %s"
+                        + "as it seems to be allocated at the moment", id));
             LOGGER.debug(String.format("%s retrieved request to delete"
                     + "byon node with id %s.", this, id));
             deleteByonNode(id);
