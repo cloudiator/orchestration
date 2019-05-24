@@ -52,15 +52,13 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
 
   private static final VirtualMachineMessageToVirtualMachine VIRTUAL_MACHINE_CONVERTER = VirtualMachineMessageToVirtualMachine.INSTANCE;
   private final VirtualMachineService virtualMachineService;
-  private final ByonService byonService;
   private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
 
   @Inject
   public VirtualMachineNodeSchedulingStrategy(VirtualMachineService virtualMachineService,
-      ByonService byonService, NodeCandidateMessageRepository nodeCandidateMessageRepository) {
+      NodeCandidateMessageRepository nodeCandidateMessageRepository) {
 
     this.virtualMachineService = virtualMachineService;
-    this.byonService = byonService;
     this.nodeCandidateMessageRepository = nodeCandidateMessageRepository;
   }
 
@@ -79,7 +77,7 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
   @Override
   public boolean canSchedule(Node pending) {
     NodeCandidateType type = retrieveCandidate(pending).type();
-    return type.equals(NodeCandidateType.IAAS) || type.equals(NodeCandidateType.BYON);
+    return type.equals(NodeCandidateType.IAAS);
   }
 
   public Node schedule(Node pending) throws NodeSchedulingException {
@@ -114,10 +112,6 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
       Node schedNode = NodeBuilder.of(virtualMachine, isExternal).state(NodeState.RUNNING).userId(pending.userId())
           .nodeCandidate(nodeCandidate.id()).id(pending.id()).name(pending.name()).build();
 
-      if(isExternal) {
-        externalNodeAllocated(schedNode);
-      }
-
       return schedNode;
 
     } catch (InterruptedException e) {
@@ -128,16 +122,6 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
           .format("Could not schedule node %s due to exception: %s.", pending,
               e.getCause().getMessage()), e);
     }
-  }
-
-  private void externalNodeAllocated(Node schedNode) throws NodeSchedulingException {
-    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(schedNode);
-    ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage  = ByonNodeAllocateRequestMessage
-        .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
-
-    final SettableFutureResponseCallback<ByonNodeAllocatedResponse, ByonNodeAllocatedResponse>
-        byonFuture = SettableFutureResponseCallback.create();
-    byonService.createByonPersistAllocAsync(byonNodeAllocateRequestMessage, byonFuture);
   }
 
   private VirtualMachineRequest generateRequest(Node pending, NodeCandidate nodeCandidate) {

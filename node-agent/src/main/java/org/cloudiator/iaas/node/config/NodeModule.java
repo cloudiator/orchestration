@@ -30,6 +30,8 @@ import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.cloudiator.iaas.node.ByonNodeDeletionStrategy;
+import org.cloudiator.iaas.node.ByonNodeSchedulingStrategy;
 import org.cloudiator.iaas.node.CompositeNodeDeletionStrategy;
 import org.cloudiator.iaas.node.CompositeNodeSchedulingStrategy;
 import org.cloudiator.iaas.node.FaasNodeDeletionStrategy;
@@ -84,12 +86,14 @@ public class NodeModule extends AbstractModule {
         .newSetBinder(binder(), NodeSchedulingStrategy.class);
     multibinder.addBinding().to(VirtualMachineNodeSchedulingStrategy.class);
     multibinder.addBinding().to(FaasNodeSchedulingStrategy.class);
+    multibinder.addBinding().to(ByonNodeSchedulingStrategy.class);
     bind(NodeSchedulingStrategy.class).to(CompositeNodeSchedulingStrategy.class);
 
     Multibinder<NodeDeletionStrategy> nodeDeletionStrategyMultibinder = Multibinder
         .newSetBinder(binder(), NodeDeletionStrategy.class);
     nodeDeletionStrategyMultibinder.addBinding().to(VirtualMachineNodeDeletionStrategy.class);
     nodeDeletionStrategyMultibinder.addBinding().to(FaasNodeDeletionStrategy.class);
+    nodeDeletionStrategyMultibinder.addBinding().to(ByonNodeDeletionStrategy.class);
 
     bind(NodeDeletionStrategy.class).to(CompositeNodeDeletionStrategy.class);
   }

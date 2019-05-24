@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 
 public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
 
-  private final boolean allocated;
+  private volatile boolean allocated;
 
   ByonNodeImpl(NodeProperties nodeProperties,
       @Nullable LoginCredential loginCredential,
@@ -43,12 +43,17 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
   }
 
   @Override
-  public boolean allocated() {
-    return allocated;
+  synchronized public boolean allocated() {
+      return allocated;
   }
 
   @Override
-  public boolean equals(Object o) {
+  synchronized public void setAllocated(boolean allocated) {
+    this.allocated = allocated;
+  }
+
+  @Override
+  synchronized public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -61,7 +66,7 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
 }
 
   @Override
-  public String toString() {
+  synchronized public String toString() {
     return super.toString() +
     MoreObjects.toStringHelper(this)
         .add("allocated", allocated)

@@ -21,4 +21,5 @@ package io.github.cloudiator.domain;
 public interface ByonNode extends AbstractNode {
 
   boolean allocated();
+  void setAllocated(boolean allocated);
 }
