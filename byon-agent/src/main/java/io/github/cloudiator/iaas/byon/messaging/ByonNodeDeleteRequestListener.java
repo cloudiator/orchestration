@@ -80,7 +80,6 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
             LOGGER.info("response sent.");
-            publisher.publishEvent(messageNode.getNodeData());
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
             sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);

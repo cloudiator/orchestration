@@ -20,10 +20,10 @@ package io.github.cloudiator.iaas.byon.messaging;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
-import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import javax.inject.Inject;
@@ -31,12 +31,7 @@ import javax.transaction.Transactional;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.AddByonNodeRequest;
 import org.cloudiator.messages.Byon.ByonNodeAddedResponse;
-import org.cloudiator.messages.Byon.ByonData;
-import org.cloudiator.messages.Byon.ByonNodeEvent;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Node.NodeEvent;
-import org.cloudiator.messages.NodeEntities.Node;
-import org.cloudiator.messages.NodeEntities.NodeType;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
@@ -73,7 +68,7 @@ public class AddByonNodeSubscriber implements Runnable {
             LOGGER.info("byon node registered. sending response");
             sendSuccessResponse(requestId, node);
             LOGGER.info("response sent.");
-            publisher.publishEvent(data);
+            publisher.publishEvent(data, ByonIO.ADD);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             AddByonNodeSubscriber.this.sendErrorResponse(requestId,

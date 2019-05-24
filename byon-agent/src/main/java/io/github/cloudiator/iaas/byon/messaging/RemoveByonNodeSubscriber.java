@@ -21,10 +21,13 @@ package io.github.cloudiator.iaas.byon.messaging;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import javax.transaction.Transactional;
+import org.cloudiator.messages.Byon;
+import org.cloudiator.messages.Byon.ByonData;
 import org.cloudiator.messages.Byon.ByonNodeRemovedResponse;
 import org.cloudiator.messages.Byon.RemoveByonNodeRequest;
 import org.cloudiator.messages.General.Error;
@@ -69,6 +72,9 @@ public class RemoveByonNodeSubscriber  implements Runnable {
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeRemovedResponse.newBuilder().build());
+            // Set only id, unallocated and REMOVE as information
+            Byon.ByonData data = ByonData.newBuilder().setAllocated(false).build();
+            publisher.publishEvent(data, ByonIO.REMOVE);
             LOGGER.info("response sent.");
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);

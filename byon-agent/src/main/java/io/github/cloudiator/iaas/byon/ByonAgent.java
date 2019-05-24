@@ -57,7 +57,7 @@ public final class ByonAgent {
     INJECTOR.getInstance(AddByonNodeSubscriber.class).run();
     LOGGER.debug("Starting " + RemoveByonNodeSubscriber.class);
     INJECTOR.getInstance(RemoveByonNodeSubscriber.class).run();
-    //matchmaking-agent
+    //node-agent
     LOGGER.debug("Starting " + ByonNodeQuerySubscriber.class);
     INJECTOR.getInstance(ByonNodeQuerySubscriber.class).run();
     //node-agent
