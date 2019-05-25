@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import java.util.concurrent.ExecutionException;
@@ -34,7 +36,8 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
 
   @Override
   public boolean deleteNode(Node node) {
-      ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(node);
+      Node deletedNode = setDeleted(node);
+      ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(deletedNode);
       ByonNodeDeleteRequestMessage byonNodeDeleteRequestMessage = ByonNodeDeleteRequestMessage
           .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
 
@@ -57,5 +60,23 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
                 node, e.getCause().getMessage()), e);
         return false;
       }
+  }
+
+  private Node setDeleted(Node node) {
+    return NodeBuilder.newBuilder()
+        .name(node.name())
+        .nodeType(node.type())
+        .originId(node.originId().orElse(null))
+        // set deleted
+        .state(NodeState.DELETED)
+        .userId(node.userId())
+        .diagnostic(node.diagnostic().orElse(null))
+        .id(node.id())
+        .ipAddresses(node.ipAddresses())
+        .nodeCandidate(node.nodeCandidate().orElse(null))
+        .loginCredential(node.loginCredential().orElse(null))
+        .reason(node.reason().orElse(null))
+        .nodeProperties(node.nodeProperties())
+        .build();
   }
 }

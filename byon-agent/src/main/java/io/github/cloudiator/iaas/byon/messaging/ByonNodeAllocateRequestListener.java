@@ -84,7 +84,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
                 LOGGER.info("response sent.");
-                publisher.publishEvent(data, ByonIO.EVICT);
+                publisher.publishEvent(data, ByonIO.UPDATE);
               } catch (UsageException ex) {
                 LOGGER.error("Usage Exception occurred.", ex);
                 sendErrorResponse(

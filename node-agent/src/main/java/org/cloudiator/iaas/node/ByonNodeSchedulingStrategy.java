@@ -7,10 +7,13 @@ import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
@@ -66,7 +69,9 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
           + " nodecandidate is associated with it.", pending.id()));
     }
 
-    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(pending);
+    //node is 'running' now
+    Node runningNode = setRunning(pending);
+    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(runningNode);
 
     ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage  = ByonNodeAllocateRequestMessage
         .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
@@ -75,12 +80,29 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
     try {
       byonFuture.get();
-      byonNode.setAllocated(true);
       return ByonNodeToNodeConverter.INSTANCE.apply(byonNode);
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
     } catch (ExecutionException e) {
       throw new NodeSchedulingException(String.format("Could not schedule node %s.", pending), e);
     }
+  }
+
+  private Node setRunning(Node pending) {
+    return NodeBuilder.newBuilder()
+        .name(pending.name())
+        .nodeType(pending.type())
+        .originId(pending.originId().orElse(null))
+        //set running
+        .state(NodeState.RUNNING)
+        .userId(pending.userId())
+        .diagnostic(pending.diagnostic().orElse(null))
+        .id(pending.id())
+        .ipAddresses(pending.ipAddresses())
+        .nodeCandidate(pending.nodeCandidate().orElse(null))
+        .loginCredential(pending.loginCredential().orElse(null))
+        .reason(pending.reason().orElse(null))
+        .nodeProperties(pending.nodeProperties())
+        .build();
   }
 }
