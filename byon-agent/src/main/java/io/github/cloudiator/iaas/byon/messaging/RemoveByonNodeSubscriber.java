@@ -74,7 +74,7 @@ public class RemoveByonNodeSubscriber  implements Runnable {
                 ByonNodeRemovedResponse.newBuilder().build());
             // Set only id, unallocated and REMOVE as information
             Byon.ByonData data = ByonData.newBuilder().setAllocated(false).build();
-            publisher.publishEvent(data, ByonIO.REMOVE);
+            publisher.publishEvent(data, ByonIO.EVICT);
             LOGGER.info("response sent.");
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);

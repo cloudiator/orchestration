@@ -20,5 +20,6 @@ package io.github.cloudiator.domain;
 
 public enum ByonIO {
     ADD,
-    REMOVE
+    EVICT,
+    UPDATE
 }

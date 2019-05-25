@@ -12,8 +12,10 @@ public class ByonOperationConverter implements TwoWayConverter<ByonIO, ByonEntit
     switch(cacheOperation) {
       case ADD:
         return ByonIO.ADD;
-      case REMOVE:
-        return ByonIO.REMOVE;
+      case EVICT:
+        return ByonIO.EVICT;
+      case UPDATE:
+        return ByonIO.UPDATE;
       default:
        throw new IllegalArgumentException(String.format("operation %s can not be converted"
        , cacheOperation));
@@ -25,8 +27,10 @@ public class ByonOperationConverter implements TwoWayConverter<ByonIO, ByonEntit
     switch(byonIO) {
       case ADD:
         return CacheOperation.ADD;
-      case REMOVE:
-        return CacheOperation.REMOVE;
+      case EVICT:
+        return CacheOperation.EVICT;
+      case UPDATE:
+        return CacheOperation.UPDATE;
       default:
         return CacheOperation.UNRECOGNIZED;
     }

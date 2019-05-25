@@ -20,6 +20,7 @@ package io.github.cloudiator.iaas.byon.messaging;
 
 import static com.google.common.base.Preconditions.checkState;
 import com.google.inject.Inject;
+import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
@@ -80,6 +81,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
             LOGGER.info("response sent.");
+            publisher.publishEvent(data, ByonIO.ADD);
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
             sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
