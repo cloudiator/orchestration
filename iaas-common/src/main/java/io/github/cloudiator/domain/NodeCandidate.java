@@ -18,24 +18,19 @@
 
 package io.github.cloudiator.domain;
 
-import de.uniulm.omi.cloudiator.sword.domain.Cloud;
-import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
-import de.uniulm.omi.cloudiator.sword.domain.Image;
-import de.uniulm.omi.cloudiator.sword.domain.Location;
-
 public interface NodeCandidate {
 
   String id();
 
   NodeCandidateType type();
 
-  Cloud cloud();
+  ExtendedCloud cloud();
 
-  Image image();
+  DiscoveredImage image();
 
-  HardwareFlavor hardware();
+  DiscoveredHardware hardware();
 
-  Location location();
+  DiscoveredLocation location();
 
   double price();
 
