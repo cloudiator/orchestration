@@ -47,7 +47,7 @@ public class InstallerHelper {
 
     static InstallationInstructions getInstallationInstructionsFromServer(Node node, String urlStr) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
         // Copy node info into map
-        Map<String,String> nodeInfo = new HashMap<>();
+        Map<String, String> nodeInfo = new HashMap<>();
         nodeInfo.put("id", node.id());
         nodeInfo.put("name", node.name());
         nodeInfo.put("type", node.type().name());
@@ -57,19 +57,35 @@ public class InstallerHelper {
         LOGGER.debug("Node info to send to EMS: {}", nodeInfo);
 
         // Contact server to retrieve installation instructions for node
+        return getInstallationInstructionsFromServer(nodeInfo, urlStr, getKeystoreConfiguration());
+    }
+
+    protected static Properties getKeystoreConfiguration() {
+        Properties props = new Properties();
+        props.setProperty("installer.ems.keystore.file", Configuration.conf().getString("installer.ems.keystore.file"));
+        props.setProperty("installer.ems.keystore.type", Configuration.conf().getString("installer.ems.keystore.type"));
+        props.setProperty("installer.ems.keystore.password", Configuration.conf().getString("installer.ems.keystore.password"));
+        props.setProperty("installer.ems.keystore.key-password", Configuration.conf().getString("installer.ems.keystore.key-password"));
+        props.setProperty("installer.ems.truststore.file", Configuration.conf().getString("installer.ems.truststore.file"));
+        props.setProperty("installer.ems.truststore.type", Configuration.conf().getString("installer.ems.truststore.type"));
+        props.setProperty("installer.ems.truststore.password", Configuration.conf().getString("installer.ems.truststore.password"));
+        return props;
+    }
+
+    protected static InstallationInstructions getInstallationInstructionsFromServer(Map<String, String> nodeInfo, String urlStr, Properties keystoreConfig) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
         LOGGER.debug("Contacting server: {}", urlStr);
         Response response;
         if (urlStr.toLowerCase().toLowerCase().startsWith("https:")) {
             LOGGER.debug("HTTPS will be used to contact EMS server");
 
             // Get keystore and truststore settings
-            String keyStoreFile = Configuration.conf().getString("installer.ems.keystore.file");
-            String keyStoreType = Configuration.conf().getString("installer.ems.keystore.type");
-            String keyStorePassword = Configuration.conf().getString("installer.ems.keystore.password");
-            String keyStoreKeyPassword = Configuration.conf().getString("installer.ems.keystore.key-password");
-            String trustStoreFile = Configuration.conf().getString("installer.ems.truststore.file");
-            String trustStoreType = Configuration.conf().getString("installer.ems.truststore.type");
-            String trustStorePassword = Configuration.conf().getString("installer.ems.truststore.password");
+            String keyStoreFile = keystoreConfig.getProperty("installer.ems.keystore.file");
+            String keyStoreType = keystoreConfig.getProperty("installer.ems.keystore.type");
+            String keyStorePassword = keystoreConfig.getProperty("installer.ems.keystore.password");
+            String keyStoreKeyPassword = keystoreConfig.getProperty("installer.ems.keystore.key-password");
+            String trustStoreFile = keystoreConfig.getProperty("installer.ems.truststore.file");
+            String trustStoreType = keystoreConfig.getProperty("installer.ems.truststore.type");
+            String trustStorePassword = keystoreConfig.getProperty("installer.ems.truststore.password");
             LOGGER.debug("Keystore and Truststore configuration:");
             LOGGER.debug("   Keystore:   type={}, file={}", keyStoreType, keyStoreFile);
             LOGGER.debug("   Truststore: type={}, file={}", trustStoreType, trustStoreFile);
@@ -110,7 +126,7 @@ public class InstallerHelper {
 
         int statusCode = response.getStatus();
         if (statusCode < 200 || statusCode > 299) {
-            LOGGER.error("Contacting server failed: status={}, reason={}", statusCode, response.getStatusInfo().getReasonPhrase());
+            LOGGER.error("Contacting EMS server failed: status={}, reason={}", statusCode, response.getStatusInfo().getReasonPhrase());
             return null;
         }
 
