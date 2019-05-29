@@ -360,31 +360,27 @@ public class UnixInstaller extends AbstractInstaller {
       String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
 
       if (StringUtils.isNotBlank(emsUrl)) {
-        try {
-          // Append API-key
-          if (StringUtils.isNotBlank(emsApiKey)) {
-            emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
-          }
-          LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
-
-          // Contact EMS to get EMS Client installation instructions for this node
-          LOGGER.debug(String.format(
-                  "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
-                  node.id(), emsUrl));
-          InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
-                  .getInstallationInstructionsFromServer(node, emsUrl);
-          LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
-                  installationInstructions));
-
-          // Execute installation instructions
-          LOGGER.debug(
-                  String.format("Executing EMS Client installation instructions on node %s", node.id()));
-          InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
-
-          LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
-        } catch (Exception e) {
-          LOGGER.error("EMS Client installation failed:\n", e);
+        // Append API-key
+        if (StringUtils.isNotBlank(emsApiKey)) {
+          emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
         }
+        LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
+        // Contact EMS to get EMS Client installation instructions for this node
+        LOGGER.debug(String.format(
+            "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
+            node.id(), emsUrl));
+        InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
+            .getInstallationInstructionsFromServer(node, emsUrl);
+        LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
+            installationInstructions));
+
+        // Execute installation instructions
+        LOGGER.debug(
+            String.format("Executing EMS Client installation instructions on node %s", node.id()));
+        InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
+
+        LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
       } else {
         LOGGER.warn(String.format("EMS Client installation is switched off"));
       }
