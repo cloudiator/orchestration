@@ -25,6 +25,8 @@ import io.github.cloudiator.domain.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -84,9 +86,12 @@ public class InstallerHelper {
             }
             LOGGER.debug("Truststore loaded: entries={}", trustStore.size());
 
+            // Create a hostname verifier instance
+            HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+
             response = ClientBuilder
                     .newBuilder()
-                    //.hostnameVerifier(new DefaultHostnameVerifier())
+                    .hostnameVerifier(hostnameVerifier)
                     .keyStore(keyStore, keyStoreKeyPassword)
                     .trustStore(trustStore)
                     .build()
