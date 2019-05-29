@@ -20,7 +20,10 @@ package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import org.apache.cxf.jaxrs.client.spec.ClientBuilderImpl;
+import org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,12 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.*;
 
 
@@ -36,7 +45,7 @@ public class InstallerHelper {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(InstallerHelper.class);
 
-    static InstallationInstructions getInstallationInstructionsFromServer(Node node, String urlStr) {
+    static InstallationInstructions getInstallationInstructionsFromServer(Node node, String urlStr) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         // Copy node info into map
         Map<String,String> nodeInfo = new HashMap<>();
         nodeInfo.put("id", node.id());
@@ -49,11 +58,51 @@ public class InstallerHelper {
 
         // Contact server to retrieve installation instructions for node
         LOGGER.debug("Contacting server: {}", urlStr);
-        Response response = ClientBuilder
-                .newClient()
-                .target(urlStr)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(nodeInfo));
+        Response response;
+        if (urlStr.startsWith("https:")) {
+            LOGGER.debug("HTTPS will be used to contact EMS server");
+
+            // Get keystore and truststore settings
+            String keyStoreFile = Configuration.conf().getString("installer.ems.keystore.file");
+            String keyStoreType = Configuration.conf().getString("installer.ems.keystore.type");
+            String keyStorePassword = Configuration.conf().getString("installer.ems.keystore.password");
+            String keyStoreKeyPassword = Configuration.conf().getString("installer.ems.keystore.key-password");
+            String trustStoreFile = Configuration.conf().getString("installer.ems.truststore.file");
+            String trustStoreType = Configuration.conf().getString("installer.ems.truststore.type");
+            String trustStorePassword = Configuration.conf().getString("installer.ems.truststore.password");
+            LOGGER.debug("Keystore and Truststore configuration:");
+            LOGGER.debug("   Keystore:   type={}, file={}", keyStoreType, keyStoreFile);
+            LOGGER.debug("   Truststore: type={}, file={}", trustStoreType, trustStoreFile);
+
+            // Load keystore and truststore
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            try (FileInputStream fis = new FileInputStream(keyStoreFile)) {
+                keyStore.load(fis, keyStorePassword.toCharArray());
+            }
+            LOGGER.debug("Keystore loaded: entries={}", keyStore.size());
+            KeyStore trustStore = KeyStore.getInstance(trustStoreType);
+            try (FileInputStream fis = new FileInputStream(trustStoreFile)) {
+                trustStore.load(fis, trustStorePassword.toCharArray());
+            }
+            LOGGER.debug("Truststore loaded: entries={}", trustStore.size());
+
+            response = ClientBuilderImpl
+                    .newBuilder()
+                    .hostnameVerifier(new DefaultHostnameVerifier())
+                    .keyStore(keyStore, keyStoreKeyPassword)
+                    .trustStore(trustStore)
+                    .build()
+                    .target(urlStr)
+                    .request(MediaType.APPLICATION_JSON)
+                    .post(Entity.json(nodeInfo));
+        } else {
+            LOGGER.debug("Http will be used to contact EMS server");
+            response = ClientBuilder
+                    .newClient()
+                    .target(urlStr)
+                    .request(MediaType.APPLICATION_JSON)
+                    .post(Entity.json(nodeInfo));
+        }
         LOGGER.debug("Server response: {}", response);
 
         int statusCode = response.getStatus();
