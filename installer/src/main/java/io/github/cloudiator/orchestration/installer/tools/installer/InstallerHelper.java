@@ -126,8 +126,9 @@ public class InstallerHelper {
 
         int statusCode = response.getStatus();
         if (statusCode < 200 || statusCode > 299) {
-            LOGGER.error("Contacting EMS server failed: status={}, reason={}", statusCode, response.getStatusInfo().getReasonPhrase());
-            return null;
+            String mesg = String.format("Contacting to EMS server failed: status=%d, reason=%s", statusCode, response.getStatusInfo().getReasonPhrase());
+            LOGGER.error(mesg);
+            throw new IOException(mesg);
         }
 
         // Convert server response to InstallationInstructions
