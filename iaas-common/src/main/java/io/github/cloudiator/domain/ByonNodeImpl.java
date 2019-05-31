@@ -29,7 +29,7 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
 
   private volatile boolean allocated;
 
-  ByonNodeImpl(NodeProperties nodeProperties,
+  ByonNodeImpl(NodeProperties nodeProperties, String userId,
       @Nullable LoginCredential loginCredential,
       Set<IpAddress> ipAddresses, String id,
       String name, @Nullable String diagnostic,
@@ -37,7 +37,7 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
       @Nullable String nodeCandidate,
       boolean allocated) {
 
-    super(nodeProperties, loginCredential, NodeType.BYON, ipAddresses, id, name,
+    super(nodeProperties, userId, loginCredential, NodeType.BYON, ipAddresses, id, name,
         diagnostic, reason, nodeCandidate);
     this.allocated = allocated;
   }

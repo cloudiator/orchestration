@@ -33,6 +33,7 @@ import java.util.UUID;
 public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   protected String id;
+  protected String userId;
   protected NodeProperties nodeProperties;
   protected LoginCredential loginCredential;
   protected NodeType nodeType;
@@ -48,6 +49,7 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
 
   protected AbstractNodeBuilder(AbstractNode node) {
     id = node.id();
+    userId = node.userId();
     nodeProperties = node.nodeProperties();
     loginCredential = node.loginCredential().orElse(null);
     nodeType = node.type();
@@ -102,6 +104,11 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
 
   public T id(String id) {
     this.id = id;
+    return self();
+  }
+
+  public T userId(String userId) {
+    this.userId = userId;
     return self();
   }
 

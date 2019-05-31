@@ -28,6 +28,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
             .reason(wrapper.reason)
             .nodeCandidate(wrapper.nodeCandidate)
             .id(wrapper.id)
+            .userId(wrapper.userId)
             .allocated(allocated)
             .build();
 
@@ -52,6 +53,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
             .reason(wrapper.reason)
             .nodeCandidate(wrapper.nodeCandidate)
             .id(wrapper.id)
+            .userId(wrapper.userId)
             .state(state)
             .build();
 
@@ -67,8 +69,9 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
     private final String diagnostic;
     private final String reason;
     private final String nodeCandidate;
-
     private final  String id;
+    private final  String userId;
+
     private CommonFieldsWrapper(AbstractNode aNode) {
       nodeProperties = aNode.nodeProperties();
       loginCredential = aNode.loginCredential().orElse(null);
@@ -79,6 +82,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
       reason = aNode.reason().orElse(null);
       nodeCandidate = aNode.nodeCandidate().orElse(null);
       id = aNode.id();
+      userId = aNode.userId();
     }
   }
 }

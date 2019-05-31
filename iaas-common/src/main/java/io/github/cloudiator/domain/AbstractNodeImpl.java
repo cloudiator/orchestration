@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 public class AbstractNodeImpl implements AbstractNode {
 
   private final String id;
+  private final String userId;
   private final NodeProperties nodeProperties;
   @Nullable
   private final LoginCredential loginCredential;
@@ -55,6 +56,7 @@ public class AbstractNodeImpl implements AbstractNode {
     addresses.add(address);
 
     this.id = null;
+    this.userId = null;
     this.nodeProperties = defaultProps;
     this.loginCredential = null;
     this.nodeType = NodeType.UNKOWN;
@@ -65,7 +67,7 @@ public class AbstractNodeImpl implements AbstractNode {
     this.nodeCandidate = null;
   }
 
-  AbstractNodeImpl(NodeProperties nodeProperties,
+  AbstractNodeImpl(NodeProperties nodeProperties, String userId,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
       Set<IpAddress> ipAddresses, String id, String name, @Nullable String diagnostic,
       @Nullable String reason, @Nullable String nodeCandidate) {
@@ -75,6 +77,7 @@ public class AbstractNodeImpl implements AbstractNode {
     checkNotNull(ipAddresses, "ipAddresses is null");
 
     this.id = id;
+    this.userId = userId;
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
     this.nodeType = nodeType;
@@ -88,6 +91,11 @@ public class AbstractNodeImpl implements AbstractNode {
   @Override
   public String id() {
     return id;
+  }
+
+  @Override
+  public String userId() {
+    return userId;
   }
 
   @Nullable
@@ -188,6 +196,7 @@ public class AbstractNodeImpl implements AbstractNode {
     }
     ByonNode that = (ByonNode) o;
     return Objects.equals(id, that.id()) &&
+        Objects.equals(userId, that.userId()) &&
         Objects.equals(nodeProperties, that.nodeProperties()) &&
         Objects.equals(loginCredential, that.loginCredential()) &&
         Objects.equals(nodeType, that.type()) &&
@@ -203,6 +212,7 @@ public class AbstractNodeImpl implements AbstractNode {
     String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
         .add("id", id)
+        .add("userId", userId)
         .add("properties", nodeProperties)
         .add("loginCredential", loginCredential)
         .add("type", nodeType)

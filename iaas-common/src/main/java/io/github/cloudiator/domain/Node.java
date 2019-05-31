@@ -23,8 +23,6 @@ import java.util.Optional;
 
 public interface Node extends AbstractNode, Stateful<NodeState> {
 
-  String userId();
-
   Optional<String> originId();
 
   @Override

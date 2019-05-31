@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 public class NodeImpl extends AbstractNodeImpl implements Node {
 
   private final NodeState nodeState;
-  private final String userId;
   @Nullable
   private final String originId;
 
@@ -38,17 +37,11 @@ public class NodeImpl extends AbstractNodeImpl implements Node {
       Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
       String userId, @Nullable String diagnostic, @Nullable String reason,
       @Nullable String nodeCandidate, @Nullable String originId) {
-    super(nodeProperties, loginCredential, nodeType, ipAddresses, id,
+    super(nodeProperties, userId, loginCredential, nodeType, ipAddresses, id,
         name, diagnostic, reason, nodeCandidate);
 
     this.nodeState = nodeState;
-    this.userId = userId;
     this.originId = originId;
-  }
-
-  @Override
-  public String userId() {
-    return userId;
   }
 
   public NodeState state() {
@@ -71,7 +64,6 @@ public class NodeImpl extends AbstractNodeImpl implements Node {
     Node that = (Node) o;
     return super.equals(o) &&
         Objects.equals(nodeState, that.state()) &&
-        Objects.equals(userId, that.userId()) &&
         Objects.equals(originId, that.originId());
   }
 
@@ -79,7 +71,6 @@ public class NodeImpl extends AbstractNodeImpl implements Node {
   public String toString() {
     String baseStr = super.toString();
     String headStr = MoreObjects.toStringHelper(this)
-        .add("userId", userId)
         .add("state", nodeState)
         .add("originId", originId)
         .toString();

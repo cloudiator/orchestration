@@ -43,9 +43,8 @@ public class NodeCandidateMessageRepository {
 
   public NodeCandidate getById(String userId, String id) {
     try {
-      NodeCandidateRequestMessage msg = (userId == null) ?
-          NodeCandidateRequestMessage.newBuilder().setId(id).build()
-          : NodeCandidateRequestMessage.newBuilder().setUserId(userId).setId(id).build();
+      NodeCandidateRequestMessage msg =
+          NodeCandidateRequestMessage.newBuilder().setUserId(userId).setId(id).build();
       final NodeCandidateRequestResponse nodeCandidateRequestResponse = matchmakingService
           .requestNodes(msg);
       return nodeCandidateRequestResponse.getCandidatesList().stream().map(NODE_CANDIDATE_CONVERTER)

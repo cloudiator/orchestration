@@ -35,7 +35,6 @@ import java.util.UUID;
 public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
   private NodeState state;
-  private String userId;
   private String originId;
 
   private NodeBuilder() {
@@ -45,7 +44,6 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
   private NodeBuilder(Node node) {
     super(node);
     state = node.state();
-    userId = node.userId();
     originId = node.originId().orElse(null);
   }
 
@@ -80,17 +78,10 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     return this;
   }
 
-  public NodeBuilder userId(String userId) {
-    this.userId = userId;
-    return this;
-  }
-
   public NodeBuilder originId(String originId) {
     this.originId = originId;
     return this;
   }
-
-
 
   @Override
   protected NodeBuilder self() {

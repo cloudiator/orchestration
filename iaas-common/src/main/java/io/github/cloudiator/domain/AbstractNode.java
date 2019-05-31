@@ -32,6 +32,8 @@ public interface AbstractNode extends Identifiable {
   @Override
   String id();
 
+  String userId();
+
   String name();
 
   NodeProperties nodeProperties();

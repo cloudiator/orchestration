@@ -67,7 +67,7 @@ public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
 
   @Override
   public ByonNode build() {
-    return new ByonNodeImpl(nodeProperties, loginCredential, ipAddresses, id,
+    return new ByonNodeImpl(nodeProperties, userId, loginCredential, ipAddresses, id,
         name, diagnostic, reason, nodeCandidate, allocated);
   }
 }
