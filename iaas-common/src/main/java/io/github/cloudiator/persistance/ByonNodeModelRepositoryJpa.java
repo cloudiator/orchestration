@@ -39,14 +39,29 @@ class ByonNodeModelRepositoryJpa  extends BaseModelRepositoryJpa<ByonNodeModel> 
   }
 
   @Override
-  public List<ByonNodeModel> get() {
+  public List<ByonNodeModel> getByTenant(String userId) {
+    checkNotNull(userId, "userId is null");
     String queryString = String
         .format(
-            "select node from %s",
+            "select byonNode from %s byonNode inner join byonNode.tenantModel tenant where tenant.userId = :userId",
             type.getName());
-    Query query = em().createQuery(queryString);
+    Query query = em().createQuery(queryString).setParameter("userId", userId);
     //noinspection unchecked
     return query.getResultList();
+  }
+
+  @Nullable
+  @Override
+  public ByonNodeModel getByTenantAndDomainId(String userId, String domainId) {
+    checkNotNull(userId, "userId is null");
+    checkNotNull(domainId, "domainId is null");
+    String queryString = String.format(
+        "select byonNode from %s byonNode inner join byonNode.tenantModel tenant where tenant.userId = :userId and byonNode.domainId = :domainId",
+        type.getName());
+    Query query = em().createQuery(queryString).setParameter("userId", userId)
+        .setParameter("domainId", domainId);
+    @SuppressWarnings("unchecked") List<ByonNodeModel> byonNodes = query.getResultList();
+    return byonNodes.stream().findFirst().orElse(null);
   }
 
   @Nullable
@@ -54,9 +69,9 @@ class ByonNodeModelRepositoryJpa  extends BaseModelRepositoryJpa<ByonNodeModel> 
   public ByonNodeModel getByDomainId(String domainId) {
     checkNotNull(domainId, "domainId is null");
     String queryString = String
-        .format("select node from %s node where node.domainId = :domainId", type.getName());
+        .format("select byonNode from %s byonNode where byonNode.domainId = :domainId", type.getName());
     Query query = em().createQuery(queryString).setParameter("domainId", domainId);
-    @SuppressWarnings("unchecked") List<ByonNodeModel> nodes = query.getResultList();
-    return nodes.stream().findFirst().orElse(null);
+    @SuppressWarnings("unchecked") List<ByonNodeModel> byonNodes = query.getResultList();
+    return byonNodes.stream().findFirst().orElse(null);
   }
 }

@@ -27,6 +27,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 @Entity
@@ -37,6 +38,9 @@ class ByonNodeModel extends Model {
 
   @Column(nullable = false)
   private String name;
+
+  @ManyToOne(optional = false)
+  private TenantModel tenantModel;
 
   @Column(nullable = false)
   private boolean allocated;
@@ -71,7 +75,7 @@ class ByonNodeModel extends Model {
 
   }
 
-  ByonNodeModel(String domainId, String name,
+  ByonNodeModel(String domainId, String name, TenantModel tenantModel,
       NodePropertiesModel nodeProperties,
       @Nullable LoginCredentialModel loginCredential,
       @Nullable IpGroupModel ipGroup, @Nullable String nodeCandidate,
@@ -79,10 +83,12 @@ class ByonNodeModel extends Model {
 
     checkNotNull(domainId, "domainId is null");
     checkNotNull(name, "name is null");
+    checkNotNull(tenantModel, "tenantModel is null");
     checkNotNull(nodeProperties, "nodeProperties is null");
 
     this.domainId = domainId;
     this.name = name;
+    this.tenantModel = tenantModel;
     this.allocated = false;
     this.nodeProperties = nodeProperties;
     this.loginCredential = loginCredential;
@@ -91,6 +97,10 @@ class ByonNodeModel extends Model {
     this.diagnostic = diagnostic;
     this.reason = reason;
 
+  }
+
+  public TenantModel getTenantModel() {
+    return tenantModel;
   }
 
   public NodePropertiesModel getNodeProperties() {

@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 abstract class AbstractNodeDomainRepository {
 
+  protected final TenantModelRepository tenantModelRepository;
   protected final OperatingSystemDomainRepository operatingSystemDomainRepository;
   protected final GeoLocationDomainRepository geoLocationDomainRepository;
   protected final NodePropertiesModelRepository nodePropertiesModelRepository;
@@ -34,6 +35,7 @@ abstract class AbstractNodeDomainRepository {
 
   @Inject
   public AbstractNodeDomainRepository() {
+    this.tenantModelRepository = null;
     this.operatingSystemDomainRepository = null;
     this.geoLocationDomainRepository = null;
     this.nodePropertiesModelRepository = null;
@@ -43,11 +45,13 @@ abstract class AbstractNodeDomainRepository {
 
   @Inject
   public AbstractNodeDomainRepository(
+      TenantModelRepository tenantModelRepository,
       OperatingSystemDomainRepository operatingSystemDomainRepository,
       GeoLocationDomainRepository geoLocationDomainRepository,
       NodePropertiesModelRepository nodePropertiesModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository) {
+    this.tenantModelRepository = tenantModelRepository;
     this.operatingSystemDomainRepository = operatingSystemDomainRepository;
     this.geoLocationDomainRepository = geoLocationDomainRepository;
     this.nodePropertiesModelRepository = nodePropertiesModelRepository;

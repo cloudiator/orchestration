@@ -37,45 +37,35 @@ public class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
       ByonNodeModelRepository byonNodeModelRepository,
       OperatingSystemDomainRepository operatingSystemDomainRepository,
       GeoLocationDomainRepository geoLocationDomainRepository,
+      TenantModelRepository tenantModelRepository,
       NodePropertiesModelRepository nodePropertiesModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository) {
-    super(operatingSystemDomainRepository, geoLocationDomainRepository,
+    super(tenantModelRepository, operatingSystemDomainRepository, geoLocationDomainRepository,
         nodePropertiesModelRepository, loginCredentialDomainRepository,
         ipAddressDomainRepository);
     this.byonNodeModelRepository = byonNodeModelRepository;
   }
 
-  public ByonNode findById(String id) {
-    return byonNodeConverter.apply(byonNodeModelRepository.getByDomainId(id));
+  public ByonNode findByTenantAndId(String userId, String nodeId) {
+    return byonNodeConverter.apply(byonNodeModelRepository.getByTenantAndDomainId(userId, nodeId));
   }
 
-  public List<ByonNode> find() {
-    return byonNodeModelRepository.get().stream().map(byonNodeConverter)
+  public List<ByonNode> findByTenant(String userId) {
+    return byonNodeModelRepository.getByTenant(userId).stream().map(byonNodeConverter)
         .collect(Collectors.toList());
   }
 
   ByonNodeModel saveAndGet(ByonNode domain) {
-    boolean found = false;
-    List<ByonNode> byonNodes = find();
+    ByonNodeModel byonNodeModel = byonNodeModelRepository.getByTenantAndDomainId(domain.userId(), domain.id());
 
-    ByonNodeModel byonNodeModel = null;
-    //equality not determined via userId and id, see NodeDomainrepository,
-    //but on ByonNode object level
-    for(ByonNode node: byonNodes) {
-      if(node.equals(domain)) {
-        byonNodeModel = createModel(node);
-        found = true;
-      }
-    }
-
-    if(found == false) {
+    if (byonNodeModel == null) {
       byonNodeModel = createModel(domain);
     } else {
       byonNodeModel = updateModel(domain, byonNodeModel);
     }
-
     byonNodeModelRepository.save(byonNodeModel);
+
     return byonNodeModel;
   }
 
@@ -89,26 +79,18 @@ public class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
     //todo: delete group when last member leaves?
 
     checkNotNull(id, "id is null");
+
     ByonNodeModel byDomainId = byonNodeModelRepository.getByDomainId(id);
 
-    checkState(byDomainId != null, "Node with the id %s does not exist.", id);
+    checkState(byDomainId != null, "ByonNode with the id %s does not exist.", id);
     byonNodeModelRepository.delete(byDomainId);
-  }
-
-  private ByonNodeModel createModel(ByonNode domain) {
-
-    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
-    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
-    final IpGroupModel ipGroupModel = generateIpModel(domain);
-
-    return new ByonNodeModel(domain.id(), domain.name(), nodePropertiesModel,
-        loginCredentialModel, ipGroupModel, domain.nodeCandidate().orElse(null),
-        domain.diagnostic().orElse(null), domain.reason().orElse(null));
   }
 
   private ByonNodeModel updateModel(ByonNode domain, ByonNodeModel byonNodeModel) {
 
     checkState(domain.id().equals(byonNodeModel.getDomainId()), "domain id does not match");
+    checkState(
+        domain.userId().equals(byonNodeModel.getTenantModel().getUserId()), "user id does not match");
 
     final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
     final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
@@ -124,4 +106,19 @@ public class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
 
     return byonNodeModel;
   }
+
+  private ByonNodeModel createModel(ByonNode domain) {
+
+    final TenantModel tenantModel = tenantModelRepository.createOrGet(domain.userId());
+
+    final NodePropertiesModel nodePropertiesModel = generateNodeProperties(domain);
+    final LoginCredentialModel loginCredentialModel = generateLoginCredential(domain);
+    final IpGroupModel ipGroupModel = generateIpModel(domain);
+
+    return new ByonNodeModel(domain.id(), domain.name(), tenantModel,
+        nodePropertiesModel, loginCredentialModel,
+        ipGroupModel, domain.nodeCandidate().orElse(null),
+        domain.diagnostic().orElse(null), domain.reason().orElse(null));
+  }
+
 }

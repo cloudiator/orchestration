@@ -23,7 +23,10 @@ import javax.annotation.Nullable;
 
 interface ByonNodeModelRepository extends ModelRepository<ByonNodeModel> {
 
-  List<ByonNodeModel> get();
+  List<ByonNodeModel> getByTenant(String userId);
+
+  @Nullable
+  ByonNodeModel getByTenantAndDomainId(String userId, String domainId);
 
   @Nullable
   ByonNodeModel getByDomainId(String domainId);

@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 public class NodeDomainRepository extends AbstractNodeDomainRepository {
 
   private final NodeModelRepository nodeModelRepository;
-  private final TenantModelRepository tenantModelRepository;
   private NodeConverter nodeConverter = new NodeConverter();
 
   @Inject
@@ -43,11 +42,10 @@ public class NodeDomainRepository extends AbstractNodeDomainRepository {
       TenantModelRepository tenantModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository) {
-      super(operatingSystemDomainRepository, geoLocationDomainRepository,
+      super(tenantModelRepository, operatingSystemDomainRepository, geoLocationDomainRepository,
           nodePropertiesModelRepository, loginCredentialDomainRepository,
           ipAddressDomainRepository);
       this.nodeModelRepository = nodeModelRepository;
-      this.tenantModelRepository = tenantModelRepository;
   }
 
   public Node findByTenantAndId(String userId, String nodeId) {
