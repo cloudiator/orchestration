@@ -71,17 +71,19 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                         + "is not possible due to the requesting node state being allocated",
                     data.getName()));
             String id = messageNode.getId();
-            checkState(ByonOperations.allocatedStateChanges(domainRepository, id, false),
+            String userId = messageNode.getUserId();
+            checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId, false),
                 ByonOperations.wrongStateChangeMessage(false, id));
-            LOGGER.debug(String.format("%s retrieved request to delete"
-                + "byon node with id %s.", this, id));
+            LOGGER.debug(String.format("%s retrieved request to delete "
+                + "byon node with id %s and userId %s, Node can now "
+                + "again get allocated", this, id, userId));
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-            deleteByonNode(node);
+            deleteByonNode(userId, node);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
             LOGGER.info("response sent.");
-            publisher.publishEvent(data, ByonIO.UPDATE);
+            publisher.publishEvent(userId, data, ByonIO.UPDATE);
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
             sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
@@ -92,33 +94,36 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         });
   }
 
-  private void isDeletable(String id) throws UsageException {
+  private void isDeletable(String id, String userId) throws UsageException {
     boolean matchingId = false;
+    boolean matchingUserId = false;
     boolean allocated = false;
-    List<ByonNode> nodes = domainRepository.find();
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
-    for(ByonNode node: nodes) {
-      matchingId = node.id().equals(id);
-      allocated = node.allocated();
-      if(matchingId && allocated) {
-        return;
-      }
+    matchingId = foundNode.id().equals(id);
+    matchingUserId = foundNode.userId().equals(userId);
+    allocated = foundNode.allocated();
+    if(matchingId && matchingUserId && allocated) {
+      return;
     }
 
     if (!matchingId) {
-      throw new UsageException(String.format("%s cannot delete node, as id %s"
+      throw new UsageException(String.format("%s cannot delete node, as id %s "
           + "is unknown", this, id));
+    } else if (!matchingUserId) {
+      throw new UsageException(String.format("%s cannot delete node, as userId %s "
+          + "is unknown", this, userId));
     }
     else {
-      throw new UsageException(String.format("%s cannot delete node, as node"
+      throw new UsageException(String.format("%s cannot delete node, as node "
           + "is already deleted.", this, id));
     }
   }
 
   @Transactional
-  private void deleteByonNode(ByonNode node) throws UsageException {
+  private void deleteByonNode(String userId, ByonNode node) throws UsageException {
     //allocated node must reside in the system
-    isDeletable(node.id());
+    isDeletable(node.id(), userId);
     domainRepository.save(node);
   }
 

@@ -62,13 +62,13 @@ public class AddByonNodeSubscriber implements Runnable {
           try {
             Byon.ByonData data = request.getByonRequest();
             checkState(!data.getAllocated(),"cannot add a node with state allocated");
-            Byon.ByonNode byonNode = ByonOperations.buildMessageNode(data);
+            Byon.ByonNode byonNode = ByonOperations.buildMessageNode(request.getUserId(), data);
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(byonNode);
             persistNode(node);
             LOGGER.info("byon node registered. sending response");
             sendSuccessResponse(requestId, node);
             LOGGER.info("response sent.");
-            publisher.publishEvent(data, ByonIO.ADD);
+            publisher.publishEvent(request.getUserId(), data, ByonIO.ADD);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             AddByonNodeSubscriber.this.sendErrorResponse(requestId,

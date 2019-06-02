@@ -68,23 +68,24 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                 Byon.ByonNode messageNode = request.getByonNode();
                 Byon.ByonData data = messageNode.getNodeData();
                 checkState(
-                    data.getAllocated(),
+                    !data.getAllocated(),
                     String.format(
                         "setting %s node's state to allocated"
                             + "is not possible due to the requesting node state being unallocated",
                         data.getName()));
                 String id = messageNode.getId();
-                checkState(ByonOperations.allocatedStateChanges(domainRepository, id, true),
+                String userId = messageNode.getUserId();
+                checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId,true),
                     ByonOperations.wrongStateChangeMessage(true, id));
                 LOGGER.debug(
                     String.format(
-                        "%s retrieved request to allocate" + "byon node with id %s.", this, id));
+                        "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
                 ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
                 allocateByonNode(node);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
                 LOGGER.info("response sent.");
-                publisher.publishEvent(data, ByonIO.UPDATE);
+                publisher.publishEvent(userId, data, ByonIO.UPDATE);
               } catch (UsageException ex) {
                 LOGGER.error("Usage Exception occurred.", ex);
                 sendErrorResponse(
@@ -99,21 +100,25 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             });
   }
 
-  private void isAllocatable(String id) throws UsageException {
+  private void isAllocatable(String id, String userId) throws UsageException {
     boolean matchingId = false;
+    boolean matchingUserId = false;
     boolean unAllocated = false;
-    List<ByonNode> nodes = domainRepository.find();
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
-    for(ByonNode node: nodes) {
-      matchingId = node.id().equals(id);
-      unAllocated = !node.allocated();
-      if(matchingId && unAllocated) {
-        return;
-      }
+    matchingId = foundNode.id().equals(id);
+    matchingUserId = foundNode.userId().equals(userId);
+    unAllocated = !foundNode.allocated();
+
+    if(matchingId && matchingUserId && unAllocated) {
+      return;
     }
 
     if (!matchingId) {
       throw new UsageException(String.format("%s cannot allocate node, as id %s"
+          + "is unknown", this, id));
+    } else if (!matchingUserId) {
+      throw new UsageException(String.format("%s cannot allocate node, as userId %s"
           + "is unknown", this, id));
     }
     else {
@@ -125,7 +130,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
   @Transactional
   private void allocateByonNode(ByonNode node) throws UsageException {
     //unallocated node must reside in the system
-    isAllocatable(node.id());
+    isAllocatable(node.id(), node.userId());
     domainRepository.save(node);
   }
 

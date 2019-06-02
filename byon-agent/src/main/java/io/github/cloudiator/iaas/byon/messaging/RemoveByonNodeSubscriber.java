@@ -60,22 +60,23 @@ public class RemoveByonNodeSubscriber  implements Runnable {
         RemoveByonNodeRequest.parser(),
         (requestId, request) -> {
           try {
-            String id = request.getId();
+            final String id = request.getId();
+            final String userId = request.getUserId();
             checkState(
-                !ByonOperations.isAllocated(domainRepository, id),
+                !ByonOperations.isAllocated(domainRepository, id, userId),
                 String.format(
-                    "Cannot delete node with id %s"
+                    "Cannot remove node with id %s "
                         + "as it seems to be allocated at the moment", id));
-            LOGGER.debug(String.format("%s retrieved request to delete"
+            LOGGER.debug(String.format("%s retrieved request to remove "
                     + "byon node with id %s.", this, id));
-            deleteByonNode(id);
-            LOGGER.info("byon node deleted. sending response");
+            removeByonNode(id);
+            LOGGER.info("byon node removed. sending response");
             messageInterface.reply(requestId,
                 ByonNodeRemovedResponse.newBuilder().build());
-            // Set only id, unallocated and REMOVE as information
-            Byon.ByonData data = ByonData.newBuilder().setAllocated(false).build();
-            publisher.publishEvent(data, ByonIO.EVICT);
             LOGGER.info("response sent.");
+            // Set only id, userId, unallocated and REMOVE as information
+            Byon.ByonData data = ByonData.newBuilder().setAllocated(false).build();
+            publisher.publishEvent(userId, data, ByonIO.EVICT);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
@@ -84,7 +85,7 @@ public class RemoveByonNodeSubscriber  implements Runnable {
   }
 
   @Transactional
-  private void deleteByonNode(String id) {
+  private void removeByonNode(String id) {
     domainRepository.delete(id);
   }
 

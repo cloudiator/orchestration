@@ -24,6 +24,7 @@ import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.Byon;
@@ -58,8 +59,10 @@ public class ByonNodeQuerySubscriber implements Runnable {
         ByonNodeQueryRequest.parser(),
         (requestId, request) -> {
           try {
+            final String id = request.getId();
+            final String userId = request.getUserId();
             ByonEntities.QueryFilter filter = request.getFilter();
-            List<ByonNode> nodes = getFilteredNodes(filter);
+            List<ByonNode> nodes = getFilteredNodes(filter, id, userId);
             ByonNodeQueryResponse byonNodeQueryResponse = ByonNodeQueryResponse.newBuilder()
                 .addAllByonNode(nodes.stream().map(ByonToByonMessageConverter.INSTANCE::apply)
                     .collect(Collectors.toList())).build();
@@ -71,19 +74,31 @@ public class ByonNodeQuerySubscriber implements Runnable {
         });
   }
 
-  private List<ByonNode> getFilteredNodes(QueryFilter filter) {
+  private List<ByonNode> getFilteredNodes(QueryFilter filter, String id, String userId) {
+    List<ByonNode> returnNodes = new ArrayList<>();
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+
+    if (foundNode == null) {
+      return returnNodes;
+    }
+
     switch(filter) {
       case ALLOCATED:
-        return domainRepository.find().stream().filter(
-            byonNode -> byonNode.allocated() == true)
-            .collect((Collectors.toList()));
+        if (foundNode.allocated()) {
+          returnNodes.add(foundNode);
+        }
+        break;
       case UNALLOCATED:
-        return domainRepository.find().stream().filter(
-            byonNode -> byonNode.allocated() == false)
-            .collect((Collectors.toList()));
+        if (!foundNode.allocated()) {
+          returnNodes.add(foundNode);
+        }
+        break;
       default:
-        return domainRepository.find();
+        returnNodes.add(foundNode);
+        break;
     }
+
+    return returnNodes;
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {

@@ -15,16 +15,17 @@ public class ByonOperations {
   private ByonOperations() {
   }
 
-  public static Byon.ByonNode buildMessageNode(Byon.ByonData data) {
+  public static Byon.ByonNode buildMessageNode(String userId, Byon.ByonData data) {
     return Byon.ByonNode.newBuilder()
         .setId(IdCreator.createId(data))
+        .setUserId(userId)
         .setNodeData(data)
         .build();
   }
 
 
-  public static boolean isAllocated(ByonNodeDomainRepository repository, String id) {
-    ByonNode node = repository.findById(id);
+  public static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
+    ByonNode node = repository.findByTenantAndId(userId, id);
 
     if(node == null) {
       LOGGER.error(String.format("Cannot check if node is allocated,"
@@ -35,9 +36,9 @@ public class ByonOperations {
     return node.allocated();
   }
 
-  public static boolean allocatedStateChanges(ByonNodeDomainRepository repository, String id,
+  public static boolean allocatedStateChanges(ByonNodeDomainRepository repository, String id, String userId,
       boolean newStateIsAllocated) {
-    final boolean allocated = isAllocated(repository, id);
+    final boolean allocated = isAllocated(repository, id, userId);
 
     return newStateIsAllocated != allocated;
   }
