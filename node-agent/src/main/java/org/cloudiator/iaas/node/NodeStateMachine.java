@@ -82,6 +82,7 @@ public class NodeStateMachine implements ErrorAwareStateMachine<Node, NodeState>
           public void post(NodeState from, Node node) {
 
             final NodeEvent nodeEvent = NodeEvent.newBuilder()
+                .setUserId(node.userId())
                 .setNode(NodeToNodeMessageConverter.INSTANCE.apply(node))
                 .setFrom(NodeToNodeMessageConverter.NODE_STATE_CONVERTER.apply(
                     from))
