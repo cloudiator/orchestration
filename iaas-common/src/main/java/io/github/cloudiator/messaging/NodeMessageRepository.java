@@ -18,14 +18,22 @@
 
 package io.github.cloudiator.messaging;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.util.StreamUtil;
 import io.github.cloudiator.domain.Node;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.cloudiator.messages.Node.NodeDeleteMessage;
+import org.cloudiator.messages.Node.NodeDeleteResponseMessage;
 import org.cloudiator.messages.Node.NodeQueryMessage;
 import org.cloudiator.messaging.ResponseException;
+import org.cloudiator.messaging.SettableFutureResponseCallback;
 import org.cloudiator.messaging.services.NodeService;
 
 public class NodeMessageRepository implements MessageRepository<Node> {
@@ -67,5 +75,24 @@ public class NodeMessageRepository implements MessageRepository<Node> {
     } catch (ResponseException e) {
       throw new IllegalStateException("Could not retrieve nodes.", e);
     }
+  }
+
+  public Future<?> delete(String userId, String nodeId) {
+
+    checkArgument(!Strings.isNullOrEmpty(userId), "userId is null or empty");
+    checkArgument(!Strings.isNullOrEmpty(nodeId), "nodeId is null or empty");
+
+    checkState(getById(userId, nodeId) != null,
+        String.format("Node with id %s does not exist for user %s.", nodeId, userId));
+
+    SettableFutureResponseCallback<NodeDeleteResponseMessage, NodeDeleteResponseMessage> futureResponseCallback = SettableFutureResponseCallback
+        .create();
+
+    nodeService
+        .deleteNodeAsync(NodeDeleteMessage.newBuilder().setNodeId(nodeId).setUserId(userId).build(),
+            futureResponseCallback);
+
+    return futureResponseCallback;
+
   }
 }
