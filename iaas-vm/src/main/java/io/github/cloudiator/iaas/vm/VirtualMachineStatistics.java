@@ -87,6 +87,10 @@ public class VirtualMachineStatistics {
           .addTag("api", cloud.api().providerName())
           .addTag("user", user);
 
+      if (cloud.endpoint().isPresent()) {
+        metricBuilder.addTag("endpoint", cloud.endpoint().get());
+      }
+
       if (virtualMachine.hardwareId().isPresent()) {
         metricBuilder.addTag("hardware", virtualMachine.hardwareId().get());
 
