@@ -75,45 +75,53 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
   @Override
   public void run() {
 
-    LOGGER.info(String.format("%s is running", this));
+    try {
 
-    final Iterable<VirtualMachine> remoteVirtualMachines = computeService.discoveryService()
-        .listVirtualMachines();
+      LOGGER.info(String.format("%s is running", this));
 
-    LOGGER.debug("Remotely existing virtual machines: " + StreamSupport
-        .stream(remoteVirtualMachines.spliterator(), false).map(Identifiable::id)
-        .collect(Collectors.toSet()));
+      final Iterable<VirtualMachine> remoteVirtualMachines = computeService.discoveryService()
+          .listVirtualMachines();
 
-    for (ExtendedVirtualMachine localVM : virtualMachineDomainRepository.findAll()
-        .stream().filter(
-            extendedVirtualMachine -> extendedVirtualMachine.state()
-                .equals(LocalVirtualMachineState.RUNNING)).collect(
-            Collectors.toSet())) {
+      LOGGER.debug("Remotely existing virtual machines: " + StreamSupport
+          .stream(remoteVirtualMachines.spliterator(), false).map(Identifiable::id)
+          .collect(Collectors.toSet()));
 
-      LOGGER.debug(
-          String.format("Checking if virtual machine with id %s still exists",
-              localVM.id()));
+      for (ExtendedVirtualMachine localVM : virtualMachineDomainRepository.findAll()
+          .stream().filter(
+              extendedVirtualMachine -> extendedVirtualMachine.state()
+                  .equals(LocalVirtualMachineState.RUNNING)).collect(
+              Collectors.toSet())) {
 
-      final boolean stillExists = checkIfStillExists(localVM, remoteVirtualMachines);
-
-      if (!stillExists) {
-        if (FAILED_IN_LAST_ITERATION.contains(localVM.id())) {
-          LOGGER
-              .warn(String.format("Virtual machine %s does not longer exist, marking it as failed.",
-                  localVM));
-          FAILED_IN_LAST_ITERATION.remove(localVM.id());
-          virtualMachineStateMachine.fail(localVM, new Object[0], null);
-        } else {
-          LOGGER.warn(String.format(
-              "Virtual machine %s failed for the first time. Checking again at the next iteration.",
-              localVM));
-          FAILED_IN_LAST_ITERATION.add(localVM.id());
-        }
-      } else {
         LOGGER.debug(
-            String.format("Virtual machine with id %s still exists.", localVM.id()));
-        FAILED_IN_LAST_ITERATION.remove(localVM.id());
+            String.format("Checking if virtual machine with id %s still exists",
+                localVM.id()));
+
+        final boolean stillExists = checkIfStillExists(localVM, remoteVirtualMachines);
+
+        if (!stillExists) {
+          if (FAILED_IN_LAST_ITERATION.contains(localVM.id())) {
+            LOGGER
+                .warn(
+                    String.format("Virtual machine %s does not longer exist, marking it as failed.",
+                        localVM));
+            FAILED_IN_LAST_ITERATION.remove(localVM.id());
+            virtualMachineStateMachine.fail(localVM, new Object[0], null);
+          } else {
+            LOGGER.warn(String.format(
+                "Virtual machine %s failed for the first time. Checking again at the next iteration.",
+                localVM));
+            FAILED_IN_LAST_ITERATION.add(localVM.id());
+          }
+        } else {
+          LOGGER.debug(
+              String.format("Virtual machine with id %s still exists.", localVM.id()));
+          FAILED_IN_LAST_ITERATION.remove(localVM.id());
+        }
       }
+    } catch (Exception e) {
+      LOGGER.error(String.format(
+          "%s encountered an unexpected exception: %s. Caught to allow further execution.",
+          this, e.getMessage()), e);
     }
 
   }
