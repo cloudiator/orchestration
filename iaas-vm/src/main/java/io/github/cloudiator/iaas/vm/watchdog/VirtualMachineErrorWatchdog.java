@@ -59,7 +59,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
 
   @Override
   public long period() {
-    return 2;
+    return 3;
   }
 
   @Override
