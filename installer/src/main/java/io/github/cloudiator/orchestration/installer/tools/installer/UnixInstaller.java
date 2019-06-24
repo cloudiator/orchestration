@@ -337,6 +337,31 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
   @Override
+  public void installHdfsDataNode() throws RemoteException {
+
+    LOGGER.debug(
+        String.format("Fetching and starting HDFS data node container on node %s", node.id()));
+
+    final String CONTAINER_NAME = "hdfs-datanode";
+
+    CommandTask startHdfsDataNodeContainer = new CommandTask(this.remoteConnection,
+        "sudo docker top " + CONTAINER_NAME + " || "
+            + " sudo docker run -d "
+            + " -e HDFS_NAMENODE_IPADDRESS=" + Configuration.conf().getString("installer.hdfs.namenode.ip")
+            + " -e HDFS_NAMENODE_PORT=" + Configuration.conf().getString("installer.hdfs.namenode.port")          
+            + " -p 8020:8020 -p 50070:50070 -p 9000:9000 "            
+            + " --rm "
+            + " --network host "
+            + " --name " + CONTAINER_NAME
+            + " cloudiator/hadoop-hdfs-datanode:latest ");
+
+    startHdfsDataNodeContainer.call();
+    LOGGER
+        .debug(String.format("Successfully started HDFS data node container on node %s", node.id()));
+
+  }
+  
+  @Override
   public void installEMS() throws RemoteException {
 
     // Print node information
