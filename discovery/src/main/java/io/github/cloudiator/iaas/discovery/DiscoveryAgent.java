@@ -29,6 +29,7 @@ import io.github.cloudiator.iaas.discovery.messaging.DiscoveryStatusSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.QuotaQuerySubscriber;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
@@ -75,6 +76,8 @@ public class DiscoveryAgent {
     final CloudQuerySubscriber cloudQuerySubscriber = injector
         .getInstance(CloudQuerySubscriber.class);
     cloudQuerySubscriber.run();
+
+    injector.getInstance(QuotaQuerySubscriber.class).run();
   }
 
 }
