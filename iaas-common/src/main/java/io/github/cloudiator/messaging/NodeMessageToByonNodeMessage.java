@@ -26,7 +26,7 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
   public NodeEntities.Node applyBack(Byon.ByonNode byonNode) {
     final ByonData data = byonNode.getNodeData();
     NodeState state = (data.getAllocated() == true) ? NodeState.NODE_STATE_RUNNING
-        : NodeState.UNRECOGNIZED;
+        : NodeState.NODE_STATE_PENDING;
     final NodeBuilder builder = NodeBuilder.newBuilder().id(byonNode.getId())
         .userId(byonNode.getUserId())
         .name(data.getName())
