@@ -20,6 +20,7 @@ package io.github.cloudiator.iaas.vm.watchdog;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
@@ -29,6 +30,7 @@ import io.github.cloudiator.domain.LocalVirtualMachineState;
 import io.github.cloudiator.iaas.vm.state.VirtualMachineStateMachine;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -72,6 +74,12 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
     return TimeUnit.MINUTES;
   }
 
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  List<ExtendedVirtualMachine> getVms() {
+    return virtualMachineDomainRepository.findAll();
+  }
+
   @Override
   public void run() {
 
@@ -86,7 +94,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
           .stream(remoteVirtualMachines.spliterator(), false).map(Identifiable::id)
           .collect(Collectors.toSet()));
 
-      for (ExtendedVirtualMachine localVM : virtualMachineDomainRepository.findAll()
+      for (ExtendedVirtualMachine localVM : getVms()
           .stream().filter(
               extendedVirtualMachine -> extendedVirtualMachine.state()
                   .equals(LocalVirtualMachineState.RUNNING)).collect(
