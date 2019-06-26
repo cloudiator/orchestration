@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.domain;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 
@@ -62,7 +63,10 @@ public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
 
   @Override
   public ByonNodeBuilder nodeType(NodeType nodeType) {
-    throw new IllegalArgumentException("No type is set constant to BYON");
+    checkNotNull(nodeType, "NodeType is null");
+    checkArgument(nodeType == NodeType.BYON, "NodeType must be byon");
+    this.nodeType = nodeType;
+    return this;
   }
 
   @Override
