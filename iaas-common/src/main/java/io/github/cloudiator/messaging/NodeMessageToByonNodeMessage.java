@@ -24,7 +24,7 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
 
   @Override
   public NodeEntities.Node applyBack(Byon.ByonNode byonNode) {
-    final ByonData data = byonNode.getNodeData();
+    final Byon.ByonData data = byonNode.getNodeData();
     NodeState state = (data.getAllocated() == true) ? NodeState.NODE_STATE_RUNNING
         : NodeState.NODE_STATE_PENDING;
     final NodeBuilder builder = NodeBuilder.newBuilder().id(byonNode.getId())
@@ -61,32 +61,33 @@ public class NodeMessageToByonNodeMessage  implements TwoWayConverter<NodeEntiti
   public Byon.ByonNode apply(NodeEntities.Node node) {
     boolean allocated = (node.getState() == NodeState.NODE_STATE_RUNNING) ?
         true : false;
-    final ByonNodeBuilder builder = ByonNodeBuilder.newBuilder()
-        .id(node.getId())
-        .userId(node.getUserId())
-        .name(node.getName())
-        .allocated(allocated)
-        .nodeProperties(NODE_PROPERTIES_CONVERTER.apply(node.getNodeProperties()))
-        .ipAddresses(node.getIpAddressesList().stream().map(IP_ADDRESS_CONVERTER)
-          .collect(Collectors.toSet()))
-        .loginCredential(LOGIN_CREDENTIAL_CONVERTER.apply(node.getLoginCredential()))
-        // change hier: Inkonsistenz?
-        .nodeType(NODE_TYPE_CONVERTER.applyBack(node.getNodeType()));
+    Byon.ByonData.Builder dataBuilder = Byon.ByonData.newBuilder()
+        .addAllIpAddress(
+            node.getIpAddressesList().stream()
+                .collect(Collectors.toList()))
+        .setLoginCredentials(node.getLoginCredential())
+        .setProperties(node.getNodeProperties())
+        .setName(node.getName())
+        .setAllocated(allocated);
 
     if (!Strings.isNullOrEmpty(node.getReason())) {
-      builder.reason(node.getReason());
+      dataBuilder.setReason(node.getReason());
     }
 
     if (!Strings.isNullOrEmpty(node.getDiagnostic())) {
-      builder.diagnostic(node.getDiagnostic());
+      dataBuilder.setDiagnostic(node.getDiagnostic());
     }
 
     if (!Strings.isNullOrEmpty(node.getNodeCandidate())) {
-      builder.nodeCandidate(node.getNodeCandidate());
+      dataBuilder.setNodeCandidate(node.getNodeCandidate());
     }
 
-    final ByonNode byonNode = builder.build();
+    final Byon.ByonNode byonNode = Byon.ByonNode.newBuilder()
+        .setId(node.getId())
+        .setUserId(node.getUserId())
+        .setNodeData(dataBuilder.build())
+        .build();
 
-    return ByonToByonMessageConverter.INSTANCE.apply(byonNode);
+    return byonNode;
   }
 }
