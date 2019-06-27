@@ -120,8 +120,9 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
     }
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void deleteByonNode(String userId, ByonNode node) throws UsageException {
+  void deleteByonNode(String userId, ByonNode node) throws UsageException {
     //allocated node must reside in the system
     isDeletable(node.id(), userId);
     domainRepository.save(node);

@@ -84,8 +84,9 @@ public class RemoveByonNodeSubscriber  implements Runnable {
         });
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void removeByonNode(String id) {
+  void removeByonNode(String id) {
     domainRepository.delete(id);
   }
 

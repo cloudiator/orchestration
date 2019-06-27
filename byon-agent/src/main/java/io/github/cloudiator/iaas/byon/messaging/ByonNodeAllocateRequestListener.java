@@ -127,8 +127,9 @@ public class ByonNodeAllocateRequestListener implements Runnable {
     }
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void allocateByonNode(ByonNode node) throws UsageException {
+  void allocateByonNode(ByonNode node) throws UsageException {
     //unallocated node must reside in the system
     isAllocatable(node.id(), node.userId());
     domainRepository.save(node);

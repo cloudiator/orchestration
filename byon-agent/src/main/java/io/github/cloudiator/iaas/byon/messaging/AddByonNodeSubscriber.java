@@ -77,8 +77,9 @@ public class AddByonNodeSubscriber implements Runnable {
         });
   }
 
+  @SuppressWarnings("WeakerAccess")
   @Transactional
-  private void persistNode(ByonNode node) {
+  void persistNode(ByonNode node) {
     domainRepository.save(node);
   }
 
