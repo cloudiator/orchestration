@@ -101,7 +101,8 @@ public class ImageDomainRepository {
 
     if (model == null) {
       throw new MissingLocationException(
-          "Location with id %s is missing. Can not persist the image");
+          String.format("Location with id %s is missing. Can not persist the image",
+              domain.location().get().id()));
     }
 
     return model;
