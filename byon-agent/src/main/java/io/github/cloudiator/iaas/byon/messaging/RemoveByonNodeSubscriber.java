@@ -21,11 +21,11 @@ package io.github.cloudiator.iaas.byon.messaging;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import javax.transaction.Transactional;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonData;
 import org.cloudiator.messages.Byon.ByonNodeRemovedResponse;
