@@ -303,6 +303,12 @@ public class WindowsInstaller extends AbstractInstaller {
   }
 
   @Override
+  public void installHdfsDataNode() throws RemoteException {
+    throw new UnsupportedOperationException(
+        "HDFS data node installation is currently not supported for Windows!");
+  }
+
+  @Override
   public void installEMS() throws RemoteException {
 
     // Print node information
