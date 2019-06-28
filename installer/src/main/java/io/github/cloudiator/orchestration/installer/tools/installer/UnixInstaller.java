@@ -203,12 +203,6 @@ public class UnixInstaller extends AbstractInstaller {
         + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
 
-    //download Docker fix MTU
-    installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
-        Configuration.conf().getString("installer.docker.mtu.download") + "  -O "
-        + UnixInstaller.TOOL_PATH
-        + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
-    installDocker.call();
 
     LOGGER.debug(
         String.format("Installing and starting Lance: Docker on node %s", node.id()));
@@ -223,18 +217,6 @@ public class UnixInstaller extends AbstractInstaller {
             + " > docker_retry_install.out 2>&1");
     installDocker.call();
 
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
-    installDocker.call();
-
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL
-            + " > docker_mtu_fix.out 2>&1");
-    installDocker.call();
-
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
-    installDocker.call();
 
     LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 
@@ -336,6 +318,31 @@ public class UnixInstaller extends AbstractInstaller {
 
   }
 
+  @Override
+  public void installHdfsDataNode() throws RemoteException {
+
+    LOGGER.debug(
+        String.format("Fetching and starting HDFS data node container on node %s", node.id()));
+
+    final String CONTAINER_NAME = "hdfs-datanode";
+
+    CommandTask startHdfsDataNodeContainer = new CommandTask(this.remoteConnection,
+        "sudo docker top " + CONTAINER_NAME + " || "
+            + " sudo docker run -d "
+            + " -e HDFS_NAMENODE_IPADDRESS=" + Configuration.conf().getString("installer.hdfs.namenode.ip")
+            + " -e HDFS_NAMENODE_PORT=" + Configuration.conf().getString("installer.hdfs.namenode.port")          
+            + " -p 8020:8020 -p 50070:50070 -p 9000:9000 "            
+            + " --rm "
+            + " --network host "
+            + " --name " + CONTAINER_NAME
+            + " cloudiator/hadoop-hdfs-datanode:latest ");
+
+    startHdfsDataNodeContainer.call();
+    LOGGER
+        .debug(String.format("Successfully started HDFS data node container on node %s", node.id()));
+
+  }
+  
   @Override
   public void installEMS() throws RemoteException {
 
