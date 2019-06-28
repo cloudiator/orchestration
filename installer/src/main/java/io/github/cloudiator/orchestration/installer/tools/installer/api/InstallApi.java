@@ -70,6 +70,12 @@ public interface InstallApi extends AutoCloseable {
   void installSparkWorker() throws RemoteException;
 
   /**
+   * Fetch and start Hdfs data node
+   */
+  void installHdfsDataNode() throws RemoteException;
+  
+  
+  /**
    * Fetch and start EMS
    */
   void installEMS() throws RemoteException;
