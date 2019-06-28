@@ -203,12 +203,6 @@ public class UnixInstaller extends AbstractInstaller {
         + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
 
-    //download Docker fix MTU
-    installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
-        Configuration.conf().getString("installer.docker.mtu.download") + "  -O "
-        + UnixInstaller.TOOL_PATH
-        + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
-    installDocker.call();
 
     LOGGER.debug(
         String.format("Installing and starting Lance: Docker on node %s", node.id()));
@@ -223,18 +217,6 @@ public class UnixInstaller extends AbstractInstaller {
             + " > docker_retry_install.out 2>&1");
     installDocker.call();
 
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo chmod +x " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL);
-    installDocker.call();
-
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo nohup " + TOOL_PATH + UnixInstaller.DOCKER_FIX_MTU_INSTALL
-            + " > docker_mtu_fix.out 2>&1");
-    installDocker.call();
-
-    installDocker = new CommandTask(this.remoteConnection,
-        "sudo nohup bash -c 'service docker restart' > docker_start.out 2>&1 ");
-    installDocker.call();
 
     LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 

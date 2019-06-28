@@ -119,7 +119,7 @@ public class VirtualMachineRequestWorker implements Runnable {
       final long stopTime = System.currentTimeMillis();
 
       virtualMachineStatistics
-          .virtualMachineStartTime(userId, virtualMachine,
+          .virtualMachineStartTime(userId, update,
               stopTime - startTime);
 
       //persist the vm
