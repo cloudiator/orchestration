@@ -59,10 +59,9 @@ public class ByonNodeQuerySubscriber implements Runnable {
         ByonNodeQueryRequest.parser(),
         (requestId, request) -> {
           try {
-            final String id = request.getId();
             final String userId = request.getUserId();
             ByonEntities.QueryFilter filter = request.getFilter();
-            List<ByonNode> nodes = getFilteredNodes(filter, id, userId);
+            List<ByonNode> nodes = getFilteredNodes(filter, userId);
             ByonNodeQueryResponse byonNodeQueryResponse = ByonNodeQueryResponse.newBuilder()
                 .addAllByonNode(nodes.stream().map(ByonToByonMessageConverter.INSTANCE::apply)
                     .collect(Collectors.toList())).build();
@@ -74,31 +73,23 @@ public class ByonNodeQuerySubscriber implements Runnable {
         });
   }
 
-  private List<ByonNode> getFilteredNodes(QueryFilter filter, String id, String userId) {
-    List<ByonNode> returnNodes = new ArrayList<>();
-    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+  private List<ByonNode> getFilteredNodes(QueryFilter filter, String userId) {
+    List<ByonNode> returnNodes = domainRepository.findByTenant(userId);
 
-    if (foundNode == null) {
-      return returnNodes;
+    if (returnNodes == null) {
+      return new ArrayList<>();
     }
 
     switch(filter) {
       case ALLOCATED:
-        if (foundNode.allocated()) {
-          returnNodes.add(foundNode);
-        }
-        break;
+          return returnNodes.stream().filter(
+              byonNode -> byonNode.allocated() == true).collect(Collectors.toList());
       case UNALLOCATED:
-        if (!foundNode.allocated()) {
-          returnNodes.add(foundNode);
-        }
-        break;
+        return returnNodes.stream().filter(
+            byonNode -> byonNode.allocated() == false).collect(Collectors.toList());
       default:
-        returnNodes.add(foundNode);
-        break;
+        return returnNodes;
     }
-
-    return returnNodes;
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
