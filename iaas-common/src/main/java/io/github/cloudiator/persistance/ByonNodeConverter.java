@@ -25,7 +25,6 @@ import io.github.cloudiator.domain.NodeType;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-
 class ByonNodeConverter  implements OneWayConverter<ByonNodeModel, ByonNode> {
   private final NodePropertiesConverter nodePropertiesConverter = new NodePropertiesConverter();
   private final LoginCredentialConverter loginCredentialConverter = new LoginCredentialConverter();
@@ -40,6 +39,7 @@ class ByonNodeConverter  implements OneWayConverter<ByonNodeModel, ByonNode> {
 
     ByonNodeBuilder nodeBuilder = ByonNodeBuilder.newBuilder()
         .id(nodeModel.getDomainId())
+        .userId(nodeModel.getTenantModel().getUserId())
         .name(nodeModel.getName())
         .allocated(nodeModel.getAllocated())
         .loginCredential(loginCredentialConverter.apply(nodeModel.getLoginCredential()))
