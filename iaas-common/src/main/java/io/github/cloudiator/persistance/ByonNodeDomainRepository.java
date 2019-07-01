@@ -103,6 +103,7 @@ public class ByonNodeDomainRepository extends AbstractNodeDomainRepository {
     byonNodeModel.setDiagnostic(domain.diagnostic().orElse(null));
     byonNodeModel.setReason(domain.reason().orElse(null));
     byonNodeModel.setNodeCandidate(domain.nodeCandidate().orElse(null));
+    byonNodeModel.setAllocated(domain.allocated());
 
     return byonNodeModel;
   }
