@@ -91,7 +91,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     DISCOVERY_STATUS.put(id, 0);
 
     try {
-      StreamSupport.stream(resources(discoveryService).spliterator(), false).filter(filter())
+      StreamSupport.stream(resources(discoveryService).spliterator(), true).filter(filter())
           .map(Discovery::new)
           .forEach(discovery -> {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));

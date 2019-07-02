@@ -37,7 +37,6 @@ public class UnixInstaller extends AbstractInstaller {
       LoggerFactory.getLogger(UnixInstaller.class);
 
 
-  private static final String DOCKER_FIX_MTU_INSTALL = "docker_fix_mtu.sh";
   private static final String TOOL_PATH = "/opt/cloudiator/";
   private static final String JAVA_ARCHIVE = "jre8.tar.gz";
   private static final String DOCKER_RETRY_INSTALL = "docker_retry.sh";
