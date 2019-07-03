@@ -46,8 +46,9 @@ public class NodeCandidateConverter implements
         return applyIaas(nodeCandidate);
       case NC_FAAS:
         return applyFaas(nodeCandidate);
-      case NC_PAAS:
       case NC_BYON:
+        return applyByon(nodeCandidate);
+      case NC_PAAS:
       case UNRECOGNIZED:
       default:
         throw new IllegalStateException(
@@ -78,6 +79,10 @@ public class NodeCandidateConverter implements
         .memoryPrice(nodeCandidate.getMemoryPrice())
         .environment(ENVIRONMENT_CONVERTER.apply(nodeCandidate.getEnvironment()))
         .build();
+  }
+
+  private NodeCandidate applyByon(MatchmakingEntities.NodeCandidate nodeCandidate) {
+    return applyIaas(nodeCandidate);
   }
 
   @Override
