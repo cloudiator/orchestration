@@ -21,7 +21,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
         builder
             .nodeProperties(wrapper.nodeProperties)
             .loginCredential(wrapper.loginCredential)
-            .nodeType(wrapper.type)
+            .nodeType(NodeType.BYON)
             .ipAddresses(wrapper.ipAddresses)
             .name(wrapper.name)
             .diagnostic(wrapper.diagnostic)
@@ -46,7 +46,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
         builder
             .nodeProperties(wrapper.nodeProperties)
             .loginCredential(wrapper.loginCredential)
-            .nodeType(wrapper.type)
+            .nodeType(NodeType.VM)
             .ipAddresses(wrapper.ipAddresses)
             .name(wrapper.name)
             .diagnostic(wrapper.diagnostic)
@@ -63,7 +63,6 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
   private static class CommonFieldsWrapper {
     private final NodeProperties nodeProperties;
     private final LoginCredential loginCredential;
-    private final NodeType type;
     private final Set<IpAddress> ipAddresses;
     private final String name;
     private final String diagnostic;
@@ -75,7 +74,6 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
     private CommonFieldsWrapper(AbstractNode aNode) {
       nodeProperties = aNode.nodeProperties();
       loginCredential = aNode.loginCredential().orElse(null);
-      type = aNode.type();
       ipAddresses = aNode.ipAddresses();
       name = aNode.name();
       diagnostic = aNode.diagnostic().orElse(null);
