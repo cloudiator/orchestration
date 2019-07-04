@@ -64,6 +64,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
           try {
             Byon.ByonNode messageNode = request.getByonNode();
             Byon.ByonData data = messageNode.getNodeData();
+            //nodeStateMachine already set the equivalent node to deleted
             checkState(
                 !data.getAllocated(),
                 String.format(
