@@ -81,7 +81,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                 + "again get allocated", this, id, userId));
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
             //todo: create logic to distinguish between id created by node-agent and id created by IdCreator.createID(...)
-            ByonNode deleteNode = ByonOperations.buildNodewithOriginalId(node);
+            ByonNode deleteNode = ByonOperations.buildNodewithOriginalId(node, id);
             deleteByonNode(userId, deleteNode);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
