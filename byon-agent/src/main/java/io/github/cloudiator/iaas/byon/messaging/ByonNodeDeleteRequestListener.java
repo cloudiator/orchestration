@@ -26,6 +26,7 @@ import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
+import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
@@ -69,9 +70,9 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                 !data.getAllocated(),
                 String.format(
                     "setting %s node's state to unallocated"
-                        + "is not possible due to the requesting node state being allocated",
+                        + " is not possible due to the requesting node state being allocated",
                     data.getName()));
-            String id = messageNode.getId();
+            String id = IdCreator.createId(data);
             String userId = messageNode.getUserId();
             checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId, false),
                 ByonOperations.wrongStateChangeMessage(false, id));
@@ -79,7 +80,9 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-            deleteByonNode(userId, node);
+            //todo: create logic to distinguish between id created by node-agent and id created by IdCreator.createID(...)
+            ByonNode deleteNode = ByonOperations.buildNodewithOriginalId(node);
+            deleteByonNode(userId, deleteNode);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
@@ -96,26 +99,14 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
   }
 
   private void isDeletable(String id, String userId) throws UsageException {
-    boolean matchingId = false;
-    boolean matchingUserId = false;
-    boolean allocated = false;
     ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
-    matchingId = foundNode.id().equals(id);
-    matchingUserId = foundNode.userId().equals(userId);
-    allocated = foundNode.allocated();
-    if(matchingId && matchingUserId && allocated) {
-      return;
+    if(foundNode == null) {
+      throw new UsageException(String.format("%s cannot delete node, as no node with id %s"
+          + " and userId %s is known to the system", this, id, userId));
     }
 
-    if (!matchingId) {
-      throw new UsageException(String.format("%s cannot delete node, as id %s "
-          + "is unknown", this, id));
-    } else if (!matchingUserId) {
-      throw new UsageException(String.format("%s cannot delete node, as userId %s "
-          + "is unknown", this, userId));
-    }
-    else {
+    if(!foundNode.allocated() ) {
       throw new UsageException(String.format("%s cannot delete node, as node "
           + "is already deleted.", this, id));
     }
