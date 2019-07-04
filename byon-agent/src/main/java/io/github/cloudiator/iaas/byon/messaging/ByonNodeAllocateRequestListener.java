@@ -67,8 +67,9 @@ public class ByonNodeAllocateRequestListener implements Runnable {
               try {
                 Byon.ByonNode messageNode = request.getByonNode();
                 Byon.ByonData data = messageNode.getNodeData();
+                //nodeStateMachine already set the equivalent node to running
                 checkState(
-                    !data.getAllocated(),
+                    data.getAllocated(),
                     String.format(
                         "setting %s node's state to allocated"
                             + "is not possible due to the requesting node state being unallocated",
