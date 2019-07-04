@@ -84,7 +84,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
                 ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
                 //todo: create logic to distinguish between id created by node-agent and id created by IdCreator.createID(...)
-                ByonNode allocateNode = ByonOperations.buildNodewithOriginalId(node);
+                ByonNode allocateNode = ByonOperations.buildNodewithOriginalId(node, id);
                 allocateByonNode(allocateNode);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());

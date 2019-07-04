@@ -25,9 +25,9 @@ public class ByonOperations {
         .build();
   }
 
-  public static ByonNode buildNodewithOriginalId(ByonNode byonNode) {
+  public static ByonNode buildNodewithOriginalId(ByonNode byonNode, String id) {
     return ByonNodeBuilder.of(byonNode)
-        .id(byonNode.id()).build();
+        .id(id).build();
   }
 
   public static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
