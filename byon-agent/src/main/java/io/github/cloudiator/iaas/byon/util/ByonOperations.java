@@ -1,6 +1,8 @@
 package io.github.cloudiator.iaas.byon.util;
 
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeBuilder;
+import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import org.cloudiator.messages.Byon;
 import org.slf4j.Logger;
@@ -23,6 +25,10 @@ public class ByonOperations {
         .build();
   }
 
+  public static ByonNode buildNodewithOriginalId(ByonNode byonNode) {
+    return ByonNodeBuilder.of(byonNode)
+        .id(byonNode.id()).build();
+  }
 
   public static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
     ByonNode node = repository.findByTenantAndId(userId, id);
