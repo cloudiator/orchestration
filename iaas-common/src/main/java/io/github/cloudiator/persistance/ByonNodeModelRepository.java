@@ -16,15 +16,18 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package io.github.cloudiator.persistance;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
-import java.util.Optional;
+import java.util.List;
+import javax.annotation.Nullable;
 
-public interface Node extends AbstractNode, Stateful<NodeState> {
+interface ByonNodeModelRepository extends ModelRepository<ByonNodeModel> {
 
-  Optional<String> originId();
+  List<ByonNodeModel> getByTenant(String userId);
 
-  @Override
-  NodeState state();
+  @Nullable
+  ByonNodeModel getByTenantAndDomainId(String userId, String domainId);
+
+  @Nullable
+  ByonNodeModel getByDomainId(String domainId);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package io.github.cloudiator.iaas.byon;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
-import java.util.Optional;
+public class UsageException  extends Exception {
 
-public interface Node extends AbstractNode, Stateful<NodeState> {
+  public UsageException(String s) {
+    super(s);
+  }
 
-  Optional<String> originId();
-
-  @Override
-  NodeState state();
+  public UsageException(String s, Throwable throwable) {
+    super(s, throwable);
+  }
 }

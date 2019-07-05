@@ -26,7 +26,7 @@
     <module>installer</module>
     <module>iaas-vm</module>
     <!--<module>watchdog</module>-->
-    <!--<module>byon</module>-->
+    <module>byon-agent</module>
     <module>node-agent</module>
   </modules>
 
@@ -100,11 +100,6 @@
       <dependency>
         <groupId>io.github.cloudiator.iaas</groupId>
         <artifactId>iaas-common</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.github.cloudiator.iaas</groupId>
-        <artifactId>byon</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

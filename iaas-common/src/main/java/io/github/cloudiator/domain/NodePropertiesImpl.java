@@ -21,6 +21,7 @@ package io.github.cloudiator.domain;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -79,6 +80,23 @@ public class NodePropertiesImpl implements NodeProperties {
   @Override
   public Optional<GeoLocation> geoLocation() {
     return Optional.ofNullable(geoLocation);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    NodeProperties that = (NodeProperties) o;
+    return Objects.equals(providerId, that.providerId()) &&
+        Objects.equals(numberOfCores, that.numberOfCores()) &&
+        Objects.equals(memory, that.memory()) &&
+        Objects.equals(disk, that.disk()) &&
+        Objects.equals(operatingSystem, that.operatingSystem()) &&
+        Objects.equals(geoLocation, that.geoLocation());
   }
 
   @Override

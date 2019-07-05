@@ -18,13 +18,8 @@
 
 package io.github.cloudiator.domain;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
-import java.util.Optional;
+public interface ByonNode extends AbstractNode {
 
-public interface Node extends AbstractNode, Stateful<NodeState> {
-
-  Optional<String> originId();
-
-  @Override
-  NodeState state();
+  boolean allocated();
+  void setAllocated(boolean allocated);
 }

@@ -16,15 +16,33 @@
  * under the License.
  */
 
-package io.github.cloudiator.domain;
+package io.github.cloudiator.iaas.byon;
 
-import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
-import java.util.Optional;
+import com.google.inject.Inject;
+import com.google.inject.persist.PersistService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface Node extends AbstractNode, Stateful<NodeState> {
+public class Init {
 
-  Optional<String> originId();
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(Init.class);
 
-  @Override
-  NodeState state();
+  private final PersistService persistService;
+
+  @Inject
+  Init(PersistService persistService) {
+    LOGGER.info("Initializing");
+    this.persistService = persistService;
+    run();
+  }
+
+  private void run() {
+    LOGGER.info("Starting persistence service.");
+    startPersistService();
+  }
+
+  private void startPersistService() {
+    persistService.start();
+  }
 }

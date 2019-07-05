@@ -22,59 +22,54 @@ import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-public class NodeImpl extends AbstractNodeImpl implements Node {
+public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
 
-  private final NodeState nodeState;
-  @Nullable
-  private final String originId;
+  private volatile boolean allocated;
 
-  public NodeImpl(NodeProperties nodeProperties,
-      @Nullable LoginCredential loginCredential, NodeType nodeType,
-      Set<IpAddress> ipAddresses, String id, String name, NodeState nodeState,
-      String userId, @Nullable String diagnostic, @Nullable String reason,
-      @Nullable String nodeCandidate, @Nullable String originId) {
-    super(nodeProperties, userId, loginCredential, nodeType, ipAddresses, id,
-        name, diagnostic, reason, nodeCandidate);
+  ByonNodeImpl(NodeProperties nodeProperties, String userId,
+      @Nullable LoginCredential loginCredential,
+      Set<IpAddress> ipAddresses, String id,
+      String name, @Nullable String diagnostic,
+      @Nullable String reason,
+      @Nullable String nodeCandidate,
+      boolean allocated) {
 
-    this.nodeState = nodeState;
-    this.originId = originId;
-  }
-
-  public NodeState state() {
-    return nodeState;
+    super(nodeProperties, userId, loginCredential, NodeType.BYON, ipAddresses, id, name,
+        diagnostic, reason, nodeCandidate);
+    this.allocated = allocated;
   }
 
   @Override
-  public Optional<String> originId() {
-    return Optional.ofNullable(originId);
+  synchronized public boolean allocated() {
+      return allocated;
   }
 
   @Override
-  public boolean equals(Object o) {
+  synchronized public void setAllocated(boolean allocated) {
+    this.allocated = allocated;
+  }
+
+  @Override
+  synchronized public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Node that = (Node) o;
+    ByonNode that = (ByonNode) o;
     return super.equals(o) &&
-        Objects.equals(nodeState, that.state()) &&
-        Objects.equals(originId, that.originId());
-  }
+      Objects.equals(allocated, that.allocated());
+}
 
   @Override
-  public String toString() {
-    String baseStr = super.toString();
-    String headStr = MoreObjects.toStringHelper(this)
-        .add("state", nodeState)
-        .add("originId", originId)
+  synchronized public String toString() {
+    return super.toString() +
+    MoreObjects.toStringHelper(this)
+        .add("allocated", allocated)
         .toString();
-
-    return headStr + baseStr;
   }
 }
