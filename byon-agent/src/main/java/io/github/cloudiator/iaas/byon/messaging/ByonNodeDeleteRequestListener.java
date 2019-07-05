@@ -23,11 +23,14 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeBuilder;
+import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
 import org.cloudiator.messages.General.Error;
@@ -42,6 +45,8 @@ import org.slf4j.LoggerFactory;
 public class ByonNodeDeleteRequestListener  implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeDeleteRequestListener.class);
+  private static final NodePropertiesMessageToNodePropertiesConverter
+      NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
   private final MessageInterface messageInterface;
   private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
@@ -63,31 +68,27 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         ByonNodeDeleteRequestMessage.parser(),
         (requestId, request) -> {
           try {
-            Byon.ByonNode messageNode = request.getByonNode();
-            Byon.ByonData data = messageNode.getNodeData();
+            String userId = request.getUserId();
+            NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
+            String id = IdCreator.createId(props);
+            final boolean isAllocated = request.getAllocated();
             //nodeStateMachine already set the equivalent node to deleted
             checkState(
-                !data.getAllocated(),
+                !isAllocated,
                 String.format(
                     "setting %s node's state to unallocated"
                         + " is not possible due to the requesting node state being allocated",
-                    data.getName()));
-            String id = IdCreator.createId(data);
-            String userId = messageNode.getUserId();
-            checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId, false),
-                ByonOperations.wrongStateChangeMessage(false, id));
+                    props.toString()));
             LOGGER.debug(String.format("%s retrieved request to delete "
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
-            ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-            //todo: create logic to distinguish between id created by node-agent and id created by IdCreator.createID(...)
-            ByonNode deleteNode = ByonOperations.buildNodewithOriginalId(node, id);
-            deleteByonNode(userId, deleteNode);
+            ByonNode deleteNode = buildDeletedNode(id, userId);
+            deleteByonNode(deleteNode);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
             LOGGER.info("response sent.");
-            publisher.publishEvent(userId, data, ByonIO.UPDATE);
+            publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(deleteNode).getNodeData(), ByonIO.UPDATE);
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
             sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
@@ -98,26 +99,38 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         });
   }
 
-  private void isDeletable(String id, String userId) throws UsageException {
-    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
-
+  private void isDeletable(ByonNode foundNode) throws UsageException {
     if(foundNode == null) {
       throw new UsageException(String.format("%s cannot delete node, as no node with id %s"
-          + " and userId %s is known to the system", this, id, userId));
+          + " and userId %s is known to the system", this, foundNode.id(), foundNode.userId()));
     }
 
     if(!foundNode.allocated() ) {
       throw new UsageException(String.format("%s cannot delete node, as node "
-          + "is already deleted.", this, id));
+          + "is already deleted.", this, foundNode.id()));
     }
   }
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void deleteByonNode(String userId, ByonNode node) throws UsageException {
-    //allocated node must reside in the system
-    isDeletable(node.id(), userId);
+  void deleteByonNode(ByonNode node) throws UsageException {
+    checkState(ByonOperations.allocatedStateChanges(domainRepository, node.id(), node.userId(), false));
     domainRepository.save(node);
+  }
+
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  ByonNode buildDeletedNode(String id, String userId) throws UsageException {
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+
+    if(foundNode == null) {
+      throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
+    }
+
+    isDeletable(foundNode);
+
+    return ByonNodeBuilder.of(foundNode)
+        .allocated(false).build();
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {
