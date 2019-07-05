@@ -7,9 +7,12 @@ import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeDeletedResponse;
@@ -22,6 +25,7 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ByonNodeDeletionStrategy.class);
   private final ByonService byonService;
+  private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
 
   @Inject
   public ByonNodeDeletionStrategy(
@@ -37,14 +41,15 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
   @Override
   public boolean deleteNode(Node node) {
       Node deletedNode = setDeleted(node);
-      ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(deletedNode);
       ByonNodeDeleteRequestMessage byonNodeDeleteRequestMessage = ByonNodeDeleteRequestMessage
-          .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
+          .newBuilder().setUserId(deletedNode.userId())
+          .setProperties(NODE_PROPERTIES_CONVERTER.applyBack(buildProperties(deletedNode)))
+          .setAllocated(false).build();
 
       final SettableFutureResponseCallback<ByonNodeDeletedResponse, ByonNodeDeletedResponse>
           byonFuture = SettableFutureResponseCallback.create();
 
-      checkState(byonNode.id() != null, "No id is present on byon. Can not delete");
+      checkState(deletedNode.id() != null, "No id is present on byon. Can not delete");
 
       byonService.createByonPersistDelAsync(byonNodeDeleteRequestMessage, byonFuture);
 
@@ -72,11 +77,21 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
         .userId(node.userId())
         .diagnostic(node.diagnostic().orElse(null))
         .id(node.id())
-        .ipAddresses(node.ipAddresses())
         .nodeCandidate(node.nodeCandidate().orElse(null))
         .loginCredential(node.loginCredential().orElse(null))
         .reason(node.reason().orElse(null))
         .nodeProperties(node.nodeProperties())
+        .build();
+  }
+
+  private NodeProperties buildProperties(Node deletedNode) {
+    return NodePropertiesBuilder.newBuilder()
+        .providerId(deletedNode.nodeProperties().providerId())
+        .numberOfCores(deletedNode.nodeProperties().numberOfCores().orElse(null))
+        .memory(deletedNode.nodeProperties().memory().orElse(null))
+        .disk(deletedNode.nodeProperties().disk().orElse(null))
+        .os(deletedNode.nodeProperties().operatingSystem().orElse(null))
+        .geoLocation(deletedNode.nodeProperties().geoLocation().orElse(null))
         .build();
   }
 }

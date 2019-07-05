@@ -24,11 +24,14 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeBuilder;
+import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
 import org.cloudiator.messages.General.Error;
@@ -43,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public class ByonNodeAllocateRequestListener implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
+  private static final NodePropertiesMessageToNodePropertiesConverter
+      NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
   private final MessageInterface messageInterface;
   private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
@@ -66,30 +71,28 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             ByonNodeAllocateRequestMessage.parser(),
             (requestId, request) -> {
               try {
-                Byon.ByonNode messageNode = request.getByonNode();
-                Byon.ByonData data = messageNode.getNodeData();
+                String userId = request.getUserId();
+                NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
+                String id = IdCreator.createId(props);
+                final boolean isAllocated = request.getAllocated();
                 //nodeStateMachine already set the equivalent node to running
                 checkState(
-                    data.getAllocated(),
+                    isAllocated,
                     String.format(
                         "setting %s node's state to allocated"
                             + " is not possible due to the requesting node state being unallocated",
-                        data.getName()));
-                String id = IdCreator.createId(data);
-                String userId = messageNode.getUserId();
+                        props.toString()));
                 checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId,true),
                     ByonOperations.wrongStateChangeMessage(true, id));
                 LOGGER.debug(
                     String.format(
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
-                ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(messageNode);
-                //todo: create logic to distinguish between id created by node-agent and id created by IdCreator.createID(...)
-                ByonNode allocateNode = ByonOperations.buildNodewithOriginalId(node, id);
+                ByonNode allocateNode = buildAllocatedNode(id, userId);
                 allocateByonNode(allocateNode);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
                 LOGGER.info("response sent.");
-                publisher.publishEvent(userId, data, ByonIO.UPDATE);
+                publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(allocateNode).getNodeData(), ByonIO.UPDATE);
               } catch (UsageException ex) {
                 LOGGER.error("Usage Exception occurred.", ex);
                 sendErrorResponse(
@@ -104,26 +107,39 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             });
   }
 
-  private void isAllocatable(String id, String userId) throws UsageException {
-    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+  private void isAllocatable(ByonNode foundNode) throws UsageException {
 
     if(foundNode == null) {
       throw new UsageException(String.format("%s cannot allocate node, as no node with id %s"
-          + " and userId %s is known to the system", this, id, userId));
+          + " and userId %s is known to the system", this, foundNode.id(), foundNode.userId()));
     }
 
     if(foundNode.allocated()) {
       throw new UsageException(String.format("%s cannot allocate node, as node"
-          + " %s is already allocated", this, id));
+          + " %s is already allocated", this, foundNode.id()));
     }
   }
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void allocateByonNode(ByonNode node) throws UsageException {
-    //unallocated node must reside in the system
-    isAllocatable(node.id(), node.userId());
+    checkState(ByonOperations.allocatedStateChanges(domainRepository, node.id(), node.userId(),true));
     domainRepository.save(node);
+  }
+
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  ByonNode buildAllocatedNode(String id, String userId) throws UsageException {
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+
+    if(foundNode == null) {
+      throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
+    }
+
+    isAllocatable(foundNode);
+
+    return ByonNodeBuilder.of(foundNode)
+        .allocated(true).build();
   }
 
   private final void sendErrorResponse(String messageId, String errorMessage, int errorCode) {

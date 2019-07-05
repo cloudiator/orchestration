@@ -18,10 +18,12 @@
 
 package io.github.cloudiator.iaas.byon.util;
 
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
+import io.github.cloudiator.domain.NodeProperties;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import org.cloudiator.messages.NodeEntities.NodeProperties;
-import org.cloudiator.messages.entities.IaasEntities.GeoLocation;
+import java.util.Optional;
 
 public class DigestRessource {
 
@@ -29,28 +31,41 @@ public class DigestRessource {
   private DigestRessource() {
   }
 
-  public static final void digestHardware(MessageDigest md, NodeProperties prop)
+  public static final void digestHardware(MessageDigest md, NodeProperties props)
       throws UnsupportedEncodingException {
-    md.update(String.valueOf(prop.getNumberOfCores()).getBytes("UTF-8"));
-    md.update(String.valueOf(prop.getMemory()).getBytes("UTF-8"));
-    md.update(String.valueOf(prop.getDisk()).getBytes("UTF-8"));
+    md.update(String.valueOf(props.numberOfCores()).getBytes("UTF-8"));
+    md.update(String.valueOf(props.memory()).getBytes("UTF-8"));
+    md.update(String.valueOf(props.disk()).getBytes("UTF-8"));
   }
 
   public static final void digestLocation(MessageDigest md, GeoLocation loc)
       throws UnsupportedEncodingException {
-    if (loc.getCity() != null) {
-      md.update(String.valueOf(loc.getCity()).getBytes("UTF-8"));
+    if(loc == null) {
+      return;
     }
-    if (loc.getCountry() != null) {
-      md.update(String.valueOf(loc.getCountry()).getBytes("UTF-8"));
+
+    if (loc.city() != null) {
+      md.update(String.valueOf(loc.city()).getBytes("UTF-8"));
     }
-    Integer latitude = (int) loc.getLatitude();
+    if (loc.country() != null) {
+      md.update(String.valueOf(loc.country()).getBytes("UTF-8"));
+    }
+    Integer latitude = loc.latitude().orElse(null).intValue();
     if (latitude != null) {
       md.update(String.valueOf(Integer.toString(latitude)).getBytes("UTF-8"));
     }
-    Integer longitude = (int) loc.getLongitude();
+    Integer longitude = loc.longitude().orElse(null).intValue();
     if (longitude != null) {
       md.update(String.valueOf(Integer.toString(longitude)).getBytes("UTF-8"));
     }
+  }
+
+  public static final void digestOS(MessageDigest md, Optional<OperatingSystem> operatingSystem)
+      throws UnsupportedEncodingException {
+    if(operatingSystem == null) {
+      return;
+    }
+
+    md.update(String.valueOf(operatingSystem.toString()).getBytes("UTF-8"));
   }
 }

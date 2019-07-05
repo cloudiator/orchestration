@@ -1,8 +1,11 @@
 package io.github.cloudiator.iaas.byon.util;
 
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
 import io.github.cloudiator.domain.NodeType;
+import io.github.cloudiator.iaas.byon.UsageException;
+import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import org.cloudiator.messages.Byon;
 import org.slf4j.Logger;
@@ -12,6 +15,7 @@ public class ByonOperations {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonOperations.class);
+  private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
 
   // do not instantiate
   private ByonOperations() {
@@ -19,15 +23,10 @@ public class ByonOperations {
 
   public static Byon.ByonNode buildMessageNode(String userId, Byon.ByonData data) {
     return Byon.ByonNode.newBuilder()
-        .setId(IdCreator.createId(data))
+        .setId(IdCreator.createId(NODE_PROPERTIES_CONVERTER.apply(data.getProperties())))
         .setUserId(userId)
         .setNodeData(data)
         .build();
-  }
-
-  public static ByonNode buildNodewithOriginalId(ByonNode byonNode, String id) {
-    return ByonNodeBuilder.of(byonNode)
-        .id(id).build();
   }
 
   public static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
