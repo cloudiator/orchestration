@@ -63,7 +63,7 @@ public class RemoveByonNodeSubscriber  implements Runnable {
             final String id = request.getId();
             final String userId = request.getUserId();
             checkState(
-                !ByonOperations.isAllocated(domainRepository, id, userId),
+                !ByonOperations.checkAllocated(domainRepository, id, userId),
                 String.format(
                     "Cannot remove node with id %s "
                         + "as it seems to be allocated at the moment", id));

@@ -109,18 +109,6 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         });
   }
 
-  private void isDeletable(ByonNode foundNode) throws UsageException {
-    if(foundNode == null) {
-      throw new UsageException(String.format("%s cannot delete node, as no node with id %s"
-          + " and userId %s is known to the system", this, foundNode.id(), foundNode.userId()));
-    }
-
-    if(!foundNode.allocated() ) {
-      throw new UsageException(String.format("%s cannot delete node, as node "
-          + "is already deleted.", this, foundNode.id()));
-    }
-  }
-
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void deleteByonNode(ByonNode node) throws UsageException {
@@ -137,7 +125,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
       throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
     }
 
-    isDeletable(foundNode);
+    ByonOperations.isDeletable(foundNode);
 
     return ByonNodeBuilder.of(foundNode)
         .allocated(false).build();

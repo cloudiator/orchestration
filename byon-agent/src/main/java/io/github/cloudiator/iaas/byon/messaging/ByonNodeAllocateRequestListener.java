@@ -84,8 +84,6 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                         "setting %s node's state to allocated"
                             + " is not possible due to the requesting node state being unallocated",
                         props.toString()));
-                checkState(ByonOperations.allocatedStateChanges(domainRepository, id, userId,true),
-                    ByonOperations.wrongStateChangeMessage(true, id));
                 LOGGER.debug(
                     String.format(
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
@@ -117,19 +115,6 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             });
   }
 
-  private void isAllocatable(ByonNode foundNode) throws UsageException {
-
-    if(foundNode == null) {
-      throw new UsageException(String.format("%s cannot allocate node, as no node with id %s"
-          + " and userId %s is known to the system", this, foundNode.id(), foundNode.userId()));
-    }
-
-    if(foundNode.allocated()) {
-      throw new UsageException(String.format("%s cannot allocate node, as node"
-          + " %s is already allocated", this, foundNode.id()));
-    }
-  }
-
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void allocateByonNode(ByonNode node) throws UsageException {
@@ -146,7 +131,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
       throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
     }
 
-    isAllocatable(foundNode);
+    ByonOperations.isAllocatable(foundNode);
 
     return ByonNodeBuilder.of(foundNode)
         .allocated(true).build();

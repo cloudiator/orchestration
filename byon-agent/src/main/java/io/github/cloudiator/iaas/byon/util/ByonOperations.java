@@ -29,7 +29,9 @@ public class ByonOperations {
         .build();
   }
 
-  public static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
     ByonNode node = repository.findByTenantAndId(userId, id);
 
     if(node == null) {
@@ -46,6 +48,36 @@ public class ByonOperations {
     final boolean allocated = isAllocated(repository, id, userId);
 
     return newStateIsAllocated != allocated;
+  }
+
+  // this wrapper method is needed, because of "visibility annotaion restriction" of hibernate
+  public static boolean checkAllocated(ByonNodeDomainRepository repository, String id, String userId) {
+    return isAllocated(repository, id, userId);
+  }
+
+  public static void isAllocatable(ByonNode foundNode) throws UsageException {
+
+    if(foundNode == null) {
+      throw new UsageException(String.format("Cannot allocate node, as no node with id %s"
+          + " and userId %s is known to the system", foundNode.id(), foundNode.userId()));
+    }
+
+    if(foundNode.allocated()) {
+      throw new UsageException(String.format("Cannot allocate node, as node"
+          + " %s is already allocated", foundNode.id()));
+    }
+  }
+
+  public static void isDeletable(ByonNode foundNode) throws UsageException {
+    if(foundNode == null) {
+      throw new UsageException(String.format("Cannot delete node, as no node with id %s"
+          + " and userId %s is known to the system", foundNode.id(), foundNode.userId()));
+    }
+
+    if(!foundNode.allocated() ) {
+      throw new UsageException(String.format("Cannot delete node, as node "
+          + "is already deleted.", foundNode.id()));
+    }
   }
 
   public static String wrongStateChangeMessage(boolean newStateIsAllocated, String id) {
