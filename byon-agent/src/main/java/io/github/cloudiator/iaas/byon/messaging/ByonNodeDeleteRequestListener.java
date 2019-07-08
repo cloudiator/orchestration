@@ -102,14 +102,13 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void deleteByonNode(ByonNode node) throws UsageException {
-    checkState(ByonOperations.allocatedStateChanges(domainRepository, node.id(), node.userId(), false));
+    checkState(ByonOperations.allocatedStateChanges(node.id(), node.userId(), false));
+    ByonOperations.updateBucket(node.id(), node.userId(), node);
     domainRepository.save(node);
   }
 
-  @SuppressWarnings("WeakerAccess")
-  @Transactional
   ByonNode buildDeletedNode(String id, String userId) throws UsageException {
-    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+    ByonNode foundNode = ByonOperations.readFromBucket(id, userId);
 
     if(foundNode == null) {
       throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));

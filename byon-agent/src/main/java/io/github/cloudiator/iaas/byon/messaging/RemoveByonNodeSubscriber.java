@@ -24,6 +24,7 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.iaas.byon.Constants;
+import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import org.cloudiator.messages.Byon;
@@ -63,13 +64,13 @@ public class RemoveByonNodeSubscriber  implements Runnable {
             final String id = request.getId();
             final String userId = request.getUserId();
             checkState(
-                !ByonOperations.checkAllocated(domainRepository, id, userId),
+                !ByonOperations.isAllocated(id, userId),
                 String.format(
                     "Cannot remove node with id %s "
                         + "as it seems to be allocated at the moment", id));
             LOGGER.debug(String.format("%s retrieved request to remove "
                     + "byon node with id %s.", this, id));
-            removeByonNode(id);
+            removeByonNode(id, userId);
             LOGGER.info("byon node removed. sending response");
             messageInterface.reply(requestId,
                 ByonNodeRemovedResponse.newBuilder().build());
@@ -86,7 +87,8 @@ public class RemoveByonNodeSubscriber  implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void removeByonNode(String id) {
+  void removeByonNode(String id, String userId) throws UsageException {
+    ByonOperations.removeFromBucket(id, userId);
     domainRepository.delete(id);
   }
 
