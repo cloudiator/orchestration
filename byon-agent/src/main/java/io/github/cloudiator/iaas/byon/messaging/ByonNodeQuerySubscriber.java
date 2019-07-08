@@ -20,6 +20,7 @@
 package io.github.cloudiator.iaas.byon.messaging;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
@@ -73,7 +74,9 @@ public class ByonNodeQuerySubscriber implements Runnable {
         });
   }
 
-  private List<ByonNode> getFilteredNodes(QueryFilter filter, String userId) {
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  List<ByonNode> getFilteredNodes(QueryFilter filter, String userId) {
     List<ByonNode> returnNodes = domainRepository.findByTenant(userId);
 
     if (returnNodes == null) {
