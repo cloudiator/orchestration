@@ -25,19 +25,17 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
+import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeProperties;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
-import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
+import io.github.cloudiator.messaging.NodeCandidateConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import io.github.cloudiator.persistance.TransactionRetryer;
-import java.util.List;
-import java.util.concurrent.Callable;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -48,8 +46,8 @@ import org.slf4j.LoggerFactory;
 public class ByonNodeAllocateRequestListener implements Runnable {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
-  private static final NodePropertiesMessageToNodePropertiesConverter
-      NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
+  private static final NodeCandidateConverter NODE_CANDIDATE_CONVERTER =
+      NodeCandidateConverter.INSTANCE;
   private final MessageInterface messageInterface;
   private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
@@ -74,7 +72,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             (requestId, request) -> {
               try {
                 String userId = request.getUserId();
-                NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
+                NodeCandidate candidate = NODE_CANDIDATE_CONVERTER.apply(request.getCandidate());
                 String id = IdCreator.createId(props);
                 final boolean isAllocated = request.getAllocated();
                 //nodeStateMachine already set the equivalent node to running
@@ -83,20 +81,12 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                     String.format(
                         "setting %s node's state to allocated"
                             + " is not possible due to the requesting node state being unallocated",
-                        props.toString()));
+                        candidate.toString()));
                 LOGGER.debug(
                     String.format(
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
                 ByonNode allocateNode = buildAllocatedNode(id, userId);
-
-                //update byon
-                synchronized (ByonNodeAllocateRequestListener.class) {
-                  TransactionRetryer.retry((Callable<Void>) () -> {
-                    allocateByonNode(allocateNode);
-                    return null;
-                  });
-                }
-
+                allocateByonNode(allocateNode);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
                 LOGGER.info("response sent.");

@@ -32,9 +32,7 @@ import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import io.github.cloudiator.persistance.TransactionRetryer;
 import java.util.List;
-import java.util.concurrent.Callable;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
@@ -85,15 +83,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
             ByonNode deleteNode = buildDeletedNode(id, userId);
-
-            //update byon
-            synchronized (ByonNodeDeleteRequestListener.class) {
-              TransactionRetryer.retry((Callable<Void>) () -> {
-                deleteByonNode(deleteNode);
-                return null;
-              });
-            }
-
+            deleteByonNode(deleteNode);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder().build());
