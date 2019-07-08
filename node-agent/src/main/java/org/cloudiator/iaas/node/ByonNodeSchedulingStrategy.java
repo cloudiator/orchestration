@@ -5,6 +5,8 @@ import static com.google.common.base.Preconditions.checkState;
 import static io.github.cloudiator.domain.NodeType.BYON;
 
 import com.google.inject.Inject;
+import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
@@ -12,6 +14,7 @@ import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import java.util.Optional;
@@ -78,30 +81,14 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
     byonService.createByonPersistAllocAsync(byonNodeAllocateRequestMessage, byonFuture);
 
     try {
-      byonFuture.get();
-      return setRunning(nodeCandidate, pending);
+      ByonNodeAllocatedResponse response = byonFuture.get();
+      final ByonNode scheduledNode = ByonToByonMessageConverter.INSTANCE.applyBack(response.getNode());
+      return ByonNodeToNodeConverter.INSTANCE.apply(scheduledNode);
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
     } catch (ExecutionException e) {
       throw new NodeSchedulingException(String.format("Could not schedule node %s.", pending), e);
     }
-  }
-
-  private Node setRunning(NodeCandidate candidate, Node pending) {
-    return NodeBuilder.newBuilder()
-        .name("BYON_SCHEDULED_" + pending.name())
-        .nodeType(BYON)
-        .originId(pending.originId().orElse(null))
-        //set running
-        .state(NodeState.RUNNING)
-        .userId(pending.userId())
-        .diagnostic(pending.diagnostic().orElse(null))
-        .id(pending.id())
-        .nodeCandidate(candidate.id())
-        .loginCredential(pending.loginCredential().orElse(null))
-        .reason(pending.reason().orElse(null))
-        .nodeProperties(buildProperties(candidate))
-        .build();
   }
 
   // todo: figure out if providerId can be left out because "it smells" -> "Byon-Cloud"

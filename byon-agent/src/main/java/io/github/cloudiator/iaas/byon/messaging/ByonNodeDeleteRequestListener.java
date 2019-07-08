@@ -86,7 +86,8 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             deleteByonNode(deleteNode);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
-                ByonNodeDeletedResponse.newBuilder().build());
+                ByonNodeDeletedResponse.newBuilder()
+                    .setNode(ByonToByonMessageConverter.INSTANCE.apply(deleteNode)).build());
             LOGGER.info("response sent.");
             publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(deleteNode).getNodeData(), ByonIO.UPDATE);
           } catch (UsageException ex) {
