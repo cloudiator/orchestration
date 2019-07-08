@@ -33,7 +33,9 @@ import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import java.util.List;
+import java.util.concurrent.Callable;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
@@ -88,7 +90,15 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                     String.format(
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
                 ByonNode allocateNode = buildAllocatedNode(id, userId);
-                allocateByonNode(allocateNode);
+
+                //update byon
+                synchronized (ByonNodeAllocateRequestListener.class) {
+                  TransactionRetryer.retry((Callable<Void>) () -> {
+                    allocateByonNode(allocateNode);
+                    return null;
+                  });
+                }
+
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
                 LOGGER.info("response sent.");
