@@ -99,35 +99,22 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         });
   }
 
-  private void isDeletable(ByonNode foundNode) throws UsageException {
-    if(foundNode == null) {
-      throw new UsageException(String.format("%s cannot delete node, as no node with id %s"
-          + " and userId %s is known to the system", this, foundNode.id(), foundNode.userId()));
-    }
-
-    if(!foundNode.allocated() ) {
-      throw new UsageException(String.format("%s cannot delete node, as node "
-          + "is already deleted.", this, foundNode.id()));
-    }
-  }
-
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void deleteByonNode(ByonNode node) throws UsageException {
-    checkState(ByonOperations.allocatedStateChanges(domainRepository, node.id(), node.userId(), false));
+    checkState(ByonOperations.allocatedStateChanges(node.id(), node.userId(), false));
+    ByonOperations.updateBucket(node.id(), node.userId(), node);
     domainRepository.save(node);
   }
 
-  @SuppressWarnings("WeakerAccess")
-  @Transactional
   ByonNode buildDeletedNode(String id, String userId) throws UsageException {
-    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
+    ByonNode foundNode = ByonOperations.readFromBucket(id, userId);
 
     if(foundNode == null) {
       throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
     }
 
-    isDeletable(foundNode);
+    ByonOperations.isDeletable(foundNode);
 
     return ByonNodeBuilder.of(foundNode)
         .allocated(false).build();
