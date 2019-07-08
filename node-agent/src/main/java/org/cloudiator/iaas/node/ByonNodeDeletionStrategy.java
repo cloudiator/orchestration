@@ -54,7 +54,11 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
       byonService.createByonPersistDelAsync(byonNodeDeleteRequestMessage, byonFuture);
 
       try {
-        byonFuture.get();
+        ByonNodeDeletedResponse response = byonFuture.get();
+        final ByonNode deletedNodeResponded = ByonToByonMessageConverter.INSTANCE.applyBack(response.getNode());
+        if(!consistencyCheck(deletedNode, deletedNodeResponded)) {
+          return false;
+        }
         return true;
       } catch (InterruptedException e) {
         LOGGER.error(String.format("%s got interrupted while waiting for response.", this));
@@ -65,6 +69,14 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
                 node, e.getCause().getMessage()), e);
         return false;
       }
+  }
+
+  private static boolean consistencyCheck(Node deletedNode, ByonNode deletedNodeResponded) {
+    if(deletedNode == deletedNodeResponded) {
+      return true;
+    }
+
+    return false;
   }
 
   private Node setDeleted(Node node) {

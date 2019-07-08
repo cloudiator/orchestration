@@ -25,6 +25,7 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
+import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
@@ -89,7 +90,8 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                 allocateByonNode(allocateNode);
                 // todo: this is just a temporary solution, that is employed as long as the hibernate: read -> update deadlock is present
                 LOGGER.info("byon node allocated. sending response");
-                messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder().build());
+                messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder()
+                    .setNode(ByonToByonMessageConverter.INSTANCE.apply(allocateNode)).build());
                 LOGGER.info("response sent.");
                 publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(allocateNode).getNodeData(), ByonIO.UPDATE);
               } catch (UsageException ex) {
