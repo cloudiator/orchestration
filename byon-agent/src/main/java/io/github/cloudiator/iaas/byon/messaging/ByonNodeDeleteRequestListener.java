@@ -23,20 +23,14 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
-<<<<<<< HEAD
 import io.github.cloudiator.domain.ByonNodeBuilder;
 import io.github.cloudiator.domain.NodeProperties;
-=======
->>>>>>> master
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
-<<<<<<< HEAD
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
-=======
->>>>>>> master
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.List;
 import org.cloudiator.messages.General.Error;

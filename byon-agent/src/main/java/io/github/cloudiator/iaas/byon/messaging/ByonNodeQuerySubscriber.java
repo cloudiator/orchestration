@@ -20,10 +20,7 @@
 package io.github.cloudiator.iaas.byon.messaging;
 
 import com.google.inject.Inject;
-<<<<<<< HEAD
 import com.google.inject.persist.Transactional;
-=======
->>>>>>> master
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
