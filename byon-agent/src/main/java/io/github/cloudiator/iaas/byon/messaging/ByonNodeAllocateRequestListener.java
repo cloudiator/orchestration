@@ -108,16 +108,22 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             });
   }
 
+  void allocateByonNode(ByonNode node) throws UsageException {
+    checkState(ByonOperations
+        .allocatedStateChanges(domainRepository, node.id(), node.userId(),true));
+    persist(node);
+  }
+
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void allocateByonNode(ByonNode node) throws UsageException {
-    checkState(ByonOperations.allocatedStateChanges(node.id(), node.userId(),true));
-    ByonOperations.updateBucket(node.id(), node.userId(), node);
+  void persist(ByonNode node) {
     domainRepository.save(node);
   }
 
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
   ByonNode buildAllocatedNode(String id, String userId) throws UsageException {
-    ByonNode foundNode = ByonOperations.readFromBucket(id, userId);
+    ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
     if(foundNode == null) {
       throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
