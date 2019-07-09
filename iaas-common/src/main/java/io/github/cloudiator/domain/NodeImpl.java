@@ -67,7 +67,6 @@ public class NodeImpl extends AbstractNodeImpl implements Node {
         Objects.equals(originId, that.originId());
   }
 
-
   @Override
   protected ToStringHelper toStringHelper() {
     return super.toStringHelper().add("state", nodeState)

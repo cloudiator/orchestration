@@ -25,6 +25,7 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
+import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
@@ -79,7 +80,7 @@ public class AddByonNodeSubscriber implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void persistNode(ByonNode node) {
+  void persistNode(ByonNode node) throws UsageException {
     domainRepository.save(node);
   }
 

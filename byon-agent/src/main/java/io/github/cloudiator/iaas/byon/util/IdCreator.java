@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.byon.util;
 
+import io.github.cloudiator.domain.NodeProperties;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -35,12 +36,13 @@ public class IdCreator {
   private IdCreator(){
   }
 
-  public final static String createId(ByonData data) {
+  public final static String createId(NodeProperties props) {
     String result = "";
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      DigestRessource.digestHardware(md, data.getProperties());
-      DigestRessource.digestLocation(md, data.getProperties().getGeoLocation());
+      DigestRessource.digestHardware(md, props);
+      DigestRessource.digestOS(md, props.operatingSystem());
+      DigestRessource.digestLocation(md, props.geoLocation().orElse(null));
       byte[] digest = md.digest();
       BigInteger bigInt = new BigInteger(1, digest);
       result = bigInt.toString(16);

@@ -2,20 +2,23 @@ package org.cloudiator.iaas.node;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static io.github.cloudiator.domain.NodeType.BYON;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
+import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
+import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
@@ -30,6 +33,7 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
   private final ByonService byonService;
   private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
+  private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
 
   @Inject
   public ByonNodeSchedulingStrategy(ByonService byonService,
@@ -61,7 +65,6 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
     final SettableFutureResponseCallback<ByonNodeAllocatedResponse, ByonNodeAllocatedResponse>
         byonFuture = SettableFutureResponseCallback.create();
 
-    //consistency check
     final NodeCandidate nodeCandidate = retrieveCandidate(pending);
 
     if(nodeCandidate == null) {
@@ -70,17 +73,17 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
     }
 
     //node is 'running' now
-    Node runningNode = setRunning(pending);
-    ByonNode byonNode = ByonNodeToNodeConverter.INSTANCE.applyBack(runningNode);
-
     ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage  = ByonNodeAllocateRequestMessage
-        .newBuilder().setByonNode(ByonToByonMessageConverter.INSTANCE.apply(byonNode)).build();
+        .newBuilder().setUserId(pending.userId()).setProperties(
+            NODE_PROPERTIES_CONVERTER.applyBack(buildProperties(nodeCandidate)))
+        .setAllocated(true).build();
 
     byonService.createByonPersistAllocAsync(byonNodeAllocateRequestMessage, byonFuture);
 
     try {
-      byonFuture.get();
-      return ByonNodeToNodeConverter.INSTANCE.apply(byonNode);
+      ByonNodeAllocatedResponse response = byonFuture.get();
+      final ByonNode scheduledNode = ByonToByonMessageConverter.INSTANCE.applyBack(response.getNode());
+      return ByonNodeToNodeConverter.INSTANCE.apply(scheduledNode);
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
     } catch (ExecutionException e) {
@@ -88,21 +91,15 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
     }
   }
 
-  private Node setRunning(Node pending) {
-    return NodeBuilder.newBuilder()
-        .name(pending.name())
-        .nodeType(pending.type())
-        .originId(pending.originId().orElse(null))
-        //set running
-        .state(NodeState.RUNNING)
-        .userId(pending.userId())
-        .diagnostic(pending.diagnostic().orElse(null))
-        .id(pending.id())
-        .ipAddresses(pending.ipAddresses())
-        .nodeCandidate(pending.nodeCandidate().orElse(null))
-        .loginCredential(pending.loginCredential().orElse(null))
-        .reason(pending.reason().orElse(null))
-        .nodeProperties(pending.nodeProperties())
+  // todo: figure out if providerId can be left out because "it smells" -> "Byon-Cloud"
+  private NodeProperties buildProperties(NodeCandidate nodeCandidate) {
+    return NodePropertiesBuilder.newBuilder()
+        .providerId(nodeCandidate.cloud().id())
+        .numberOfCores(nodeCandidate.hardware().numberOfCores())
+        .memory(nodeCandidate.hardware().mbRam())
+        .disk(nodeCandidate.hardware().gbDisk().orElse(null))
+        .os(nodeCandidate.image().operatingSystem())
+        .geoLocation(nodeCandidate.location().geoLocation().orElse(null))
         .build();
   }
 }
