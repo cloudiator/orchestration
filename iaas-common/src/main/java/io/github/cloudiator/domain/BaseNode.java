@@ -22,12 +22,14 @@ import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress.IpAddressType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
-public interface AbstractNode extends Identifiable {
+public interface BaseNode extends Identifiable {
 
   @Override
   String id();
@@ -61,4 +63,6 @@ public interface AbstractNode extends Identifiable {
   Optional<String> reason();
 
   Optional<String> nodeCandidate();
+
+  RemoteConnection connect() throws RemoteException;
 }

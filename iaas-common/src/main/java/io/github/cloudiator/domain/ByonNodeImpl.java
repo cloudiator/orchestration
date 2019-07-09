@@ -18,7 +18,7 @@
 
 package io.github.cloudiator.domain;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Objects;
@@ -44,7 +44,7 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
 
   @Override
   synchronized public boolean allocated() {
-      return allocated;
+    return allocated;
   }
 
   @Override
@@ -62,14 +62,11 @@ public class ByonNodeImpl extends AbstractNodeImpl implements ByonNode {
     }
     ByonNode that = (ByonNode) o;
     return super.equals(o) &&
-      Objects.equals(allocated, that.allocated());
-}
+        Objects.equals(allocated, that.allocated());
+  }
 
   @Override
-  synchronized public String toString() {
-    return super.toString() +
-    MoreObjects.toStringHelper(this)
-        .add("allocated", allocated)
-        .toString();
+  protected ToStringHelper toStringHelper() {
+    return super.toStringHelper().add("allocated", allocated);
   }
 }
