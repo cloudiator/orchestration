@@ -1,8 +1,10 @@
 package io.github.cloudiator.iaas.byon.util;
 
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
+import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import java.util.HashMap;
 import java.util.Map;
 import org.cloudiator.messages.Byon;
@@ -15,7 +17,6 @@ public class ByonOperations {
       LoggerFactory.getLogger(ByonOperations.class);
   private static final NodePropertiesMessageToNodePropertiesConverter NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
   // todo: this is just a temporary solution, that is employed as long as the hibernate: read -> update deadlock is present
-  private static volatile Map<ByonKey, ByonNode> statesBucket = new HashMap<>();
 
   // do not instantiate
   private ByonOperations() {
@@ -29,56 +30,10 @@ public class ByonOperations {
         .build();
   }
 
-  public static void insertIntoBucket(String id, String userId, ByonNode newNode) throws UsageException {
-    ByonKey key = new ByonKey(id,userId);
-    ByonNode existingNode = statesBucket.get(key);
-
-    if(existingNode != null) {
-      throw new UsageException(String.format("Cannot add byon with id: %s and userId %s, as this byon already"
-          + "exists", id, userId));
-    }
-
-    statesBucket.put(key, newNode);
-  }
-
-  public static void removeFromBucket(String id, String userId) throws UsageException {
-    ByonKey key = new ByonKey(id,userId);
-    ByonNode existingNode = statesBucket.get(key);
-
-    if(existingNode == null) {
-      throw new UsageException(String.format("Cannot delete byon with id: %s and userId %s, as this byon is unknown"
-          , id, userId));
-    }
-
-    statesBucket.remove(key);
-  }
-
-  public static void updateBucket(String id, String userId, ByonNode newNode) throws UsageException {
-    ByonKey key = new ByonKey(id,userId);
-    ByonNode existingNode = statesBucket.get(key);
-
-    if(existingNode == null) {
-      throw new UsageException(String.format("Cannot update byon with id: %s and userId %s, as this byon is unknown"
-          , id, userId));
-    }
-
-    statesBucket.put(key, newNode);
-  }
-
-  public static ByonNode readFromBucket(String id, String userId) throws UsageException {
-    ByonKey key = new ByonKey(id,userId);
-    ByonNode existingNode = statesBucket.get(key);
-
-    if(existingNode == null) {
-      throw new UsageException(String.format("Cannot read byon with id: %s and userId %s, as this byon is unknown"
-          , id, userId));
-    }
-
-    return existingNode;
-  }
-
-  public static boolean isAllocated(String id, String userId) {
-    ByonNode existingNode = statesBucket.get(new ByonKey(id, userId));
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
+    ByonNode existingNode = repository.findByTenantAndId(userId, id);
 
     if(existingNode == null) {
       LOGGER.error(String.format("Cannot check if node is allocated,"
@@ -89,15 +44,19 @@ public class ByonOperations {
     return existingNode.allocated();
   }
 
-  public static boolean allocatedStateChanges(String id, String userId,
+  // used to publicly access "hibernate protected" method
+  public static boolean isAllocatedCheck(ByonNodeDomainRepository repository, String id, String userId) {
+    return isAllocated(repository, id, userId);
+  }
+
+  public static boolean allocatedStateChanges(ByonNodeDomainRepository repository, String id, String userId,
       boolean newStateIsAllocated) {
-    final boolean allocated = isAllocated(id, userId);
+    final boolean allocated = isAllocated(repository, id, userId);
 
     return newStateIsAllocated != allocated;
   }
 
   public static void isAllocatable(ByonNode foundNode) throws UsageException {
-
     if(foundNode == null) {
       throw new UsageException(String.format("Cannot allocate node, as no node with id %s"
           + " and userId %s is known to the system", foundNode.id(), foundNode.userId()));
@@ -127,35 +86,5 @@ public class ByonOperations {
         String.format("Cannot delete node %s as it is already deleted", id);
 
     return errorMessage;
-  }
-
-  private static class ByonKey {
-    private final String id;
-    private final String userId;
-
-    ByonKey(String id, String userId) {
-      this.id = id;
-      this.userId = userId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (o == this) return true;
-      if (!(o instanceof ByonKey)) return false;
-      ByonKey other = (ByonKey) o;
-      return (this.id.equals(other.id) && this.userId.equals(other.userId));
-    }
-
-    @Override
-    public final int hashCode() {
-      int result = 17;
-      if (id != null) {
-        result = 31 * result + id.hashCode();
-      }
-      if (userId != null) {
-        result = 31 * result + userId.hashCode();
-      }
-      return result;
-    }
   }
 }

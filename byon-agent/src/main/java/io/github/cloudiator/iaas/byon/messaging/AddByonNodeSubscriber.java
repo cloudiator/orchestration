@@ -81,7 +81,6 @@ public class AddByonNodeSubscriber implements Runnable {
   @SuppressWarnings("WeakerAccess")
   @Transactional
   void persistNode(ByonNode node) throws UsageException {
-    ByonOperations.insertIntoBucket(node.id(), node.userId(), node);
     domainRepository.save(node);
   }
 
