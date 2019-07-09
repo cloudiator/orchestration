@@ -23,15 +23,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddresses;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
-import java.util.HashSet;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
+import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import io.github.cloudiator.remote.CompositeRemoteConnectionStrategy;
+import io.github.cloudiator.remote.RemoteConnectionStrategy;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-public class AbstractNodeImpl implements AbstractNode {
+public abstract class AbstractNodeImpl implements BaseNode {
+
+  private final static RemoteConnectionStrategy REMOTE_CONNECTION_STRATEGY = new CompositeRemoteConnectionStrategy();
 
   private final String id;
   private final String userId;
@@ -47,25 +51,6 @@ public class AbstractNodeImpl implements AbstractNode {
   private final String reason;
   @Nullable
   private final String nodeCandidate;
-
-  AbstractNodeImpl() {
-    NodeProperties defaultProps = new NodePropertiesImpl("<unknown>",
-        null,null,null,null,null);
-    IpAddress address = IpAddresses.of("0.0.0.0");
-    Set<IpAddress> addresses = new HashSet<>();
-    addresses.add(address);
-
-    this.id = null;
-    this.userId = null;
-    this.nodeProperties = defaultProps;
-    this.loginCredential = null;
-    this.nodeType = NodeType.UNKOWN;
-    this.ipAddresses = addresses;
-    this.name = "<unknown>";
-    this.diagnostic = null;
-    this.reason = null;
-    this.nodeCandidate = null;
-  }
 
   AbstractNodeImpl(NodeProperties nodeProperties, String userId,
       @Nullable LoginCredential loginCredential, NodeType nodeType,
@@ -187,6 +172,12 @@ public class AbstractNodeImpl implements AbstractNode {
   }
 
   @Override
+  public RemoteConnection connect() throws RemoteException {
+    return REMOTE_CONNECTION_STRATEGY.connect(this);
+  }
+
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -209,6 +200,10 @@ public class AbstractNodeImpl implements AbstractNode {
 
   @Override
   public String toString() {
+    return toStringHelper().toString();
+  }
+
+  protected MoreObjects.ToStringHelper toStringHelper() {
     String ipList = ipAddresses == null ? "null" : Joiner.on(",").join(ipAddresses);
     return MoreObjects.toStringHelper(this)
         .add("id", id)
@@ -219,7 +214,6 @@ public class AbstractNodeImpl implements AbstractNode {
         .add("ipAddresses", ipAddresses)
         .add("diagnostic", diagnostic)
         .add("reason", reason)
-        .add("nodeCandidate", nodeCandidate)
-        .toString();
+        .add("nodeCandidate", nodeCandidate);
   }
 }

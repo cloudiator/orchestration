@@ -89,6 +89,7 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
         .userId(node.userId())
         .diagnostic(node.diagnostic().orElse(null))
         .id(node.id())
+        .ipAddresses(node.ipAddresses())
         .nodeCandidate(node.nodeCandidate().orElse(null))
         .loginCredential(node.loginCredential().orElse(null))
         .reason(node.reason().orElse(null))

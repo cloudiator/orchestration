@@ -5,8 +5,6 @@ import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import java.util.HashMap;
-import java.util.Map;
 import org.cloudiator.messages.Byon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -71,7 +71,7 @@ public class ByonNodeToNodeConverter implements TwoWayConverter<ByonNode, Node> 
     private final  String id;
     private final  String userId;
 
-    private CommonFieldsWrapper(AbstractNode aNode) {
+    private CommonFieldsWrapper(BaseNode aNode) {
       nodeProperties = aNode.nodeProperties();
       loginCredential = aNode.loginCredential().orElse(null);
       ipAddresses = aNode.ipAddresses();

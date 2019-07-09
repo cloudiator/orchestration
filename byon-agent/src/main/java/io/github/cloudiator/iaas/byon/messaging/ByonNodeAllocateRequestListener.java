@@ -24,18 +24,28 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
+<<<<<<< HEAD
 import io.github.cloudiator.domain.ByonNodeBuilder;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeProperties;
+=======
+>>>>>>> master
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
 import io.github.cloudiator.iaas.byon.util.IdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+<<<<<<< HEAD
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
 import org.cloudiator.messages.General.Error;
+=======
+import io.github.cloudiator.persistance.ByonNodeDomainRepository;
+import java.util.List;
+import org.cloudiator.messages.General.Error;
+import org.cloudiator.messages.Byon;
+>>>>>>> master
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -48,7 +58,6 @@ public class ByonNodeAllocateRequestListener implements Runnable {
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
   private static final NodePropertiesMessageToNodePropertiesConverter
       NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
-
   private final MessageInterface messageInterface;
   private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;
