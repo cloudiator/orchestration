@@ -2,6 +2,7 @@ package io.github.cloudiator.iaas.byon.util;
 
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonNode;
+import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
@@ -22,7 +23,7 @@ public class ByonOperations {
 
   public static Byon.ByonNode buildMessageNode(String userId, Byon.ByonData data) {
     return Byon.ByonNode.newBuilder()
-        .setId(IdCreator.createId(NODE_PROPERTIES_CONVERTER.apply(data.getProperties())))
+        .setId(ByonIdCreator.createId(NODE_PROPERTIES_CONVERTER.apply(data.getProperties())))
         .setUserId(userId)
         .setNodeData(data)
         .build();
