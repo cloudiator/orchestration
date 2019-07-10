@@ -25,13 +25,11 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
-import io.github.cloudiator.domain.ByonNodeToNodeConverter;
-import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
-import io.github.cloudiator.iaas.byon.util.IdCreator;
+import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
@@ -73,7 +71,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
               try {
                 String userId = request.getUserId();
                 NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
-                String id = IdCreator.createId(props);
+                String id = ByonIdCreator.createId(props);
                 final boolean isAllocated = request.getAllocated();
                 //nodeStateMachine already set the equivalent node to running
                 checkState(
