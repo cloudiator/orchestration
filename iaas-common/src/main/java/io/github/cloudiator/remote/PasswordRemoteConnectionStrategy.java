@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.github.cloudiator.orchestration.installer.remote;
+package io.github.cloudiator.remote;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -30,7 +30,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
-import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.domain.BaseNode;
 
 /**
  * Created by daniel on 01.09.15.
@@ -42,7 +42,7 @@ public class PasswordRemoteConnectionStrategy implements RemoteConnectionStrateg
   }
 
   @Override
-  public RemoteConnection connect(Node node)
+  public RemoteConnection connect(BaseNode node)
       throws RemoteException {
 
     String connectTo = node.connectTo().ip();

@@ -16,11 +16,12 @@
  * under the License.
  */
 
-package io.github.cloudiator.orchestration.installer.remote;
+package io.github.cloudiator.remote;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
+import io.github.cloudiator.domain.BaseNode;
 import io.github.cloudiator.domain.Node;
 
 
@@ -29,6 +30,6 @@ import io.github.cloudiator.domain.Node;
  */
 public interface RemoteConnectionStrategy extends Prioritized {
 
-  RemoteConnection connect(Node node) throws RemoteException;
+  RemoteConnection connect(BaseNode node) throws RemoteException;
 
 }

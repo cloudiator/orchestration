@@ -47,7 +47,7 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
     this.ipAddresses = new HashSet<>();
   }
 
-  protected AbstractNodeBuilder(AbstractNode node) {
+  protected AbstractNodeBuilder(BaseNode node) {
     id = node.id();
     userId = node.userId();
     nodeProperties = node.nodeProperties();
@@ -157,5 +157,5 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
 
   protected abstract T self();
   public abstract T nodeType(NodeType nodeType);
-  public abstract AbstractNode build();
+  public abstract BaseNode build();
 }

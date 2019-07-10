@@ -48,7 +48,6 @@ public class ByonNodeAllocateRequestListener implements Runnable {
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
   private static final NodePropertiesMessageToNodePropertiesConverter
       NODE_PROPERTIES_CONVERTER = new NodePropertiesMessageToNodePropertiesConverter();
-
   private final MessageInterface messageInterface;
   private final ByonPublisher publisher;
   private final ByonNodeDomainRepository domainRepository;

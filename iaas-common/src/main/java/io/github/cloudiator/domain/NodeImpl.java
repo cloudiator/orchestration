@@ -18,7 +18,7 @@
 
 package io.github.cloudiator.domain;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
 import java.util.Objects;
@@ -68,13 +68,8 @@ public class NodeImpl extends AbstractNodeImpl implements Node {
   }
 
   @Override
-  public String toString() {
-    String baseStr = super.toString();
-    String headStr = MoreObjects.toStringHelper(this)
-        .add("state", nodeState)
-        .add("originId", originId)
-        .toString();
-
-    return headStr + baseStr;
+  protected ToStringHelper toStringHelper() {
+    return super.toStringHelper().add("state", nodeState)
+        .add("originId", originId);
   }
 }

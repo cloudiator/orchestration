@@ -21,7 +21,7 @@ package io.github.cloudiator.domain;
 import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 import java.util.Optional;
 
-public interface Node extends AbstractNode, Stateful<NodeState> {
+public interface Node extends BaseNode, Stateful<NodeState> {
 
   Optional<String> originId();
 
