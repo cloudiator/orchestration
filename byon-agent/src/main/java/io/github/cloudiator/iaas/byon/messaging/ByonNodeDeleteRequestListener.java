@@ -80,8 +80,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             LOGGER.debug(String.format("%s retrieved request to delete "
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
-            ByonNode deleteNode = buildDeletedNode(id, userId);
-            deleteByonNode(deleteNode);
+            ByonNode deleteNode = deleteSynchronuously(id, userId);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder()
@@ -96,6 +95,12 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
           }
         });
+  }
+
+  synchronized ByonNode deleteSynchronuously(String id, String userId) throws UsageException {
+    ByonNode deleteNode = buildDeletedNode(id, userId);
+    deleteByonNode(deleteNode);
+    return deleteNode;
   }
 
   void deleteByonNode(ByonNode node) throws UsageException {

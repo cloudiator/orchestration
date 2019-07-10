@@ -83,9 +83,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                 LOGGER.debug(
                     String.format(
                         "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
-                ByonNode allocateNode = buildAllocatedNode(id, userId);
-                allocateByonNode(allocateNode);
-                // todo: this is just a temporary solution, that is employed as long as the hibernate: read -> update deadlock is present
+                ByonNode allocateNode = allocateSynchronuously(id, userId);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder()
                     .setNode(ByonToByonMessageConverter.INSTANCE.apply(allocateNode)).build());
@@ -103,6 +101,12 @@ public class ByonNodeAllocateRequestListener implements Runnable {
                     requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
               }
             });
+  }
+
+  synchronized ByonNode allocateSynchronuously(String id, String userId) throws UsageException {
+    ByonNode allocateNode = buildAllocatedNode(id, userId);
+    allocateByonNode(allocateNode);
+    return allocateNode;
   }
 
   void allocateByonNode(ByonNode node) throws UsageException {
