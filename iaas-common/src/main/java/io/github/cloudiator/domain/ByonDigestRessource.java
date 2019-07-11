@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.github.cloudiator.iaas.byon.util;
+package io.github.cloudiator.domain;
 
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
@@ -25,10 +25,10 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.util.Optional;
 
-public class DigestRessource {
+public class ByonDigestRessource {
 
   // Do not initiate
-  private DigestRessource() {
+  private ByonDigestRessource() {
   }
 
   public static final void digestHardware(MessageDigest md, NodeProperties props)
