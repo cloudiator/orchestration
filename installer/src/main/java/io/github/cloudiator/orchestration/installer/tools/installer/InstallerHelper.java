@@ -22,6 +22,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,12 +91,19 @@ public class InstallerHelper {
             LOGGER.debug("   Keystore:   type={}, file={}", keyStoreType, keyStoreFile);
             LOGGER.debug("   Truststore: type={}, file={}", trustStoreType, trustStoreFile);
 
-            // Load keystore and truststore
+            // Load keystore
             KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-            try (FileInputStream fis = new FileInputStream(keyStoreFile)) {
-                keyStore.load(fis, keyStorePassword.toCharArray());
+            if (StringUtils.isNotEmpty(keyStoreFile)) {
+                try (FileInputStream fis = new FileInputStream(keyStoreFile)) {
+                    keyStore.load(fis, keyStorePassword.toCharArray());
+                }
+                LOGGER.debug("Keystore loaded: entries={}", keyStore.size());
+            } else {
+                keyStore.load(null, null);
+                LOGGER.debug("No keystore file has been specified");
             }
-            LOGGER.debug("Keystore loaded: entries={}", keyStore.size());
+
+            // Load truststore
             KeyStore trustStore = KeyStore.getInstance(trustStoreType);
             try (FileInputStream fis = new FileInputStream(trustStoreFile)) {
                 trustStore.load(fis, trustStorePassword.toCharArray());
@@ -105,6 +113,7 @@ public class InstallerHelper {
             // Create a hostname verifier instance
             HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
+            // Create an https client and call EMS server
             response = ClientBuilder
                     .newBuilder()
                     .hostnameVerifier(hostnameVerifier)
