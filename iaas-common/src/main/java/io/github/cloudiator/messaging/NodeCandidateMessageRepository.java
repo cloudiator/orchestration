@@ -43,13 +43,18 @@ public class NodeCandidateMessageRepository {
 
   public NodeCandidate getById(String userId, String id) {
     try {
+      NodeCandidateRequestMessage msg =
+          NodeCandidateRequestMessage.newBuilder().setUserId(userId).setId(id).build();
       final NodeCandidateRequestResponse nodeCandidateRequestResponse = matchmakingService
-          .requestNodes(
-              NodeCandidateRequestMessage.newBuilder().setUserId(userId).setId(id).build());
+          .requestNodes(msg);
       return nodeCandidateRequestResponse.getCandidatesList().stream().map(NODE_CANDIDATE_CONVERTER)
           .collect(CollectorsUtil.singletonCollector());
     } catch (ResponseException e) {
       throw new IllegalStateException(String.format(RESPONSE_ERROR, e.getMessage()), e);
     }
+  }
+
+  public NodeCandidate getById(String id) {
+    return getById(null, id);
   }
 }

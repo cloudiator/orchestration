@@ -64,6 +64,7 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
 
     try {
       future.get();
+
       return true;
     } catch (InterruptedException e) {
       LOGGER.error(String.format("%s got interrupted while waiting for response.", this));

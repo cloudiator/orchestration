@@ -23,6 +23,9 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.domain.Identifiable;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByCloud;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import io.github.cloudiator.domain.ExtendedVirtualMachine;
@@ -46,6 +49,7 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
   private final ComputeService computeService;
   private final VirtualMachineDomainRepository virtualMachineDomainRepository;
   private final VirtualMachineStateMachine virtualMachineStateMachine;
+  private final CloudRegistry cloudRegistry;
 
   private static Set<String> FAILED_IN_LAST_ITERATION = new HashSet<>();
 
@@ -53,10 +57,12 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
   public VirtualMachineErrorWatchdog(
       ComputeService computeService,
       VirtualMachineDomainRepository virtualMachineDomainRepository,
-      VirtualMachineStateMachine virtualMachineStateMachine) {
+      VirtualMachineStateMachine virtualMachineStateMachine,
+      CloudRegistry cloudRegistry) {
     this.computeService = computeService;
     this.virtualMachineDomainRepository = virtualMachineDomainRepository;
     this.virtualMachineStateMachine = virtualMachineStateMachine;
+    this.cloudRegistry = cloudRegistry;
   }
 
   @Override
@@ -99,6 +105,16 @@ public class VirtualMachineErrorWatchdog implements Schedulable {
               extendedVirtualMachine -> extendedVirtualMachine.state()
                   .equals(LocalVirtualMachineState.RUNNING)).collect(
               Collectors.toSet())) {
+
+        //skip the still exists check if the corresponding cloud is in ERROR state
+        //as this will cause the machine to disappear.
+        final IdScopedByCloud idScopedByCloud = IdScopedByClouds.from(localVM.id());
+
+        if (!cloudRegistry.isRegistered(idScopedByCloud.cloudId())) {
+          LOGGER.warn(
+              String.format("Skipping vm %s as corresponding cloud is in error state.", localVM));
+          continue;
+        }
 
         LOGGER.debug(
             String.format("Checking if virtual machine with id %s still exists",

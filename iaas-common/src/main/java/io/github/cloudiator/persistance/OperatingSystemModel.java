@@ -21,14 +21,16 @@ package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.net.URL;
-import java.util.Optional;
 
 import de.uniulm.omi.cloudiator.domain.ImageFormat;
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemImpl;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemVersions;
+import java.net.URL;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -98,6 +100,21 @@ class OperatingSystemModel extends Model
         .of(version, null);
   }
 
+  public OperatingSystem toDomain() {
+    return new OperatingSystemImpl(operatingSystemFamily, operatingSystemArchitecture,
+        operatingSystemVersion());
+  }
+
+  @Override
+  public Optional<String> dockerImage() {
+    return toDomain().dockerImage();
+  }
+
+  @Override
+  public Optional<URL> downloadUrl(ImageFormat imageFormat) {
+    return toDomain().downloadUrl(imageFormat);
+  }
+
   public OperatingSystemModel setOperatingSystemArchitecture(
       OperatingSystemArchitecture operatingSystemArchitecture) {
     this.operatingSystemArchitecture = operatingSystemArchitecture;
@@ -115,27 +132,14 @@ class OperatingSystemModel extends Model
     return this;
   }
 
-@Override
-public int remotePort() {
-	// TODO Auto-generated method stub
-	return 0;
-}
+  @Override
+  public String loginName() {
+    return toDomain().loginName();
+  }
 
-@Override
-public String loginName() {
-	// TODO Auto-generated method stub
-	return null;
-}
+  @Override
+  public int remotePort() {
+    return toDomain().remotePort();
+  }
 
-@Override
-public Optional<String> dockerImage() {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-@Override
-public Optional<URL> downloadUrl(ImageFormat arg0) {
-	// TODO Auto-generated method stub
-	return null;
-}
 }

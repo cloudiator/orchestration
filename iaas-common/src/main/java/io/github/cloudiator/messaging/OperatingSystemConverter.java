@@ -219,6 +219,8 @@ public class OperatingSystemConverter implements
           return CommonEntities.OperatingSystemArchitecture.I386;
         case AMD64:
           return CommonEntities.OperatingSystemArchitecture.AMD64;
+        case ARM:
+          return CommonEntities.OperatingSystemArchitecture.ARM;
         case UNKNOWN:
           return CommonEntities.OperatingSystemArchitecture.UNKOWN_OS_ARCH;
         default:
@@ -236,6 +238,8 @@ public class OperatingSystemConverter implements
           return OperatingSystemArchitecture.AMD64;
         case I386:
           return OperatingSystemArchitecture.I368;
+        case ARM:
+          return OperatingSystemArchitecture.ARM;
         case UNRECOGNIZED:
         default:
           throw new AssertionError(operatingSystemArchitecture + "is not known.");
