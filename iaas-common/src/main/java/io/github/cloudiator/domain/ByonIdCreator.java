@@ -16,33 +16,46 @@
  * under the License.
  */
 
-package io.github.cloudiator.iaas.byon.util;
+package io.github.cloudiator.domain;
 
-import io.github.cloudiator.domain.NodeProperties;
+import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.sword.domain.GeoLocation;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
-import org.cloudiator.messages.Byon.ByonData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IdCreator {
+public class ByonIdCreator {
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(IdCreator.class);
+      LoggerFactory.getLogger(ByonIdCreator.class);
 
   // do not instantiate
-  private IdCreator(){
+  private ByonIdCreator(){
   }
+
+  public final static String createId(int numbOfCores, long memory, double disk
+      , OperatingSystem os, GeoLocation geoLocation) {
+    NodePropertiesBuilder builder = NodePropertiesBuilder.newBuilder()
+        .numberOfCores(numbOfCores)
+        .memory(memory)
+        .disk(disk)
+        .os(os)
+        .geoLocation(geoLocation);
+
+    return createId(builder.build());
+  }
+
 
   public final static String createId(NodeProperties props) {
     String result = "";
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      DigestRessource.digestHardware(md, props);
-      DigestRessource.digestOS(md, props.operatingSystem());
-      DigestRessource.digestLocation(md, props.geoLocation().orElse(null));
+      ByonDigestRessource.digestHardware(md, props);
+      ByonDigestRessource.digestOS(md, props.operatingSystem());
+      ByonDigestRessource.digestLocation(md, props.geoLocation().orElse(null));
       byte[] digest = md.digest();
       BigInteger bigInt = new BigInteger(1, digest);
       result = bigInt.toString(16);

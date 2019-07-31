@@ -28,13 +28,11 @@ import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
-import io.github.cloudiator.iaas.byon.util.IdCreator;
+import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import java.util.List;
 import org.cloudiator.messages.General.Error;
-import org.cloudiator.messages.Byon;
 import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeDeletedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -70,7 +68,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
           try {
             String userId = request.getUserId();
             NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
-            String id = IdCreator.createId(props);
+            String id = ByonIdCreator.createId(props);
             final boolean isAllocated = request.getAllocated();
             //nodeStateMachine already set the equivalent node to deleted
             checkState(
@@ -82,8 +80,7 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             LOGGER.debug(String.format("%s retrieved request to delete "
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
-            ByonNode deleteNode = buildDeletedNode(id, userId);
-            deleteByonNode(deleteNode);
+            ByonNode deleteNode = deleteSynchronuously(id, userId);
             LOGGER.info("byon node deleted. sending response");
             messageInterface.reply(requestId,
                 ByonNodeDeletedResponse.newBuilder()
@@ -98,6 +95,12 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
             sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
           }
         });
+  }
+
+  synchronized ByonNode deleteSynchronuously(String id, String userId) throws UsageException {
+    ByonNode deleteNode = buildDeletedNode(id, userId);
+    deleteByonNode(deleteNode);
+    return deleteNode;
   }
 
   void deleteByonNode(ByonNode node) throws UsageException {
