@@ -181,6 +181,7 @@ public class UnixInstaller extends AbstractInstaller {
             + publicIpAddress + " -Dhost.vm.id="
             + this.node.id() + " -Dhost.vm.cloud.tenant.id=" + this.userId
             + " -Dhost.vm.cloud.id=dummyCloud" + " -DLOG_DIR=" + TOOL_PATH
+            + " -Dfailfast=" + Boolean.toString(Configuration.conf().getBoolean("lance.fail.fast"))
             + " -jar " + TOOL_PATH + LANCE_JAR + " > lance.out 2>&1 &' > lance.out 2>&1";
     LOGGER.debug("Lance start command: " + startCommand);
 
