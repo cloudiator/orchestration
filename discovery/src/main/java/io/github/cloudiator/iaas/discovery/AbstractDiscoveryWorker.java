@@ -26,7 +26,10 @@ import de.uniulm.omi.cloudiator.sword.multicloud.exception.MultiCloudException;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,9 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   private final DiscoveryService discoveryService;
   private final DiscoveryErrorHandler discoveryErrorHandler;
 
+  public static final Map<String, Integer> DISCOVERY_STATUS = new HashMap<>();
+  private static final String TOTAL_NAME = "total";
+
   @Inject
   public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService,
       DiscoveryErrorHandler discoveryErrorHandler) {
@@ -51,13 +57,20 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     this.discoveryService = discoveryService;
     checkNotNull(discoveryErrorHandler, "discoveryErrorHandler is null");
     this.discoveryErrorHandler = discoveryErrorHandler;
+
+    //initialize total counter
+    DISCOVERY_STATUS.put(TOTAL_NAME, 0);
   }
 
   protected abstract Iterable<T> resources(DiscoveryService discoveryService);
 
+  protected Predicate<T> filter() {
+    return t -> true;
+  }
+
   @Override
   public final long period() {
-    return 60;
+    return 30;
   }
 
   @Override
@@ -73,12 +86,24 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   @Override
   public void run() {
     LOGGER.info(String.format("%s is starting new discovery run", this));
+
+    final String id = this.getClass().getSimpleName();
+    DISCOVERY_STATUS.put(id, 0);
+
     try {
-      StreamSupport.stream(resources(discoveryService).spliterator(), false).map(Discovery::new)
+      StreamSupport.stream(resources(discoveryService).spliterator(), true).filter(filter())
+          .map(Discovery::new)
           .forEach(discovery -> {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));
             discoveryQueue.add(discovery);
+            final Integer current = DISCOVERY_STATUS.get(id);
+            DISCOVERY_STATUS.put(id, current + 1);
           });
+
+      synchronized (DISCOVERY_STATUS) {
+        DISCOVERY_STATUS
+            .put(TOTAL_NAME, DISCOVERY_STATUS.get(TOTAL_NAME) + DISCOVERY_STATUS.get(id));
+      }
     } catch (MultiCloudException e) {
       LOGGER.error(String.format(
           "%s caught multi cloud exception %s during discovery run. Exception was caught and send to error handler %s.",

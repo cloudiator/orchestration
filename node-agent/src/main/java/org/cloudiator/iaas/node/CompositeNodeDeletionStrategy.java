@@ -32,21 +32,19 @@ public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CompositeNodeDeletionStrategy.class);
   private final Set<NodeDeletionStrategy> nodeDeletionStrategies;
+  private final ForceNodeDeletionStrategy forceNodeDeletionStrategy;
 
   @Inject
   public CompositeNodeDeletionStrategy(
-      Set<NodeDeletionStrategy> nodeDeletionStrategies) {
+      Set<NodeDeletionStrategy> nodeDeletionStrategies,
+      ForceNodeDeletionStrategy forceNodeDeletionStrategy) {
     this.nodeDeletionStrategies = nodeDeletionStrategies;
+    this.forceNodeDeletionStrategy = forceNodeDeletionStrategy;
   }
 
   @Override
   public boolean supportsNode(Node node) {
-    for (NodeDeletionStrategy nodeDeletionStrategy : nodeDeletionStrategies) {
-      if (nodeDeletionStrategy.supportsNode(node)) {
-        return true;
-      }
-    }
-    return false;
+    return true;
   }
 
   @Override
@@ -54,17 +52,25 @@ public class CompositeNodeDeletionStrategy implements NodeDeletionStrategy {
 
     checkNotNull(node, "node is null");
 
-    for (NodeDeletionStrategy nodeDeletionStrategy : nodeDeletionStrategies) {
-      if (nodeDeletionStrategy.supportsNode(node)) {
-        LOGGER.debug(String
-            .format("%s is using strategy %s to delete node %s.", this, nodeDeletionStrategy,
-                node));
-        return nodeDeletionStrategy.deleteNode(node);
+    try {
+      for (NodeDeletionStrategy nodeDeletionStrategy : nodeDeletionStrategies) {
+        if (nodeDeletionStrategy.supportsNode(node)) {
+          LOGGER.debug(String
+              .format("%s is using strategy %s to delete node %s.", this, nodeDeletionStrategy,
+                  node));
+          return nodeDeletionStrategy.deleteNode(node);
+        }
       }
+    } catch (Exception e) {
+      LOGGER.warn(String.format(
+          "Error while applying node deletion strategies to node %s. Skipping to force deletion.",
+          node));
     }
 
-    throw new IllegalStateException(
-        String.format("%s did not find a suitable strategy to delete node %s.", this, node));
+    LOGGER.warn(String
+        .format("%s did not find a suitable strategy to delete node %s. Force deleting the node.",
+            this, node));
+    return forceNodeDeletionStrategy.deleteNode(node);
   }
 
   @Override

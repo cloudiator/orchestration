@@ -32,39 +32,28 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class NodeBuilder {
+public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
-  private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
-  private NodeProperties nodeProperties;
-  private LoginCredential loginCredential;
-  private NodeType nodeType;
-  private Set<IpAddress> ipAddresses;
-  private String id;
-  private String name;
   private NodeState state;
-  private String userId;
-  private String diagnostic;
-  private String reason;
-  private String nodeCandidate;
   private String originId;
 
   private NodeBuilder() {
-    this.ipAddresses = new HashSet<>();
+    super();
   }
 
   private NodeBuilder(Node node) {
-    nodeProperties = node.nodeProperties();
-    loginCredential = node.loginCredential().orElse(null);
-    nodeType = node.type();
-    ipAddresses = node.ipAddresses();
-    id = node.id();
-    name = node.name();
+    super(node);
     state = node.state();
-    userId = node.userId();
-    diagnostic = node.diagnostic().orElse(null);
-    reason = node.reason().orElse(null);
-    nodeCandidate = node.nodeCandidate().orElse(null);
     originId = node.originId().orElse(null);
+  }
+
+  private NodeBuilder(VirtualMachine virtualMachine, boolean isExternal) {
+    super(virtualMachine, isExternal);
+    originId = virtualMachine.id();
+  }
+
+  private NodeBuilder(VirtualMachine virtualMachine) {
+    this(virtualMachine, false);
   }
 
   public static NodeBuilder newBuilder() {
@@ -76,68 +65,16 @@ public class NodeBuilder {
     return new NodeBuilder(node);
   }
 
+  public static NodeBuilder of(VirtualMachine virtualMachine, boolean isExternal) {
+    return new NodeBuilder(virtualMachine, isExternal);
+  }
+
   public static NodeBuilder of(VirtualMachine virtualMachine) {
-
-    final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
-
-    final NodeProperties nodeProperties = NodePropertiesBuilder
-        .of(providerId, virtualMachine.hardware().orElse(null), virtualMachine.image().orElse(null),
-            virtualMachine.location().orElse(null))
-        .build();
-
-    LoginCredential loginCredential = null;
-
-    if (virtualMachine.loginCredential().isPresent()) {
-      loginCredential = virtualMachine.loginCredential().get();
-      if (!loginCredential.username().isPresent()) {
-        if (virtualMachine.image().isPresent()) {
-          final OperatingSystem operatingSystem = virtualMachine.image().get().operatingSystem();
-          try {
-            final String loginName = operatingSystem.operatingSystemFamily().loginName();
-            loginCredential = LoginCredentialBuilder.of(loginCredential).username(loginName)
-                .build();
-          } catch (UnknownLoginNameException ignored) {
-            //left empty
-          }
-        }
-      }
-    }
-
-    return NodeBuilder.newBuilder().nodeType(NodeType.VM).ipAddresses(virtualMachine.ipAddresses())
-        .loginCredential(loginCredential)
-        .nodeProperties(nodeProperties).originId(virtualMachine.id());
+    return new NodeBuilder(virtualMachine);
   }
 
-  public NodeBuilder nodeProperties(
-      NodeProperties nodeProperties) {
-    this.nodeProperties = nodeProperties;
-    return this;
-  }
-
-  public NodeBuilder loginCredential(
-      LoginCredential loginCredential) {
-    this.loginCredential = loginCredential;
-    return this;
-  }
-
-  public NodeBuilder nodeType(NodeType nodeType) {
-    this.nodeType = nodeType;
-    return this;
-  }
-
-  public NodeBuilder ipAddresses(
-      Set<IpAddress> ipAddresses) {
-    this.ipAddresses = ipAddresses;
-    return this;
-  }
-
-  public NodeBuilder generateId() {
-    this.id = UUID.randomUUID().toString();
-    return this;
-  }
-
-  public NodeBuilder id(String id) {
-    this.id = id;
+  public NodeBuilder state(NodeState state) {
+    this.state = state;
     return this;
   }
 
@@ -146,41 +83,18 @@ public class NodeBuilder {
     return this;
   }
 
-  public NodeBuilder name(String name) {
-    this.name = name;
+  @Override
+  protected NodeBuilder self() {
     return this;
   }
 
-  public NodeBuilder generateName(String groupName) {
-    this.name = NAME_GENERATOR.generate(groupName);
+  @Override
+  public NodeBuilder nodeType(NodeType nodeType) {
+    this.nodeType = nodeType;
     return this;
   }
 
-  public NodeBuilder state(NodeState state) {
-    this.state = state;
-    return this;
-  }
-
-  public NodeBuilder userId(String userId) {
-    this.userId = userId;
-    return this;
-  }
-
-  public NodeBuilder diagnostic(String diagnostic) {
-    this.diagnostic = diagnostic;
-    return this;
-  }
-
-  public NodeBuilder reason(String reason) {
-    this.reason = reason;
-    return this;
-  }
-
-  public NodeBuilder nodeCandidate(String nodeCandidate) {
-    this.nodeCandidate = nodeCandidate;
-    return this;
-  }
-
+  @Override
   public Node build() {
     return new NodeImpl(nodeProperties, loginCredential, nodeType, ipAddresses, id, name, state,
         userId, diagnostic, reason, nodeCandidate, originId);

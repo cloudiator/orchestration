@@ -22,20 +22,37 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import io.github.cloudiator.persistance.HardwareDomainRepository;
+import java.util.function.Predicate;
 
 /**
  * Created by daniel on 01.06.17.
  */
 public class HardwareDiscoveryWorker extends AbstractDiscoveryWorker<HardwareFlavor> {
 
+  private final HardwareDomainRepository hardwareDomainRepository;
+
   @Inject
   public HardwareDiscoveryWorker(DiscoveryQueue discoveryQueue,
-      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler) {
+      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
+      HardwareDomainRepository hardwareDomainRepository) {
     super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    this.hardwareDomainRepository = hardwareDomainRepository;
   }
 
   @Override
   protected Iterable<HardwareFlavor> resources(DiscoveryService discoveryService) {
     return discoveryService.listHardwareFlavors();
+  }
+
+  @Override
+  protected Predicate<HardwareFlavor> filter() {
+
+    return new Predicate<HardwareFlavor>() {
+      @Override
+      public boolean test(HardwareFlavor hardwareFlavor) {
+        return hardwareDomainRepository.findById(hardwareFlavor.id()) == null;
+      }
+    };
   }
 }

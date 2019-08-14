@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition.ErrorTransitionAction;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
@@ -39,10 +38,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class ImageStateMachine implements ErrorAwareStateMachine<DiscoveredImage> {
+public class ImageStateMachine implements
+    ErrorAwareStateMachine<DiscoveredImage, DiscoveryItemState> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ImageStateMachine.class);
-  private final ErrorAwareStateMachine<DiscoveredImage> stateMachine;
+  private final ErrorAwareStateMachine<DiscoveredImage, DiscoveryItemState> stateMachine;
   private final ImageDomainRepository imageDomainRepository;
 
   @Inject
@@ -52,24 +52,25 @@ public class ImageStateMachine implements ErrorAwareStateMachine<DiscoveredImage
     this.imageDomainRepository = imageDomainRepository;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<DiscoveredImage>builder()
+    stateMachine = StateMachineBuilder.<DiscoveredImage, DiscoveryItemState>builder()
         .addTransition(
-            Transitions.<DiscoveredImage>transitionBuilder().from(DiscoveryItemState.NEW)
+            Transitions.<DiscoveredImage, DiscoveryItemState>transitionBuilder()
+                .from(DiscoveryItemState.NEW)
                 .to(DiscoveryItemState.OK).action(newToOk()).build())
         .errorTransition(
-            Transitions.<DiscoveredImage>errorTransitionBuilder()
+            Transitions.<DiscoveredImage, DiscoveryItemState>errorTransitionBuilder()
                 .errorState(DiscoveryItemState.DISABLED)
                 .action(toDisabled()).build())
-        .addHook(new StateMachineHook<DiscoveredImage>() {
+        .addHook(new StateMachineHook<DiscoveredImage, DiscoveryItemState>() {
           @Override
-          public void pre(DiscoveredImage object, State to) {
+          public void pre(DiscoveredImage object, DiscoveryItemState to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, DiscoveredImage object) {
+          public void post(DiscoveryItemState from, DiscoveredImage object) {
             cloudService.announceEvent(DiscoveryEvent.newBuilder().setFrom(
-                DiscoveryItemStateConverter.INSTANCE.applyBack((DiscoveryItemState) from))
+                DiscoveryItemStateConverter.INSTANCE.applyBack(from))
                 .setTo(DiscoveryItemStateConverter.INSTANCE.applyBack(object.state()))
                 .setImage(ImageMessageToImageConverter.INSTANCE.applyBack(object))
                 .setUserId(object.userId())
@@ -104,7 +105,7 @@ public class ImageStateMachine implements ErrorAwareStateMachine<DiscoveredImage
   }
 
   @Override
-  public DiscoveredImage apply(DiscoveredImage object, State to, Object[] arguments) {
+  public DiscoveredImage apply(DiscoveredImage object, DiscoveryItemState to, Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

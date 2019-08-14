@@ -22,13 +22,8 @@ import com.google.common.base.Strings;
 import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
-import io.github.cloudiator.domain.NodeProperties;
-import io.github.cloudiator.domain.NodePropertiesBuilder;
-import io.github.cloudiator.domain.NodeState;
-import io.github.cloudiator.domain.NodeType;
 import java.util.stream.Collectors;
 import org.cloudiator.messages.NodeEntities;
-import org.cloudiator.messages.NodeEntities.NodeProperties.Builder;
 
 public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEntities.Node> {
 
@@ -119,134 +114,5 @@ public class NodeToNodeMessageConverter implements TwoWayConverter<Node, NodeEnt
     }
 
     return builder.build();
-  }
-
-  private static class NodePropertiesMessageToNodePropertiesConverter implements
-      TwoWayConverter<NodeEntities.NodeProperties, NodeProperties> {
-
-    private final GeoLocationMessageToGeoLocationConverter geoLocationConverter = new GeoLocationMessageToGeoLocationConverter();
-    private final OperatingSystemConverter operatingSystemConverter = new OperatingSystemConverter();
-
-    @Override
-    public NodeEntities.NodeProperties applyBack(NodeProperties nodeProperties) {
-      final Builder builder = NodeEntities.NodeProperties.newBuilder()
-          .setProviderId(nodeProperties.providerId());
-
-      if (nodeProperties.numberOfCores().isPresent()) {
-        builder.setNumberOfCores(nodeProperties.numberOfCores().get());
-      }
-
-      if (nodeProperties.memory().isPresent()) {
-        builder.setMemory(nodeProperties.memory().get());
-      }
-
-      if (nodeProperties.geoLocation().isPresent()) {
-        builder.setGeoLocation(geoLocationConverter.applyBack(nodeProperties.geoLocation().get()));
-      }
-
-      if (nodeProperties.operatingSystem().isPresent()) {
-        builder.setOperationSystem(
-            operatingSystemConverter.applyBack(nodeProperties.operatingSystem().get()));
-      }
-
-      if (nodeProperties.disk().isPresent()) {
-        builder.setDisk(nodeProperties.disk().get());
-      }
-
-      return builder.build();
-
-    }
-
-    @Override
-    public NodeProperties apply(NodeEntities.NodeProperties nodeProperties) {
-      return NodePropertiesBuilder.newBuilder().providerId(nodeProperties.getProviderId())
-          .numberOfCores(nodeProperties.getNumberOfCores())
-          .disk(nodeProperties.getDisk())
-          .geoLocation(geoLocationConverter.apply(nodeProperties.getGeoLocation()))
-          .memory(nodeProperties.getMemory())
-          .os(operatingSystemConverter.apply(nodeProperties.getOperationSystem())).build();
-    }
-  }
-
-  public static class NodeStateConverter implements
-      TwoWayConverter<NodeState, NodeEntities.NodeState> {
-
-    private NodeStateConverter() {
-    }
-
-    @Override
-    public NodeState applyBack(NodeEntities.NodeState nodeState) {
-      switch (nodeState) {
-        case NODE_STATE_PENDING:
-          return NodeState.PENDING;
-        case NODE_STATE_RUNNING:
-          return NodeState.RUNNING;
-        case NODE_STATE_ERROR:
-          return NodeState.ERROR;
-        case NODE_STATE_DELETED:
-          return NodeState.DELETED;
-        case UNRECOGNIZED:
-        default:
-          throw new AssertionError("Unknown nodeState " + nodeState);
-      }
-    }
-
-    @Override
-    public NodeEntities.NodeState apply(NodeState nodeState) {
-
-      switch (nodeState) {
-        case PENDING:
-          return NodeEntities.NodeState.NODE_STATE_PENDING;
-        case ERROR:
-          return NodeEntities.NodeState.NODE_STATE_ERROR;
-        case RUNNING:
-          return NodeEntities.NodeState.NODE_STATE_RUNNING;
-        case DELETED:
-          return NodeEntities.NodeState.NODE_STATE_DELETED;
-        default:
-          throw new AssertionError("Unknown node state " + nodeState);
-      }
-    }
-  }
-
-  private static class NodeTypeToNodeTypeMessage implements
-      TwoWayConverter<NodeType, NodeEntities.NodeType> {
-
-    @Override
-    public NodeType applyBack(NodeEntities.NodeType nodeType) {
-      switch (nodeType) {
-        case VM:
-          return NodeType.VM;
-        case BYON:
-          return NodeType.BYON;
-        case CONTAINER:
-          return NodeType.CONTAINER;
-        case FAAS:
-          return NodeType.FAAS;
-        case UNKNOWN_TYPE:
-          return NodeType.UNKOWN;
-        case UNRECOGNIZED:
-        default:
-          throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
-      }
-    }
-
-    @Override
-    public NodeEntities.NodeType apply(NodeType nodeType) {
-      switch (nodeType) {
-        case VM:
-          return NodeEntities.NodeType.VM;
-        case BYON:
-          return NodeEntities.NodeType.BYON;
-        case UNKOWN:
-          return NodeEntities.NodeType.UNKNOWN_TYPE;
-        case CONTAINER:
-          return NodeEntities.NodeType.CONTAINER;
-        case FAAS:
-          return NodeEntities.NodeType.FAAS;
-        default:
-          throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
-      }
-    }
   }
 }

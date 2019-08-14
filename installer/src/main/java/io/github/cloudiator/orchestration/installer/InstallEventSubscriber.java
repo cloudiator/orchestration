@@ -18,15 +18,10 @@
 
 package io.github.cloudiator.orchestration.installer;
 
-import com.google.common.collect.Sets;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
-import io.github.cloudiator.orchestration.installer.remote.CompositeRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.KeyPairRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.PasswordRemoteConnectionStrategy;
-import io.github.cloudiator.orchestration.installer.remote.RemoteConnectionStrategy;
 import io.github.cloudiator.orchestration.installer.tools.installer.Installers;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import java.util.ArrayList;
@@ -86,13 +81,9 @@ public class InstallEventSubscriber implements Runnable {
     Node node = NODE_MESSAGE_CONVERTER
         .applyBack(installationRequest.getInstallation().getNode());
 
-    RemoteConnectionStrategy remoteConnectionStrategy = new CompositeRemoteConnectionStrategy(
-        Sets.newHashSet(
-            new PasswordRemoteConnectionStrategy(), new KeyPairRemoteConnectionStrategy()));
-
     List<Tool> installedTools;
 
-    RemoteConnection remoteConnection = remoteConnectionStrategy.connect(node);
+    RemoteConnection remoteConnection = node.connect();
 
     installedTools = installTools(installationRequest.getInstallation().getToolList(),
         remoteConnection, node,
@@ -131,11 +122,14 @@ public class InstallEventSubscriber implements Runnable {
         installApi.installVisor();
         installedTools.add(tool);
       } else if (tool.equals(Tool.DLMS_AGENT)) {
-    	 installApi.installDlmsAgent();
+        installApi.installDlmsAgent();
       } else if (tool.equals(Tool.ALLUXIO_CLIENT)) {
-     	 installApi.installAlluxio();      
+        installApi.installAlluxio();
       } else if (tool.equals(Tool.SPARK_WORKER)) {
         installApi.installSparkWorker();
+        installedTools.add(tool);
+      } else if (tool.equals(Tool.HDFS_DATA)) {
+        installApi.installHdfsDataNode();
         installedTools.add(tool);
       } else if (tool.equals(Tool.EMS_CLIENT)) {
         installApi.installEMS();

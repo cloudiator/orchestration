@@ -19,6 +19,7 @@
 package io.github.cloudiator.iaas.vm.messaging;
 
 import com.google.common.base.MoreObjects;
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.iaas.vm.workflow.DeleteVirtualMachineWorkflow;
@@ -51,6 +52,8 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
     this.computeService = computeService;
   }
 
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
   void deleteVm(String vmId, String userId) {
     virtualMachineDomainRepository.delete(vmId, userId);
   }
@@ -85,9 +88,15 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
                   .format("%s is executing the delete virtual machine workflow for vm %s.", this,
                       byTenantAndId));
 
-              new DeleteVirtualMachineWorkflow(computeService).execute(Exchange.of(vmId));
-
-              deleteVm(vmId, userId);
+              try {
+                new DeleteVirtualMachineWorkflow(computeService).execute(Exchange.of(vmId));
+              } catch (Exception e) {
+                LOGGER.warn(String
+                        .format("Error while deleting the virtual machine: %s. Force deleting.", vmId),
+                    e);
+              } finally {
+                deleteVm(vmId, userId);
+              }
 
               LOGGER.info(String
                   .format("%s successfully deleted vm %s.", this,

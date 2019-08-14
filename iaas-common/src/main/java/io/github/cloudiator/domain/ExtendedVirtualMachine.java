@@ -21,6 +21,7 @@ package io.github.cloudiator.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.domain.HardwareFlavor;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
@@ -31,7 +32,7 @@ import de.uniulm.omi.cloudiator.util.stateMachine.Stateful;
 import java.util.Optional;
 import java.util.Set;
 
-public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
+public class ExtendedVirtualMachine implements VirtualMachine, Stateful<LocalVirtualMachineState> {
 
   private final VirtualMachine delegate;
   private final String userId;
@@ -132,5 +133,14 @@ public class ExtendedVirtualMachine implements VirtualMachine, Stateful {
 
   public void setState(LocalVirtualMachineState state) {
     this.virtualMachineState = state;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("delegate", delegate)
+        .add("userId", userId)
+        .add("virtualMachineState", virtualMachineState)
+        .toString();
   }
 }

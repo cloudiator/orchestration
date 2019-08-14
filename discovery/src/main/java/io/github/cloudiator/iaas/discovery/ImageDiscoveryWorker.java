@@ -22,20 +22,36 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Image;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
+import io.github.cloudiator.persistance.ImageDomainRepository;
+import java.util.function.Predicate;
 
 /**
  * Created by daniel on 01.06.17.
  */
 public class ImageDiscoveryWorker extends AbstractDiscoveryWorker<Image> {
 
+  private final ImageDomainRepository imageDomainRepository;
+
   @Inject
   public ImageDiscoveryWorker(DiscoveryQueue discoveryQueue,
-      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler) {
+      DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
+      ImageDomainRepository imageDomainRepository) {
     super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    this.imageDomainRepository = imageDomainRepository;
   }
 
   @Override
   protected Iterable<Image> resources(DiscoveryService discoveryService) {
     return discoveryService.listImages();
+  }
+
+  @Override
+  protected Predicate<Image> filter() {
+    return new Predicate<Image>() {
+      @Override
+      public boolean test(Image image) {
+        return imageDomainRepository.findById(image.id()) == null;
+      }
+    };
   }
 }

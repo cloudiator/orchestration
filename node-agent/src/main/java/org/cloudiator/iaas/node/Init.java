@@ -48,6 +48,4 @@ public class Init {
   private void startPersistService() {
     persistService.start();
   }
-
-
 }

@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition.ErrorTransitionAction;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
@@ -39,10 +38,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLocation> {
+public class LocationStateMachine implements
+    ErrorAwareStateMachine<DiscoveredLocation, DiscoveryItemState> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LocationStateMachine.class);
-  private final ErrorAwareStateMachine<DiscoveredLocation> stateMachine;
+  private final ErrorAwareStateMachine<DiscoveredLocation, DiscoveryItemState> stateMachine;
   private final LocationDomainRepository locationDomainRepository;
   private final CloudService cloudService;
 
@@ -54,24 +54,25 @@ public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLo
     this.cloudService = cloudService;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<DiscoveredLocation>builder()
+    stateMachine = StateMachineBuilder.<DiscoveredLocation, DiscoveryItemState>builder()
         .addTransition(
-            Transitions.<DiscoveredLocation>transitionBuilder().from(DiscoveryItemState.NEW)
+            Transitions.<DiscoveredLocation, DiscoveryItemState>transitionBuilder()
+                .from(DiscoveryItemState.NEW)
                 .to(DiscoveryItemState.OK).action(newToOk()).build())
         .errorTransition(
-            Transitions.<DiscoveredLocation>errorTransitionBuilder()
+            Transitions.<DiscoveredLocation, DiscoveryItemState>errorTransitionBuilder()
                 .errorState(DiscoveryItemState.DISABLED)
                 .action(toDisabled()).build())
-        .addHook(new StateMachineHook<DiscoveredLocation>() {
+        .addHook(new StateMachineHook<DiscoveredLocation, DiscoveryItemState>() {
           @Override
-          public void pre(DiscoveredLocation object, State to) {
+          public void pre(DiscoveredLocation object, DiscoveryItemState to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, DiscoveredLocation object) {
+          public void post(DiscoveryItemState from, DiscoveredLocation object) {
             cloudService.announceEvent(DiscoveryEvent.newBuilder().setFrom(
-                DiscoveryItemStateConverter.INSTANCE.applyBack((DiscoveryItemState) from))
+                DiscoveryItemStateConverter.INSTANCE.applyBack(from))
                 .setTo(DiscoveryItemStateConverter.INSTANCE.applyBack(object.state()))
                 .setLocation(LocationMessageToLocationConverter.INSTANCE.applyBack(object))
                 .setUserId(object.userId())
@@ -106,7 +107,8 @@ public class LocationStateMachine implements ErrorAwareStateMachine<DiscoveredLo
   }
 
   @Override
-  public DiscoveredLocation apply(DiscoveredLocation object, State to, Object[] arguments) {
+  public DiscoveredLocation apply(DiscoveredLocation object, DiscoveryItemState to,
+      Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

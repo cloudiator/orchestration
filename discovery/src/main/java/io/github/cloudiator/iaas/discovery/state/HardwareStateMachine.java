@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorAwareStateMachine;
 import de.uniulm.omi.cloudiator.util.stateMachine.ErrorTransition.ErrorTransitionAction;
-import de.uniulm.omi.cloudiator.util.stateMachine.State;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineBuilder;
 import de.uniulm.omi.cloudiator.util.stateMachine.StateMachineHook;
 import de.uniulm.omi.cloudiator.util.stateMachine.Transition.TransitionAction;
@@ -33,17 +32,17 @@ import io.github.cloudiator.domain.DiscoveryItemState;
 import io.github.cloudiator.messaging.DiscoveryItemStateConverter;
 import io.github.cloudiator.messaging.HardwareMessageToHardwareConverter;
 import io.github.cloudiator.persistance.HardwareDomainRepository;
-import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Discovery.DiscoveryEvent;
 import org.cloudiator.messaging.services.CloudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class HardwareStateMachine implements ErrorAwareStateMachine<DiscoveredHardware> {
+public class HardwareStateMachine implements
+    ErrorAwareStateMachine<DiscoveredHardware, DiscoveryItemState> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HardwareStateMachine.class);
-  private final ErrorAwareStateMachine<DiscoveredHardware> stateMachine;
+  private final ErrorAwareStateMachine<DiscoveredHardware, DiscoveryItemState> stateMachine;
   private final HardwareDomainRepository hardwareDomainRepository;
 
   @Inject
@@ -53,24 +52,25 @@ public class HardwareStateMachine implements ErrorAwareStateMachine<DiscoveredHa
     this.hardwareDomainRepository = hardwareDomainRepository;
 
     //noinspection unchecked
-    stateMachine = StateMachineBuilder.<DiscoveredHardware>builder()
+    stateMachine = StateMachineBuilder.<DiscoveredHardware, DiscoveryItemState>builder()
         .addTransition(
-            Transitions.<DiscoveredHardware>transitionBuilder().from(DiscoveryItemState.NEW)
+            Transitions.<DiscoveredHardware, DiscoveryItemState>transitionBuilder()
+                .from(DiscoveryItemState.NEW)
                 .to(DiscoveryItemState.OK).action(newToOk()).build())
         .errorTransition(
-            Transitions.<DiscoveredHardware>errorTransitionBuilder()
+            Transitions.<DiscoveredHardware, DiscoveryItemState>errorTransitionBuilder()
                 .errorState(DiscoveryItemState.DISABLED)
                 .action(toDisabled()).build())
-        .addHook(new StateMachineHook<DiscoveredHardware>() {
+        .addHook(new StateMachineHook<DiscoveredHardware, DiscoveryItemState>() {
           @Override
-          public void pre(DiscoveredHardware object, State to) {
+          public void pre(DiscoveredHardware object, DiscoveryItemState to) {
             //intentionally left empty
           }
 
           @Override
-          public void post(State from, DiscoveredHardware object) {
+          public void post(DiscoveryItemState from, DiscoveredHardware object) {
             cloudService.announceEvent(DiscoveryEvent.newBuilder().setFrom(
-                DiscoveryItemStateConverter.INSTANCE.applyBack((DiscoveryItemState) from))
+                DiscoveryItemStateConverter.INSTANCE.applyBack(from))
                 .setTo(DiscoveryItemStateConverter.INSTANCE.applyBack(object.state()))
                 .setHardwareFlavor(HardwareMessageToHardwareConverter.INSTANCE.applyBack(object))
                 .setUserId(object.userId())
@@ -105,7 +105,8 @@ public class HardwareStateMachine implements ErrorAwareStateMachine<DiscoveredHa
   }
 
   @Override
-  public DiscoveredHardware apply(DiscoveredHardware object, State to, Object[] arguments) {
+  public DiscoveredHardware apply(DiscoveredHardware object, DiscoveryItemState to,
+      Object[] arguments) {
     return stateMachine.apply(object, to, arguments);
   }
 

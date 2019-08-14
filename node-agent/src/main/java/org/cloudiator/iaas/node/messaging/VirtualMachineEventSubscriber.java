@@ -19,9 +19,11 @@
 package org.cloudiator.iaas.node.messaging;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import io.github.cloudiator.util.CollectorsUtil;
+import java.util.List;
 import org.cloudiator.iaas.node.NodeStateMachine;
 import org.cloudiator.messages.Vm.VirtualMachineEvent;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachineState;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class VirtualMachineEventSubscriber implements Runnable {
 
+  public static final String FAILURE_MESSAGE = "Node %s is affected by failure of vm with id %s. Marking node as failed.";
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeStateMachine nodeStateMachine;
@@ -46,6 +49,12 @@ public class VirtualMachineEventSubscriber implements Runnable {
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeStateMachine = nodeStateMachine;
+  }
+
+  @SuppressWarnings("WeakerAccess")
+  @Transactional
+  List<Node> findNodeByTenant(String userId) {
+    return nodeDomainRepository.findByTenant(userId);
   }
 
   @Override
@@ -64,7 +73,7 @@ public class VirtualMachineEventSubscriber implements Runnable {
                       content.getVm().getId()));
 
               //search the corresponding node
-              final Node affectedNode = nodeDomainRepository.findByTenant(userId).stream()
+              final Node affectedNode = findNodeByTenant(userId).stream()
                   .filter(node -> {
                     if (!node.originId().isPresent()) {
                       return false;
@@ -80,12 +89,13 @@ public class VirtualMachineEventSubscriber implements Runnable {
               }
 
               LOGGER.warn(String.format(
-                  "Node %s is affected by failure of vm with id %s. Marking node as failed.",
+                  FAILURE_MESSAGE,
                   affectedNode, content.getVm().getId()));
 
               //fail the affected node
               nodeStateMachine.fail(affectedNode, new Object[0],
-                  new IllegalStateException("Underlying virtual machine failed."));
+                  new IllegalStateException(
+                      String.format(FAILURE_MESSAGE, affectedNode.id(), content.getVm().getId())));
 
 
             }

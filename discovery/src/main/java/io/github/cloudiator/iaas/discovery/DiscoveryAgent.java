@@ -25,19 +25,25 @@ import io.github.cloudiator.iaas.discovery.config.DiscoveryModule;
 import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.DeleteCloudSubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.DiscoveryStatusSubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
 import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.QuotaQuerySubscriber;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by daniel on 25.01.17.
  */
 public class DiscoveryAgent {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryAgent.class);
 
   private static Injector injector = Guice
       .createInjector(new DiscoveryModule(), new MessageServiceModule(),
@@ -46,6 +52,8 @@ public class DiscoveryAgent {
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())));
 
   public static void main(String[] args) {
+
+    LOGGER.info("Using configuration: " + Configuration.conf());
 
     final CloudAddedSubscriber instance = injector.getInstance(CloudAddedSubscriber.class);
     instance.run();
@@ -63,9 +71,13 @@ public class DiscoveryAgent {
 
     injector.getInstance(DeleteCloudSubscriber.class).run();
 
+    injector.getInstance(DiscoveryStatusSubscriber.class).run();
+
     final CloudQuerySubscriber cloudQuerySubscriber = injector
         .getInstance(CloudQuerySubscriber.class);
     cloudQuerySubscriber.run();
+
+    injector.getInstance(QuotaQuerySubscriber.class).run();
   }
 
 }

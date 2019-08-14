@@ -18,13 +18,14 @@
 
 package io.github.cloudiator.messaging;
 
-import de.uniulm.omi.cloudiator.util.OneWayConverter;
+import de.uniulm.omi.cloudiator.util.TwoWayConverter;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateBuilder;
 import org.cloudiator.messages.entities.MatchmakingEntities;
+import org.cloudiator.messages.entities.MatchmakingEntities.NodeCandidate.Builder;
 
 public class NodeCandidateConverter implements
-    OneWayConverter<MatchmakingEntities.NodeCandidate, NodeCandidate> {
+    TwoWayConverter<MatchmakingEntities.NodeCandidate, NodeCandidate> {
 
   public static final NodeCandidateConverter INSTANCE = new NodeCandidateConverter();
 
@@ -45,8 +46,9 @@ public class NodeCandidateConverter implements
         return applyIaas(nodeCandidate);
       case NC_FAAS:
         return applyFaas(nodeCandidate);
-      case NC_PAAS:
       case NC_BYON:
+        return applyByon(nodeCandidate);
+      case NC_PAAS:
       case UNRECOGNIZED:
       default:
         throw new IllegalStateException(
@@ -77,5 +79,47 @@ public class NodeCandidateConverter implements
         .memoryPrice(nodeCandidate.getMemoryPrice())
         .environment(ENVIRONMENT_CONVERTER.apply(nodeCandidate.getEnvironment()))
         .build();
+  }
+
+  private NodeCandidate applyByon(MatchmakingEntities.NodeCandidate nodeCandidate) {
+    return applyIaas(nodeCandidate);
+  }
+
+  @Override
+  public MatchmakingEntities.NodeCandidate applyBack(NodeCandidate nodeCandidate) {
+    final Builder builder = MatchmakingEntities.NodeCandidate.newBuilder();
+    builder.setId(nodeCandidate.id());
+    builder.setType(TYPE_CONVERTER.applyBack(nodeCandidate.type()));
+    builder.setCloud(CLOUD_CONVERTER.applyBack(nodeCandidate.cloud()));
+
+    if (nodeCandidate.image() != null) {
+      builder.setImage(IMAGE_CONVERTER.applyBack(nodeCandidate.image()));
+    }
+
+    if (nodeCandidate.hardware() != null) {
+      builder.setHardwareFlavor(HARDWARE_CONVERTER.applyBack(nodeCandidate.hardware()));
+    }
+
+    if (nodeCandidate.location() != null) {
+      builder.setLocation(LOCATION_CONVERTER.applyBack(nodeCandidate.location()));
+    }
+
+    if (nodeCandidate.price() != 0) {
+      builder.setPrice(nodeCandidate.price());
+    }
+
+    if (nodeCandidate.pricePerInvocation() != 0) {
+      builder.setPricePerInvocation(nodeCandidate.pricePerInvocation());
+    }
+
+    if (nodeCandidate.memoryPrice() != 0) {
+      builder.setMemoryPrice(nodeCandidate.memoryPrice());
+    }
+
+    if (nodeCandidate.environment() != null) {
+      ENVIRONMENT_CONVERTER.applyBack(nodeCandidate.environment());
+    }
+
+    return builder.build();
   }
 }

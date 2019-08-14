@@ -35,7 +35,9 @@ import io.github.cloudiator.iaas.vm.VirtualMachineStatistics;
 import io.github.cloudiator.iaas.vm.workflow.CreateVirtualMachineWorkflow;
 import io.github.cloudiator.iaas.vm.workflow.Exchange;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import io.github.cloudiator.persistance.VirtualMachineDomainRepository;
+import java.util.concurrent.Callable;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messaging.MessageInterface;
@@ -117,11 +119,16 @@ public class VirtualMachineRequestWorker implements Runnable {
       final long stopTime = System.currentTimeMillis();
 
       virtualMachineStatistics
-          .virtualMachineStartTime(userId, virtualMachine,
+          .virtualMachineStartTime(userId, update,
               stopTime - startTime);
 
       //persist the vm
-      persistVirtualMachine(update);
+      synchronized (VirtualMachineRequestWorker.class) {
+        TransactionRetryer.retry((Callable<Void>) () -> {
+          persistVirtualMachine(update);
+          return null;
+        });
+      }
 
       messageInterface.reply(virtualMachineRequest.getId(),
           VirtualMachineCreatedResponse.newBuilder()
