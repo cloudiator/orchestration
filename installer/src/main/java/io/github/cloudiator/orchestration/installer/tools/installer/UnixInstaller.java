@@ -227,7 +227,7 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Configuring alluxio on node %s", node.id()));
 
     //download alluxio
-    CommandTask installAlluxio = new CommandTask(this.remoteConnection, "sudo wget " + ALLUXIO_ARCHIVE);
+    CommandTask installAlluxio = new CommandTask(this.remoteConnection, "sudo wget " + ALLUXIO_DOWNLOAD);
 
     installAlluxio.call();
 
