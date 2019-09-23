@@ -267,6 +267,7 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
 
+
   @Override
   public void installDlmsAgent() throws RemoteException {
     LOGGER.debug(String.format("Installing and start DLMS agent= on node %s", node.id()));
@@ -282,16 +283,15 @@ public class UnixInstaller extends AbstractInstaller {
     String dlms_agent_metrics_range = Configuration.conf()
         .getString("installer.dlmsagent.metrics.range");
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
-
+    String publicIpAddress = node.connectTo().ip();
+    String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
+    String dlms_agent_webservice_url = Configuration.conf().getString("installer.dlmsagent.webserviceurl");
     // start DLMSagent
 
-    String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
-            + " -DjmsUrl=" +
-            dlms_agent_jms_url + " -DmetricsRange="
-            + dlms_agent_metrics_range + " -Dserver-port="
-            + dlms_agent_port
-            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
+    String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+            + " -DjmsUrl=" + dlms_agent_jms_url + " -DmetricsRange=" + dlms_agent_metrics_range + " -Dserver-port="
+            + dlms_agent_port + " -Dip.public=" + publicIpAddress + " -Dip.private=" + privateIpAddress	+ " -Dvm.id="
+            + this.node.id() + " -Dtenant.id=" + this.userId + " -DwebServiceUrl=" + dlms_agent_webservice_url + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
             + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
     LOGGER.debug("Dlms agent start command: " + startCommand);
 
