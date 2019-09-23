@@ -222,7 +222,8 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
 
-  @Override void installAlluxio() throws RemoteException {
+    @Override
+    public void installAlluxio() throws RemoteException {
     LOGGER.debug(String.format("Configuring alluxio on node %s", node.id()));
 
     //download alluxio
