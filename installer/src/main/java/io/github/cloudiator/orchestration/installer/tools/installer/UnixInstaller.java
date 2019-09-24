@@ -286,7 +286,7 @@ public class UnixInstaller extends AbstractInstaller {
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
     String publicIpAddress = node.connectTo().ip();
     String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
-    String dlms_agent_webservice_url = Configuration.conf().getString("installer.dlmsagent.webserviceurl");
+    String dlms_agent_webservice_url = "tcp://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
     // start DLMSagent
 
     String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
