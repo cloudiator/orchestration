@@ -21,7 +21,14 @@ package io.github.cloudiator.persistance;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
+
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
 
 class OperatingSystemModelRepositoryJpa extends
     BaseModelRepositoryJpa<OperatingSystemModel> implements OperatingSystemModelRepository {
@@ -31,5 +38,36 @@ class OperatingSystemModelRepositoryJpa extends
       Provider<EntityManager> entityManager,
       TypeLiteral<OperatingSystemModel> type) {
     super(entityManager, type);
+  }
+
+  @Nullable
+  @Override
+  public OperatingSystemModel findByArchitectureFamilyVersion(OperatingSystemArchitecture architecture, OperatingSystemFamily family, OperatingSystemVersion version) {
+    String queryStringWithVersion = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version=:version",
+                    type.getName());
+    String queryStringWithoutVersion = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version is null",
+                    type.getName());
+
+    Query query;
+    if (version.version() == null) {
+      query = em().createQuery(queryStringWithoutVersion);
+    } else {
+      query = em().createQuery(queryStringWithVersion);
+      query.setParameter("version", version.version());
+    }
+
+    query
+            .setParameter("operatingSystemArchitecture", architecture)
+            .setParameter("operatingSystemFamily", family);
+    try {
+      //noinspection unchecked
+      return (OperatingSystemModel) query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 }
