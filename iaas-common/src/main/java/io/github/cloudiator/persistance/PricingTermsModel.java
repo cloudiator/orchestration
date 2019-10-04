@@ -7,11 +7,8 @@ import java.util.List;
 public class PricingTermsModel extends Model {
     @Column(nullable = false)
     private String termsType; // e.g. OnDemand, Reserved
-    @Column(nullable = true)
     private String leaseContractLength;
-    @Column(nullable = true)
     private String offeringClass;
-    @Column(nullable = true)
     private String purchaseOption;
 
     @ManyToOne

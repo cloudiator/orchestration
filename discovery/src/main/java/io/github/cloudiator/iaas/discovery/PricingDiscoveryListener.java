@@ -30,19 +30,10 @@ public class PricingDiscoveryListener implements DiscoveryListener {
 
         final Pricing pricing = (Pricing) o;
 
-//        speed up for now
-//        final DiscoveredPricing byId = pricingDomainRepository.findById(pricing.id());
-//
-//        if (byId != null) {
-//            LOGGER.trace(String.format("Skipping pricing %s. Already exists.", pricing));
-//            return;
-//        }
-
         DiscoveredPricing discoveredPricing = new DiscoveredPricing(pricing, "Internal-Pricing");
 
         try {
             pricingDomainRepository.save(discoveredPricing);
-            //pricingStateMachine.apply(discoveredPricing, DiscoveryItemState.OK, new Object[0]);
         } catch (Exception e) {
             LOGGER.info("Exception caught while saving discovered pricing", e);
         }

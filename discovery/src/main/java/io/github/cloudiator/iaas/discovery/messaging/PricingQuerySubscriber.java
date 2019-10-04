@@ -28,9 +28,8 @@ public class PricingQuerySubscriber implements Runnable {
 
     @Override
     public void run() {
-        Subscription subscription = messageInterface.subscribe(PricingQueryRequest.class, PricingQueryRequest.parser(),
-                (requestId, pricingQueryRequest)  -> {
-
+        messageInterface.subscribe(PricingQueryRequest.class, PricingQueryRequest.parser(),
+                (requestId, pricingQueryRequest) -> {
                     try {
                         decideAndReply(requestId, pricingQueryRequest);
                     } catch (Exception e) {
@@ -64,11 +63,6 @@ public class PricingQuerySubscriber implements Runnable {
                                     PRICING_CONVERTER::apply).collect(Collectors.toList())).build();
             messageInterface.reply(requestId, pricingQueryResponse);
         } catch (Exception e) {
-            /*messageInterface.reply(PricingQueryResponse.class, requestId,
-                    General.Error.newBuilder().setCode(500).setMessage(String
-                            .format("Error while retrieving the price: %s", e.getMessage()))
-                            .build());
-            return;*/
             LOGGER.error(e.getMessage());
         }
     }

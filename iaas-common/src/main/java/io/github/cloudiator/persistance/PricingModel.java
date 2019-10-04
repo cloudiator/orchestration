@@ -1,9 +1,5 @@
 package io.github.cloudiator.persistance;
 
-import io.github.cloudiator.domain.DiscoveryItemState;
-import org.apache.kafka.common.protocol.types.Field;
-
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.List;
 
@@ -23,17 +19,12 @@ public class PricingModel extends Model {
     private String cloudServiceProviderName;
     @Column(nullable = false)
     private String currency;
-    @Column(nullable = true)
     private String licenseModel;
-    @Column(nullable = true)
     private String tenancy;
     @Column(nullable = false)
     private String productFamily;
-    @Column(nullable = true)
     private String preInstalledSw;
-    @Column(nullable = true)
     private String capacityStatus;
-    @Column(nullable = true)
     private String operation;
     @Column(nullable = false)
     private String locationProviderId;

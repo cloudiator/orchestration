@@ -180,12 +180,7 @@ public class PricingDomainRepository {
     private ApiModel getApiModel(DiscoveredPricing domain) {
         List<ApiModel> apiModels = apiDomainRepository.findAll();
         Optional<ApiModel> apiModel = apiModels.stream().filter(model -> model.getProviderName().matches("(?i).*aws.*")).findAny();
-        if(apiModel.isPresent()) {
-            return apiModel.get();
-        }
-        else {
-            return apiDomainRepository.saveOrGet(domain.getApi());
-        }
+        return apiModel.orElseGet(() -> apiDomainRepository.saveOrGet(domain.getApi()));
     }
 
 }

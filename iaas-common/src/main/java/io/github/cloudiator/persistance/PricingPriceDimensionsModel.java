@@ -12,15 +12,12 @@ public class PricingPriceDimensionsModel extends Model {
     private BigDecimal pricePerUnit;
     @Column(nullable = false)
     private String unit;
-    @Column(nullable = true)
     private String description;
-    @Column(nullable = true)
     private String beginRange;
-    @Column(nullable = true)
     private String endRange;
 
     @ManyToOne
-    @JoinColumn(name="pricingTermsModelId", nullable=true)
+    @JoinColumn(name="pricingTermsModelId")
     private PricingTermsModel pricingTermsModel;
 
     public PricingPriceDimensionsModel(BigDecimal pricePerUnit, String unit, String description, String beginRange, String endRange) {

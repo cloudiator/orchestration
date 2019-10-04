@@ -33,30 +33,32 @@ import javax.persistence.Query;
 class OperatingSystemModelRepositoryJpa extends
     BaseModelRepositoryJpa<OperatingSystemModel> implements OperatingSystemModelRepository {
 
+  private String queryStringWithVersion2findByArchFamVer;
+  private String queryStringWithoutVersion2findByArchFamVer;
+
   @Inject
   protected OperatingSystemModelRepositoryJpa(
       Provider<EntityManager> entityManager,
       TypeLiteral<OperatingSystemModel> type) {
     super(entityManager, type);
+    queryStringWithVersion2findByArchFamVer = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version=:version",
+                    super.type.getName());
+    queryStringWithoutVersion2findByArchFamVer = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version is null",
+                    super.type.getName());
   }
 
   @Nullable
   @Override
   public OperatingSystemModel findByArchitectureFamilyVersion(OperatingSystemArchitecture architecture, OperatingSystemFamily family, OperatingSystemVersion version) {
-    String queryStringWithVersion = String
-            .format(
-                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version=:version",
-                    type.getName());
-    String queryStringWithoutVersion = String
-            .format(
-                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version is null",
-                    type.getName());
-
     Query query;
     if (version.version() == null) {
-      query = em().createQuery(queryStringWithoutVersion);
+      query = em().createQuery(queryStringWithoutVersion2findByArchFamVer);
     } else {
-      query = em().createQuery(queryStringWithVersion);
+      query = em().createQuery(queryStringWithVersion2findByArchFamVer);
       query.setParameter("version", version.version());
     }
 
