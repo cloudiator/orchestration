@@ -222,22 +222,56 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
 
-  @Override
-  public void installAlluxio() throws RemoteException {
-	LOGGER.debug(String.format("Configuring alluxio with docker on node %s", node.id()));
-	this.remoteConnection.executeCommand("sudo docker network create alluxio_nw");
+    @Override
+    public void installAlluxio() throws RemoteException {
+    LOGGER.debug(String.format("Configuring alluxio on node %s", node.id()));
 
-	this.remoteConnection.executeCommand("sudo docker volume create ufs");
+    //download alluxio
+    CommandTask installAlluxio = new CommandTask(this.remoteConnection, "sudo wget " + ALLUXIO_DOWNLOAD);
 
-	LOGGER.debug(String.format("Starting alluxio with master hostname %s", Configuration.conf().getString("installer.alluxio.master.host") ));
-	this.remoteConnection.executeCommand("sudo docker run -d -p 19999:19999 -p 19998:19998 -p 29999:29999 -p "
-		+ "29998:29998 -p 30000:30000 --net=alluxio_nw --name=alluxio_worker --shm-size=1G -e "
-		+ "ALLUXIO_WORKER_MEMORY_SIZE=1G -v ufs:/opt/alluxio/underFSStorage -e ALLUXIO_MASTER_HOSTNAME="
-		+ Configuration.conf().getString("installer.alluxio.master.host") + " alluxio/alluxio worker");
+    installAlluxio.call();
 
-	LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));
-  
+    String cmdStr = "sudo tar xzvf " + ALLUXIO_ARCHIVE;
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    CommandTask cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo mv alluxio-2.0.0 alluxio";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo mv alluxio/conf/alluxio-site.properties.template alluxio/conf/alluxio-site.properties";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo echo -e \"alluxio.master.hostname=" + Configuration.conf().getString("installer.alluxio.master.host") +
+            "\\nalluxio.underfs.address=$PWD/underFSStorage\\nalluxio.security.login.username=root\\nalluxio.security.login.impersonation.username=root\\n\" | sudo tee -a alluxio/conf/alluxio-site.properties > /dev/null";
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo rm alluxio/conf/masters";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo echo \"" +
+            Configuration.conf().getString("installer.alluxio.master.host") + "\" | sudo tee alluxio/conf/masters > /dev/null";
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo alluxio/bin/alluxio-start.sh worker SudoMount";
+    LOGGER.debug("Starting alluxio worker");
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
   }
+
 
 
   @Override
@@ -255,16 +289,15 @@ public class UnixInstaller extends AbstractInstaller {
     String dlms_agent_metrics_range = Configuration.conf()
         .getString("installer.dlmsagent.metrics.range");
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
-
+    String publicIpAddress = node.connectTo().ip();
+    String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
+    String dlms_agent_webservice_url = "http://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
     // start DLMSagent
 
-    String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
-            + " -DjmsUrl=" +
-            dlms_agent_jms_url + " -DmetricsRange="
-            + dlms_agent_metrics_range + " -Dserver-port="
-            + dlms_agent_port
-            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
+    String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+            + " -DjmsUrl=" + dlms_agent_jms_url + " -DmetricsRange=" + dlms_agent_metrics_range + " -Dserver-port="
+            + dlms_agent_port + " -Dip.public=" + publicIpAddress + " -Dip.private=" + privateIpAddress	+ " -Dvm.id="
+            + this.node.id() + " -Dtenant.id=" + this.userId + " -DwebServiceUrl=" + dlms_agent_webservice_url + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
             + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
     LOGGER.debug("Dlms agent start command: " + startCommand);
 
@@ -392,7 +425,7 @@ public class UnixInstaller extends AbstractInstaller {
           LOGGER.error("EMS Client installation failed:\n", e);
         }
       } else {
-        LOGGER.warn(String.format("EMS Client installation is switched off"));
+        LOGGER.warn("EMS Client installation is switched off");
       }
     }
   }
