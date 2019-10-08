@@ -245,26 +245,31 @@ public class UnixInstaller extends AbstractInstaller {
     cmdStr = "sudo mv alluxio/conf/alluxio-site.properties.template alluxio/conf/alluxio-site.properties";
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
 
     cmdStr = "sudo echo -e \"alluxio.master.hostname=" + Configuration.conf().getString("installer.alluxio.master.host") +
             "\\nalluxio.underfs.address=$PWD/underFSStorage\\nalluxio.security.login.username=root\\nalluxio.security.login.impersonation.username=root\\n\" | sudo tee -a alluxio/conf/alluxio-site.properties > /dev/null";
 
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
 
     cmdStr = "sudo rm alluxio/conf/masters";
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
 
     cmdStr = "sudo echo \"" +
             Configuration.conf().getString("installer.alluxio.master.host") + "\" | sudo tee alluxio/conf/masters > /dev/null";
 
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
 
     cmdStr = "sudo alluxio/bin/alluxio-start.sh worker SudoMount";
     LOGGER.debug("Starting alluxio worker");
     cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
   }
 
 
@@ -286,7 +291,7 @@ public class UnixInstaller extends AbstractInstaller {
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
     String publicIpAddress = node.connectTo().ip();
     String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
-    String dlms_agent_webservice_url = "tcp://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
+    String dlms_agent_webservice_url = "http://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
     // start DLMSagent
 
     String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
@@ -420,7 +425,7 @@ public class UnixInstaller extends AbstractInstaller {
           LOGGER.error("EMS Client installation failed:\n", e);
         }
       } else {
-        LOGGER.warn(String.format("EMS Client installation is switched off"));
+        LOGGER.warn("EMS Client installation is switched off");
       }
     }
   }
