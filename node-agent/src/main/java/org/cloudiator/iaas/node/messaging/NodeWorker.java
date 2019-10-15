@@ -18,14 +18,19 @@
 
 package org.cloudiator.iaas.node.messaging;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
+import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
 import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.domain.NodeType;
+import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import io.github.cloudiator.persistance.TransactionRetryer;
@@ -33,7 +38,7 @@ import org.cloudiator.iaas.node.NodeStateMachine;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messages.Node.NodeRequestResponse;
-import org.cloudiator.messages.entities.MatchmakingEntities.NodeCandidate;
+
 import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,16 +54,19 @@ public class NodeWorker implements Runnable {
   private final NodeDomainRepository nodeDomainRepository;
   private final NodeStateMachine nodeStateMachine;
   private final NodeToNodeMessageConverter NODE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
+  private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
 
   @Inject
   public NodeWorker(@Assisted NodeRequest nodeRequest,
       MessageInterface messageInterface,
       NodeDomainRepository nodeDomainRepository,
-      NodeStateMachine nodeStateMachine) {
+      NodeStateMachine nodeStateMachine,
+      NodeCandidateMessageRepository nodeCandidateMessageRepository) {
     this.nodeRequest = nodeRequest;
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeStateMachine = nodeStateMachine;
+    this.nodeCandidateMessageRepository = nodeCandidateMessageRepository;
   }
 
   @Transactional
@@ -67,6 +75,19 @@ public class NodeWorker implements Runnable {
     return node;
   }
 
+
+  private NodeCandidate retrieveCandidate(String userId, String nodeCandidateId) {
+
+    final NodeCandidate nodeCandidate = nodeCandidateMessageRepository
+        .getById(userId, nodeCandidateId);
+
+    checkNotNull(nodeCandidate, String
+        .format("NodeCandidate with id %s does no (longer) exist.", nodeCandidateId));
+
+    return nodeCandidate;
+  }
+
+
   @Override
   public void run() {
 
@@ -74,7 +95,7 @@ public class NodeWorker implements Runnable {
 
       final String userId = nodeRequest.getNodeRequestMessage().getUserId();
       final String groupName = nodeRequest.getNodeRequestMessage().getGroupName();
-      final NodeCandidate nodeCandidate = nodeRequest.getNodeRequestMessage().getNodeCandidate();
+      final NodeCandidate nodeCandidate = retrieveCandidate(userId,nodeRequest.getNodeRequestMessage().getNodeCandidate());
 
       LOGGER.debug(
           String.format(
@@ -87,8 +108,8 @@ public class NodeWorker implements Runnable {
               NodeType.UNKOWN)
           .nodeProperties(
               NodePropertiesBuilder.newBuilder()
-                  .providerId(nodeCandidate.getCloud().getId())
-                  .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.getId())
+                  .providerId(nodeCandidate.cloud().id())
+                  .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.id())
           .userId(userId).build();
 
       synchronized (NodeWorker.class) {
