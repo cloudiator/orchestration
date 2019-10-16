@@ -37,7 +37,8 @@ import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoveByonNodeSubscriber  implements Runnable {
+public class RemoveByonNodeSubscriber implements Runnable {
+
   private static final Logger LOGGER =
       LoggerFactory.getLogger(RemoveByonNodeSubscriber.class);
   private final MessageInterface messageInterface;
@@ -69,7 +70,7 @@ public class RemoveByonNodeSubscriber  implements Runnable {
                     "Cannot remove node with id %s "
                         + "as it seems to be allocated at the moment", id));
             LOGGER.debug(String.format("%s retrieved request to remove "
-                    + "byon node with id %s.", this, id));
+                + "byon node with id %s.", this, id));
             removeByonNode(id, userId);
             LOGGER.info("byon node removed. sending response");
             messageInterface.reply(requestId,
@@ -77,10 +78,11 @@ public class RemoveByonNodeSubscriber  implements Runnable {
             LOGGER.info("response sent.");
             // Set only id, userId, unallocated and REMOVE as information
             Byon.ByonData data = ByonData.newBuilder().setAllocated(false).build();
-            publisher.publishEvent(userId, data, ByonIO.EVICT);
+            publisher.publishEvent(userId, id, data, ByonIO.EVICT);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
-            sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
+            sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(),
+                Constants.SERVER_ERROR);
           }
         });
   }

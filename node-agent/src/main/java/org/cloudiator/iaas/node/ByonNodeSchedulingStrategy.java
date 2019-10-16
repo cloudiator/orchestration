@@ -72,9 +72,7 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
     //node is 'running' now
     ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage = ByonNodeAllocateRequestMessage
-        .newBuilder().setUserId(pending.userId()).setProperties(
-            NODE_PROPERTIES_CONVERTER.applyBack(buildProperties(nodeCandidate)))
-        .setAllocated(true).build();
+        .newBuilder().setUserId(pending.userId()).setByonId(nodeCandidate.id()).build();
 
     byonService.createByonPersistAllocAsync(byonNodeAllocateRequestMessage, byonFuture);
 
@@ -85,7 +83,8 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
       final Node byonNode = ByonNodeToNodeConverter.INSTANCE.apply(scheduledNode);
 
       return NodeBuilder.of(byonNode).id(pending.id()).generateName(pending.name())
-          .nodeCandidate(nodeCandidate.id()).originId(byonNode.id()).nodeType(NodeType.BYON).build();
+          .nodeCandidate(nodeCandidate.id()).originId(byonNode.id()).nodeType(NodeType.BYON)
+          .build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
