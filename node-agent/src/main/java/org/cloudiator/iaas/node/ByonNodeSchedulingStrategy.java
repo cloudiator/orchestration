@@ -2,22 +2,20 @@ package org.cloudiator.iaas.node;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static io.github.cloudiator.domain.NodeType.BYON;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeToNodeConverter;
-import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
+import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.domain.NodePropertiesBuilder;
-import io.github.cloudiator.domain.NodeState;
+import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
@@ -67,13 +65,13 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
     final NodeCandidate nodeCandidate = retrieveCandidate(pending);
 
-    if(nodeCandidate == null) {
+    if (nodeCandidate == null) {
       throw new NodeSchedulingException(String.format("Cannot schedule byon with id: %s, as no"
           + " nodecandidate is associated with it.", pending.id()));
     }
 
     //node is 'running' now
-    ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage  = ByonNodeAllocateRequestMessage
+    ByonNodeAllocateRequestMessage byonNodeAllocateRequestMessage = ByonNodeAllocateRequestMessage
         .newBuilder().setUserId(pending.userId()).setProperties(
             NODE_PROPERTIES_CONVERTER.applyBack(buildProperties(nodeCandidate)))
         .setAllocated(true).build();
@@ -82,8 +80,13 @@ public class ByonNodeSchedulingStrategy implements NodeSchedulingStrategy {
 
     try {
       ByonNodeAllocatedResponse response = byonFuture.get();
-      final ByonNode scheduledNode = ByonToByonMessageConverter.INSTANCE.applyBack(response.getNode());
-      return ByonNodeToNodeConverter.INSTANCE.apply(scheduledNode);
+      final ByonNode scheduledNode = ByonToByonMessageConverter.INSTANCE
+          .applyBack(response.getNode());
+      final Node byonNode = ByonNodeToNodeConverter.INSTANCE.apply(scheduledNode);
+
+      return NodeBuilder.of(byonNode).id(pending.id()).generateName(pending.name())
+          .nodeCandidate(nodeCandidate.id()).originId(byonNode.id()).nodeType(NodeType.BYON).build();
+
     } catch (InterruptedException e) {
       throw new IllegalStateException("Interrupted while registering function", e);
     } catch (ExecutionException e) {
