@@ -4,7 +4,6 @@ import static jersey.repackaged.com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.ByonNode;
-import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeProperties;
@@ -22,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ByonNodeDeletionStrategy.class);
   private final ByonService byonService;
@@ -40,39 +40,40 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
 
   @Override
   public boolean deleteNode(Node node) {
-      Node deletedNode = setDeleted(node);
-      ByonNodeDeleteRequestMessage byonNodeDeleteRequestMessage = ByonNodeDeleteRequestMessage
-          .newBuilder().setUserId(deletedNode.userId())
-          .setProperties(NODE_PROPERTIES_CONVERTER.applyBack(buildProperties(deletedNode)))
-          .setAllocated(false).build();
+    Node deletedNode = setDeleted(node);
+    ByonNodeDeleteRequestMessage byonNodeDeleteRequestMessage = ByonNodeDeleteRequestMessage
+        .newBuilder().setUserId(deletedNode.userId())
+        .setByonId(node.originId().get())
+        .build();
 
-      final SettableFutureResponseCallback<ByonNodeDeletedResponse, ByonNodeDeletedResponse>
-          byonFuture = SettableFutureResponseCallback.create();
+    final SettableFutureResponseCallback<ByonNodeDeletedResponse, ByonNodeDeletedResponse>
+        byonFuture = SettableFutureResponseCallback.create();
 
-      checkState(deletedNode.id() != null, "No id is present on byon. Can not delete");
+    checkState(deletedNode.id() != null, "No id is present on byon. Can not delete");
 
-      byonService.createByonPersistDelAsync(byonNodeDeleteRequestMessage, byonFuture);
+    byonService.createByonPersistDelAsync(byonNodeDeleteRequestMessage, byonFuture);
 
-      try {
-        ByonNodeDeletedResponse response = byonFuture.get();
-        final ByonNode deletedNodeResponded = ByonToByonMessageConverter.INSTANCE.applyBack(response.getNode());
-        if(!consistencyCheck(deletedNode, deletedNodeResponded)) {
-          return false;
-        }
-        return true;
-      } catch (InterruptedException e) {
-        LOGGER.error(String.format("%s got interrupted while waiting for response.", this));
-        return false;
-      } catch (ExecutionException e) {
-        LOGGER.error(String
-            .format("Deletion of byon %s failed, as byon delete request failed with %s.",
-                node, e.getCause().getMessage()), e);
+    try {
+      ByonNodeDeletedResponse response = byonFuture.get();
+      final ByonNode deletedNodeResponded = ByonToByonMessageConverter.INSTANCE
+          .applyBack(response.getNode());
+      if (!consistencyCheck(deletedNode, deletedNodeResponded)) {
         return false;
       }
+      return true;
+    } catch (InterruptedException e) {
+      LOGGER.error(String.format("%s got interrupted while waiting for response.", this));
+      return false;
+    } catch (ExecutionException e) {
+      LOGGER.error(String
+          .format("Deletion of byon %s failed, as byon delete request failed with %s.",
+              node, e.getCause().getMessage()), e);
+      return false;
+    }
   }
 
   private static boolean consistencyCheck(Node deletedNode, ByonNode deletedNodeResponded) {
-    if(deletedNode == deletedNodeResponded) {
+    if (deletedNode == deletedNodeResponded) {
       return true;
     }
 
