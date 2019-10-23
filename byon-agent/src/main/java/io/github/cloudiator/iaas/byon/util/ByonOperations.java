@@ -2,7 +2,6 @@ package io.github.cloudiator.iaas.byon.util;
 
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonNode;
-import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
@@ -21,9 +20,9 @@ public class ByonOperations {
   private ByonOperations() {
   }
 
-  public static Byon.ByonNode buildMessageNode(String userId, Byon.ByonData data) {
+  public static Byon.ByonNode buildMessageNode(String userId, String id, Byon.ByonData data) {
     return Byon.ByonNode.newBuilder()
-        .setId(ByonIdCreator.createId(NODE_PROPERTIES_CONVERTER.apply(data.getProperties())))
+        .setId(id)
         .setUserId(userId)
         .setNodeData(data)
         .build();
@@ -34,7 +33,7 @@ public class ByonOperations {
   static boolean isAllocated(ByonNodeDomainRepository repository, String id, String userId) {
     ByonNode existingNode = repository.findByTenantAndId(userId, id);
 
-    if(existingNode == null) {
+    if (existingNode == null) {
       LOGGER.error(String.format("Cannot check if node is allocated,"
           + "as no node could be queried for id: %s", id));
       return false;
@@ -44,11 +43,13 @@ public class ByonOperations {
   }
 
   // used to publicly access "hibernate protected" method
-  public static boolean isAllocatedCheck(ByonNodeDomainRepository repository, String id, String userId) {
+  public static boolean isAllocatedCheck(ByonNodeDomainRepository repository, String id,
+      String userId) {
     return isAllocated(repository, id, userId);
   }
 
-  public static boolean allocatedStateChanges(ByonNodeDomainRepository repository, String id, String userId,
+  public static boolean allocatedStateChanges(ByonNodeDomainRepository repository, String id,
+      String userId,
       boolean newStateIsAllocated) {
     final boolean allocated = isAllocated(repository, id, userId);
 
@@ -56,24 +57,24 @@ public class ByonOperations {
   }
 
   public static void isAllocatable(ByonNode foundNode) throws UsageException {
-    if(foundNode == null) {
+    if (foundNode == null) {
       throw new UsageException(String.format("Cannot allocate node, as no node with id %s"
           + " and userId %s is known to the system", foundNode.id(), foundNode.userId()));
     }
 
-    if(foundNode.allocated()) {
+    if (foundNode.allocated()) {
       throw new UsageException(String.format("Cannot allocate node, as node"
           + " %s is already allocated", foundNode.id()));
     }
   }
 
   public static void isDeletable(ByonNode foundNode) throws UsageException {
-    if(foundNode == null) {
+    if (foundNode == null) {
       throw new UsageException(String.format("Cannot delete node, as no node with id %s"
           + " and userId %s is known to the system", foundNode.id(), foundNode.userId()));
     }
 
-    if(!foundNode.allocated() ) {
+    if (!foundNode.allocated()) {
       throw new UsageException(String.format("Cannot delete node, as node "
           + "is already deleted.", foundNode.id()));
     }

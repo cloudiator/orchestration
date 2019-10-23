@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
+import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
@@ -62,14 +63,17 @@ public class AddByonNodeSubscriber implements Runnable {
         AddByonNodeRequest.parser(), (requestId, request) -> {
           try {
             Byon.ByonData data = request.getByonRequest();
-            checkState(!data.getAllocated(),"cannot add a node with state allocated");
-            Byon.ByonNode byonNode = ByonOperations.buildMessageNode(request.getUserId(), data);
+            checkState(!data.getAllocated(), "cannot add a node with state allocated");
+
+            final String id = ByonIdCreator.generateId();
+
+            Byon.ByonNode byonNode = ByonOperations.buildMessageNode(request.getUserId(), id, data);
             ByonNode node = ByonToByonMessageConverter.INSTANCE.applyBack(byonNode);
             persistNode(node);
             LOGGER.info("byon node registered. sending response");
             sendSuccessResponse(requestId, node);
             LOGGER.info("response sent.");
-            publisher.publishEvent(request.getUserId(), data, ByonIO.ADD);
+            publisher.publishEvent(request.getUserId(), id, data, ByonIO.ADD);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             AddByonNodeSubscriber.this.sendErrorResponse(requestId,
