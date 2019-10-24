@@ -22,11 +22,11 @@ class ByonPublisher {
     this.messageInterface = messageInterface;
   }
 
-  public final void publishEvent(String userId, ByonData data, ByonIO operation) {
+  public final void publishEvent(String userId, String id, ByonData data, ByonIO operation) {
     LOGGER.info(String.format("Publishing new state for byon %s "
         + "in the system: %s", data.getName(), operation));
     messageInterface.publish(ByonNodeEvent.newBuilder()
-        .setByonNode(ByonOperations.buildMessageNode(userId, data))
+        .setByonNode(ByonOperations.buildMessageNode(userId, id, data))
         .setOperation(BYON_OPERATION_CONVERTER.apply(operation))
         .build());
   }

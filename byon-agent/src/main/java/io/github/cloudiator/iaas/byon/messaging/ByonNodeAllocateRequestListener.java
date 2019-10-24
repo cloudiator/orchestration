@@ -25,23 +25,22 @@ import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
-import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
-import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
+import org.cloudiator.messages.General.Error;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ByonNodeAllocateRequestListener implements Runnable {
+
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeAllocateRequestListener.class);
   private static final NodePropertiesMessageToNodePropertiesConverter
@@ -70,25 +69,20 @@ public class ByonNodeAllocateRequestListener implements Runnable {
             (requestId, request) -> {
               try {
                 String userId = request.getUserId();
-                NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
-                String id = ByonIdCreator.createId(props);
-                final boolean isAllocated = request.getAllocated();
-                //nodeStateMachine already set the equivalent node to running
-                checkState(
-                    isAllocated,
-                    String.format(
-                        "setting %s node's state to allocated"
-                            + " is not possible due to the requesting node state being unallocated",
-                        props.toString()));
+                String id = request.getByonId();
+
                 LOGGER.debug(
                     String.format(
-                        "%s retrieved request to allocate byon node with id %s and userId %s.", this, id, userId));
+                        "%s retrieved request to allocate byon node with id %s and userId %s.",
+                        this, id, userId));
                 ByonNode allocateNode = allocateSynchronuously(id, userId);
                 LOGGER.info("byon node allocated. sending response");
                 messageInterface.reply(requestId, ByonNodeAllocatedResponse.newBuilder()
                     .setNode(ByonToByonMessageConverter.INSTANCE.apply(allocateNode)).build());
                 LOGGER.info("response sent.");
-                publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(allocateNode).getNodeData(), ByonIO.UPDATE);
+                publisher.publishEvent(userId, allocateNode.id(),
+                    ByonToByonMessageConverter.INSTANCE.apply(allocateNode).getNodeData(),
+                    ByonIO.UPDATE);
               } catch (UsageException ex) {
                 LOGGER.error("Usage Exception occurred.", ex);
                 sendErrorResponse(
@@ -111,7 +105,7 @@ public class ByonNodeAllocateRequestListener implements Runnable {
 
   void allocateByonNode(ByonNode node) throws UsageException {
     checkState(ByonOperations
-        .allocatedStateChanges(domainRepository, node.id(), node.userId(),true));
+        .allocatedStateChanges(domainRepository, node.id(), node.userId(), true));
     persist(node);
   }
 
@@ -126,8 +120,9 @@ public class ByonNodeAllocateRequestListener implements Runnable {
   ByonNode buildAllocatedNode(String id, String userId) throws UsageException {
     ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
-    if(foundNode == null) {
-      throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
+    if (foundNode == null) {
+      throw new UsageException(
+          String.format("Cannot find node with id: %s and userId: %s", id, userId));
     }
 
     ByonOperations.isAllocatable(foundNode);
