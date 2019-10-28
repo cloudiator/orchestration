@@ -20,6 +20,11 @@ package io.github.cloudiator.persistance;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by daniel on 02.06.17.
@@ -42,6 +47,19 @@ public class OperatingSystemDomainRepository {
     final OperatingSystemModel model = createModel(domain);
     operatingSystemModelRepository.save(model);
     return model;
+  }
+
+  OperatingSystemModel saveOrGet(OperatingSystem domain) {
+    checkNotNull(domain, "domain is null");
+    OperatingSystemModel operatingSystemModel = operatingSystemModelRepository.findByArchitectureFamilyVersion(domain.operatingSystemArchitecture(), domain.operatingSystemFamily(), domain.operatingSystemVersion());
+    if (operatingSystemModel == null) {
+      operatingSystemModel = saveAndGet(domain);
+    }
+    return operatingSystemModel;
+  }
+
+  public OperatingSystemModel findByArchitectureFamilyVersion(OperatingSystemArchitecture architecture, OperatingSystemFamily family, OperatingSystemVersion version) {
+    return operatingSystemModelRepository.findByArchitectureFamilyVersion(architecture, family, version);
   }
 
   void update(OperatingSystem domain, OperatingSystemModel model) {

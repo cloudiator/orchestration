@@ -62,6 +62,7 @@
   <logger level="DEBUG" name="io.github.cloudiator.iaas.discovery"/>
   <logger level="DEBUG" name="org.cloudiator.messaging"/>
   <logger level="DEBUG" name="de.uniulm.omi.cloudiator.util.stateMachine"/>
+  <logger level="INFO" name="de.uniulm.omi.cloudiator.sword.multicloud.pricing.aws"/>
 
 
   <root level="WARN">

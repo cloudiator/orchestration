@@ -22,14 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.iaas.discovery.config.DiscoveryModule;
-import io.github.cloudiator.iaas.discovery.messaging.CloudAddedSubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.CloudQuerySubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.DeleteCloudSubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.DiscoveryStatusSubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.HardwareQuerySubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.ImageQuerySubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.LocationQuerySubscriber;
-import io.github.cloudiator.iaas.discovery.messaging.QuotaQuerySubscriber;
+import io.github.cloudiator.iaas.discovery.messaging.*;
 import io.github.cloudiator.persistance.JpaModule;
 import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
@@ -78,6 +71,10 @@ public class DiscoveryAgent {
     cloudQuerySubscriber.run();
 
     injector.getInstance(QuotaQuerySubscriber.class).run();
+
+    PricingQuerySubscriber pricingQuerySubscriber = injector
+            .getInstance(PricingQuerySubscriber.class);
+    pricingQuerySubscriber.run();
   }
 
 }

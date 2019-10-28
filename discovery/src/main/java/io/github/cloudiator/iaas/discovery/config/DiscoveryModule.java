@@ -18,30 +18,31 @@
 
 package io.github.cloudiator.iaas.discovery.config;
 
+import com.google.common.base.Supplier;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
+import de.uniulm.omi.cloudiator.sword.domain.Pricing;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudBuilder;
 import de.uniulm.omi.cloudiator.sword.multicloud.MultiCloudService;
+import de.uniulm.omi.cloudiator.sword.multicloud.pricing.PricingSupplierFactory;
+import de.uniulm.omi.cloudiator.sword.multicloud.pricing.aws.AWSPricingSupplier;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.CloudRegistry;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
+import de.uniulm.omi.cloudiator.sword.service.PricingService;
 import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import de.uniulm.omi.cloudiator.util.execution.LoggingScheduledThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
-import io.github.cloudiator.iaas.discovery.AbstractDiscoveryWorker;
-import io.github.cloudiator.iaas.discovery.DiscoveryListener;
-import io.github.cloudiator.iaas.discovery.DiscoveryQueue;
-import io.github.cloudiator.iaas.discovery.HardwareDiscoveryListener;
-import io.github.cloudiator.iaas.discovery.HardwareDiscoveryWorker;
-import io.github.cloudiator.iaas.discovery.ImageDiscoveryListener;
-import io.github.cloudiator.iaas.discovery.ImageDiscoveryWorker;
-import io.github.cloudiator.iaas.discovery.Init;
-import io.github.cloudiator.iaas.discovery.LocationDiscoveryListener;
-import io.github.cloudiator.iaas.discovery.LocationDiscoveryWorker;
+import io.github.cloudiator.iaas.discovery.*;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandlerImpl;
 import org.cloudiator.meta.cloudharmony.config.CloudHarmonyMetaModule;
+
+import java.util.Set;
 
 /**
  * Created by daniel on 31.05.17.
@@ -61,18 +62,24 @@ public class DiscoveryModule extends AbstractModule {
     bind(Init.class).asEagerSingleton();
     bind(DiscoveryQueue.class).in(Singleton.class);
     bind(DiscoveryErrorHandler.class).to(DiscoveryErrorHandlerImpl.class);
+    bind(PricingService.class).toInstance(multiCloudService.pricingService());
 
     Multibinder<AbstractDiscoveryWorker> discoveryWorkerBinder = Multibinder
         .newSetBinder(binder(), AbstractDiscoveryWorker.class);
     discoveryWorkerBinder.addBinding().to(ImageDiscoveryWorker.class);
     discoveryWorkerBinder.addBinding().to(LocationDiscoveryWorker.class);
     discoveryWorkerBinder.addBinding().to(HardwareDiscoveryWorker.class);
+    discoveryWorkerBinder.addBinding().to(PricingDiscoveryWorker.class);
 
     Multibinder<DiscoveryListener> discoveryListenerBinder = Multibinder
         .newSetBinder(binder(), DiscoveryListener.class);
     discoveryListenerBinder.addBinding().to(ImageDiscoveryListener.class);
     discoveryListenerBinder.addBinding().to(LocationDiscoveryListener.class);
     discoveryListenerBinder.addBinding().to(HardwareDiscoveryListener.class);
+    discoveryListenerBinder.addBinding().to(PricingDiscoveryListener.class);
 
+    install(new FactoryModuleBuilder()
+            .implement(new TypeLiteral<Supplier<Set<Pricing>>>(){}, Names.named("aws"), AWSPricingSupplier.class)
+            .build(PricingSupplierFactory.class));
   }
 }

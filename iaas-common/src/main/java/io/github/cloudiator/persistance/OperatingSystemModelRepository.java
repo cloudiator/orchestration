@@ -18,6 +18,13 @@
 
 package io.github.cloudiator.persistance;
 
-interface OperatingSystemModelRepository extends ModelRepository<OperatingSystemModel> {
+import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
 
+import javax.annotation.Nullable;
+
+interface OperatingSystemModelRepository extends ModelRepository<OperatingSystemModel> {
+    @Nullable
+    OperatingSystemModel findByArchitectureFamilyVersion(OperatingSystemArchitecture architecture, OperatingSystemFamily family, OperatingSystemVersion version);
 }

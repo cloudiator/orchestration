@@ -23,11 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.multicloud.exception.MultiCloudException;
-import de.uniulm.omi.cloudiator.sword.service.DiscoveryService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import io.github.cloudiator.iaas.discovery.error.DiscoveryErrorHandler;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
@@ -42,19 +41,15 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDiscoveryWorker.class);
 
   private final DiscoveryQueue discoveryQueue;
-  private final DiscoveryService discoveryService;
   private final DiscoveryErrorHandler discoveryErrorHandler;
 
   public static final Map<String, Integer> DISCOVERY_STATUS = new HashMap<>();
   private static final String TOTAL_NAME = "total";
 
   @Inject
-  public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryService discoveryService,
-      DiscoveryErrorHandler discoveryErrorHandler) {
+  public AbstractDiscoveryWorker(DiscoveryQueue discoveryQueue, DiscoveryErrorHandler discoveryErrorHandler) {
     checkNotNull(discoveryQueue, "discoveryQueue is null");
     this.discoveryQueue = discoveryQueue;
-    checkNotNull(discoveryService, "discoveryService is null");
-    this.discoveryService = discoveryService;
     checkNotNull(discoveryErrorHandler, "discoveryErrorHandler is null");
     this.discoveryErrorHandler = discoveryErrorHandler;
 
@@ -62,14 +57,14 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     DISCOVERY_STATUS.put(TOTAL_NAME, 0);
   }
 
-  protected abstract Iterable<T> resources(DiscoveryService discoveryService);
+  protected abstract Iterable<T> resources();
 
   protected Predicate<T> filter() {
     return t -> true;
   }
 
   @Override
-  public final long period() {
+  public long period() {
     return 30;
   }
 
@@ -79,7 +74,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
   }
 
   @Override
-  public final TimeUnit timeUnit() {
+  public TimeUnit timeUnit() {
     return TimeUnit.SECONDS;
   }
 
@@ -91,7 +86,7 @@ public abstract class AbstractDiscoveryWorker<T> implements Schedulable {
     DISCOVERY_STATUS.put(id, 0);
 
     try {
-      StreamSupport.stream(resources(discoveryService).spliterator(), true).filter(filter())
+      StreamSupport.stream(resources().spliterator(), true).filter(filter())
           .map(Discovery::new)
           .forEach(discovery -> {
             LOGGER.trace(String.format("%s found discovery %s", this, discovery));

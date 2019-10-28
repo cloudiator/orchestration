@@ -21,15 +21,55 @@ package io.github.cloudiator.persistance;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemFamily;
+import de.uniulm.omi.cloudiator.domain.OperatingSystemVersion;
+
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
 
 class OperatingSystemModelRepositoryJpa extends
     BaseModelRepositoryJpa<OperatingSystemModel> implements OperatingSystemModelRepository {
+
+  private String queryStringWithVersion2findByArchFamVer;
+  private String queryStringWithoutVersion2findByArchFamVer;
 
   @Inject
   protected OperatingSystemModelRepositoryJpa(
       Provider<EntityManager> entityManager,
       TypeLiteral<OperatingSystemModel> type) {
     super(entityManager, type);
+    queryStringWithVersion2findByArchFamVer = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version=:version",
+                    super.type.getName());
+    queryStringWithoutVersion2findByArchFamVer = String
+            .format(
+                    "from %s where operatingSystemArchitecture=:operatingSystemArchitecture and operatingSystemFamily=:operatingSystemFamily and version is null",
+                    super.type.getName());
+  }
+
+  @Nullable
+  @Override
+  public OperatingSystemModel findByArchitectureFamilyVersion(OperatingSystemArchitecture architecture, OperatingSystemFamily family, OperatingSystemVersion version) {
+    Query query;
+    if (version.version() == null) {
+      query = em().createQuery(queryStringWithoutVersion2findByArchFamVer);
+    } else {
+      query = em().createQuery(queryStringWithVersion2findByArchFamVer);
+      query.setParameter("version", version.version());
+    }
+
+    query
+            .setParameter("operatingSystemArchitecture", architecture)
+            .setParameter("operatingSystemFamily", family);
+    try {
+      //noinspection unchecked
+      return (OperatingSystemModel) query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 }
