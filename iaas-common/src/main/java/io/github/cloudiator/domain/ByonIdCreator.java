@@ -68,4 +68,8 @@ public class ByonIdCreator {
     }
     return result;
   }
+
+  public final static String generateId() {
+    return UUID.randomUUID().toString();
+  }
 }

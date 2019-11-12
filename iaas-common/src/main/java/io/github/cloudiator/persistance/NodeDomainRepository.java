@@ -23,10 +23,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeProperties;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 public class NodeDomainRepository extends AbstractNodeDomainRepository {
 
@@ -42,10 +40,10 @@ public class NodeDomainRepository extends AbstractNodeDomainRepository {
       TenantModelRepository tenantModelRepository,
       LoginCredentialDomainRepository loginCredentialDomainRepository,
       IpAddressDomainRepository ipAddressDomainRepository) {
-      super(tenantModelRepository, operatingSystemDomainRepository, geoLocationDomainRepository,
-          nodePropertiesModelRepository, loginCredentialDomainRepository,
-          ipAddressDomainRepository);
-      this.nodeModelRepository = nodeModelRepository;
+    super(tenantModelRepository, operatingSystemDomainRepository, geoLocationDomainRepository,
+        nodePropertiesModelRepository, loginCredentialDomainRepository,
+        ipAddressDomainRepository);
+    this.nodeModelRepository = nodeModelRepository;
   }
 
   public Node findByTenantAndId(String userId, String nodeId) {
@@ -83,7 +81,7 @@ public class NodeDomainRepository extends AbstractNodeDomainRepository {
 
     NodeModel byDomainId = nodeModelRepository.getByDomainId(id);
 
-    checkState(byDomainId != null, "Node with the id %s does not exist.", id);
+    checkState(byDomainId != null, String.format("Node with the id %s does not exist.", id));
     nodeModelRepository.delete(byDomainId);
   }
 

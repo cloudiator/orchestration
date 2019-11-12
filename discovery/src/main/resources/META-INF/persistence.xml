@@ -37,6 +37,9 @@
     <class>io.github.cloudiator.persistance.HardwareOfferModel</class>
     <class>io.github.cloudiator.persistance.OperatingSystemModel</class>
     <class>io.github.cloudiator.persistance.ResourceModel</class>
+    <class>io.github.cloudiator.persistance.PricingModel</class>
+    <class>io.github.cloudiator.persistance.PricingTermsModel</class>
+    <class>io.github.cloudiator.persistance.PricingPriceDimensionsModel</class>
 
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

@@ -36,7 +36,6 @@ public class UnixInstaller extends AbstractInstaller {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(UnixInstaller.class);
 
-
   private static final String TOOL_PATH = "/opt/cloudiator/";
   private static final String JAVA_ARCHIVE = "jre8.tar.gz";
   private static final String DOCKER_RETRY_INSTALL = "docker_retry.sh";
@@ -94,44 +93,40 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installVisor() throws RemoteException {
 
-    //check for installed Visor
-    RemoteConnectionResponse checkresult = this.remoteConnection
-        .executeCommand("ps -ef | grep -c \"[v]isor.jar\"");
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledVisor(remoteConnection);
 
-    LOGGER.debug(String.format("Exit code of check command is %s", checkresult.getExitStatus()));
-
-    if (checkresult.getExitStatus() == 0) {
+    if (isInstalled) {
       LOGGER.debug("Skipping installation as Visor is already running");
-
-    } else {
-
-      //download Visor
-      CommandTask installVisor = new CommandTask(this.remoteConnection,
-          "sudo wget " + Configuration.conf().getString("installer.visor.download")
-              + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
-      installVisor.call();
-
-      LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
-      //create properties file
-      FileTask visorConfig = new FileTask(this.remoteConnection, "/tmp/" + VISOR_PROPERTIES,
-          this.buildDefaultVisorConfig(), false);
-      visorConfig.call();
-
-      //move to tool path
-      installVisor = new CommandTask(this.remoteConnection,
-          "sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
-      installVisor.call();
-
-      //start visor
-      String startCommand =
-          "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
-              + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
-      LOGGER.debug("Visor start command: " + startCommand);
-      installVisor = new CommandTask(this.remoteConnection, startCommand);
-      installVisor.call();
-
-      LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
+      return;
     }
+
+    //download Visor
+    CommandTask installVisor = new CommandTask(this.remoteConnection,
+        "sudo wget " + Configuration.conf().getString("installer.visor.download")
+            + "  -O " + UnixInstaller.TOOL_PATH + VISOR_JAR);
+    installVisor.call();
+
+    LOGGER.debug(String.format("Setting up Visor on node %s", node.id()));
+    //create properties file
+    FileTask visorConfig = new FileTask(this.remoteConnection, "/tmp/" + VISOR_PROPERTIES,
+        this.buildDefaultVisorConfig(), false);
+    visorConfig.call();
+
+    //move to tool path
+    installVisor = new CommandTask(this.remoteConnection,
+        "sudo mv " + "/tmp/" + VISOR_PROPERTIES + " " + TOOL_PATH + VISOR_PROPERTIES);
+    installVisor.call();
+
+    //start visor
+    String startCommand =
+        "sudo nohup bash -c '" + this.JAVA_BINARY + " -jar " + TOOL_PATH + VISOR_JAR
+            + " -conf " + TOOL_PATH + VISOR_PROPERTIES + " &> /dev/null &'";
+    LOGGER.debug("Visor start command: " + startCommand);
+    installVisor = new CommandTask(this.remoteConnection, startCommand);
+    installVisor.call();
+
+    LOGGER.debug(String.format("Visor started successfully on node %s", node.id()));
   }
 
   @Override
@@ -162,6 +157,14 @@ public class UnixInstaller extends AbstractInstaller {
 
   @Override
   public void installLance() throws RemoteException {
+
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledLance(remoteConnection);
+
+    if (isInstalled) {
+      LOGGER.debug("Skipping installation as Lance is already running");
+      return;
+    }
 
     //download Lance
     CommandTask installLance = new CommandTask(this.remoteConnection, "sudo wget "
@@ -195,6 +198,14 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void installDocker() throws RemoteException {
 
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledDocker(remoteConnection);
+
+    if (isInstalled) {
+      LOGGER.debug("Skipping installation as Docker-Daemon is already running");
+      return;
+    }
+
     //download Docker install script
     CommandTask installDocker = new CommandTask(this.remoteConnection, "sudo wget " +
         Configuration.conf().getString("installer.docker.binary.download") + "  -O "
@@ -222,22 +233,56 @@ public class UnixInstaller extends AbstractInstaller {
   }
 
 
-  @Override
-  public void installAlluxio() throws RemoteException {
-	LOGGER.debug(String.format("Configuring alluxio with docker on node %s", node.id()));
-	this.remoteConnection.executeCommand("sudo docker network create alluxio_nw");
+    @Override
+    public void installAlluxio() throws RemoteException {
+    LOGGER.debug(String.format("Configuring alluxio on node %s", node.id()));
 
-	this.remoteConnection.executeCommand("sudo docker volume create ufs");
+    //download alluxio
+    CommandTask installAlluxio = new CommandTask(this.remoteConnection, "sudo wget " + ALLUXIO_DOWNLOAD);
 
-	LOGGER.debug(String.format("Starting alluxio with master hostname %s", Configuration.conf().getString("installer.alluxio.master.host") ));
-	this.remoteConnection.executeCommand("sudo docker run -d -p 19999:19999 -p 19998:19998 -p 29999:29999 -p "
-		+ "29998:29998 -p 30000:30000 --net=alluxio_nw --name=alluxio_worker --shm-size=1G -e "
-		+ "ALLUXIO_WORKER_MEMORY_SIZE=1G -v ufs:/opt/alluxio/underFSStorage -e ALLUXIO_MASTER_HOSTNAME="
-		+ Configuration.conf().getString("installer.alluxio.master.host") + " alluxio/alluxio worker");
+    installAlluxio.call();
 
-	LOGGER.debug(String.format("Alluxio successfully configured on node %s", node.id()));
-  
+    String cmdStr = "sudo tar xzvf " + ALLUXIO_ARCHIVE;
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    CommandTask cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo mv alluxio-2.0.0 alluxio";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo mv alluxio/conf/alluxio-site.properties.template alluxio/conf/alluxio-site.properties";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo echo -e \"alluxio.master.hostname=" + Configuration.conf().getString("installer.alluxio.master.host") +
+            "\\nalluxio.underfs.address=$PWD/underFSStorage\\nalluxio.security.login.username=root\\nalluxio.security.login.impersonation.username=root\\n\" | sudo tee -a alluxio/conf/alluxio-site.properties > /dev/null";
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo rm alluxio/conf/masters";
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo echo \"" +
+            Configuration.conf().getString("installer.alluxio.master.host") + "\" | sudo tee alluxio/conf/masters > /dev/null";
+
+    LOGGER.debug("Alluxio setup, running command: " + cmdStr);
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
+
+    cmdStr = "sudo alluxio/bin/alluxio-start.sh worker SudoMount";
+    LOGGER.debug("Starting alluxio worker");
+    cmd = new CommandTask(this.remoteConnection, cmdStr);
+    cmd.call();
   }
+
 
 
   @Override
@@ -255,16 +300,15 @@ public class UnixInstaller extends AbstractInstaller {
     String dlms_agent_metrics_range = Configuration.conf()
         .getString("installer.dlmsagent.metrics.range");
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
-
+    String publicIpAddress = node.connectTo().ip();
+    String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
+    String dlms_agent_webservice_url = "http://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
     // start DLMSagent
 
-    String startCommand =
-        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
-            + " -DjmsUrl=" +
-            dlms_agent_jms_url + " -DmetricsRange="
-            + dlms_agent_metrics_range + " -Dserver-port="
-            + dlms_agent_port
-            + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
+    String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+            + " -DjmsUrl=" + dlms_agent_jms_url + " -DmetricsRange=" + dlms_agent_metrics_range + " -Dserver-port="
+            + dlms_agent_port + " -Dip.public=" + publicIpAddress + " -Dip.private=" + privateIpAddress	+ " -Dvm.id="
+            + this.node.id() + " -Dtenant.id=" + this.userId + " -DwebServiceUrl=" + dlms_agent_webservice_url + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
             + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
     LOGGER.debug("Dlms agent start command: " + startCommand);
 
@@ -351,52 +395,48 @@ public class UnixInstaller extends AbstractInstaller {
     LOGGER.debug(String.format("Node public addresses: %s", node.publicIpAddresses()));
     LOGGER.debug(String.format("Node 'connectTo' addresses: %s", node.connectTo()));
 
-    //check for installed EMS-Client = Baguette-Client
-    RemoteConnectionResponse checkems = this.remoteConnection
-        .executeCommand("cd /opt/baguette-client/");
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledEMS(remoteConnection);
 
-    LOGGER.debug(String.format("Exit code of ems-folder-search is %s", checkems.getExitStatus()));
-
-    if (checkems.getExitStatus() == 0) {
+    if (isInstalled) {
       LOGGER.debug("Skipping installation, baguette-client folder already exists! ");
-    } else {
+      return;
+    }
 
-      // Prepare EMS url to invoke
-      String emsUrl = Configuration.conf().getString("installer.ems.url");
-      String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
+    // Prepare EMS url to invoke
+    String emsUrl = Configuration.conf().getString("installer.ems.url");
+    String emsApiKey = Configuration.conf().getString("installer.ems.api-key");
 
-      if (StringUtils.isNotBlank(emsUrl)) {
-        try {
-          // Append API-key
-          if (StringUtils.isNotBlank(emsApiKey)) {
-            emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
-          }
-          LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
-
-          // Contact EMS to get EMS Client installation instructions for this node
-          LOGGER.debug(String.format(
-                  "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
-                  node.id(), emsUrl));
-          InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
-                  .getInstallationInstructionsFromServer(node, emsUrl);
-          LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
-                  installationInstructions));
-
-          // Execute installation instructions
-          LOGGER.debug(
-                  String.format("Executing EMS Client installation instructions on node %s", node.id()));
-          InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
-
-          LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
-        } catch (Exception e) {
-          LOGGER.error("EMS Client installation failed:\n", e);
+    if (StringUtils.isNotBlank(emsUrl)) {
+      try {
+        // Append API-key
+        if (StringUtils.isNotBlank(emsApiKey)) {
+          emsUrl = emsUrl + "?ems-api-key=" + emsApiKey;
         }
-      } else {
-        LOGGER.warn(String.format("EMS Client installation is switched off"));
+        LOGGER.debug(String.format("EMS Server url: %s", emsUrl));
+
+        // Contact EMS to get EMS Client installation instructions for this node
+        LOGGER.debug(String.format(
+                "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
+                node.id(), emsUrl));
+        InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
+                .getInstallationInstructionsFromServer(node, emsUrl);
+        LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
+                installationInstructions));
+
+        // Execute installation instructions
+        LOGGER.debug(
+                String.format("Executing EMS Client installation instructions on node %s", node.id()));
+        InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
+
+        LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
+      } catch (Exception e) {
+        LOGGER.error("EMS Client installation failed:\n", e);
       }
+    } else {
+      LOGGER.warn("EMS Client installation is switched off");
     }
   }
-
 
 }
 

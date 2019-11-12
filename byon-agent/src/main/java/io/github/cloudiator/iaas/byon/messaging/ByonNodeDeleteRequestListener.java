@@ -19,28 +19,28 @@
 package io.github.cloudiator.iaas.byon.messaging;
 
 import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.ByonIO;
 import io.github.cloudiator.domain.ByonNode;
 import io.github.cloudiator.domain.ByonNodeBuilder;
-import io.github.cloudiator.domain.NodeProperties;
 import io.github.cloudiator.iaas.byon.Constants;
 import io.github.cloudiator.iaas.byon.UsageException;
 import io.github.cloudiator.iaas.byon.util.ByonOperations;
-import io.github.cloudiator.domain.ByonIdCreator;
 import io.github.cloudiator.messaging.ByonToByonMessageConverter;
 import io.github.cloudiator.messaging.NodePropertiesMessageToNodePropertiesConverter;
 import io.github.cloudiator.persistance.ByonNodeDomainRepository;
-import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Byon.ByonNodeDeleteRequestMessage;
 import org.cloudiator.messages.Byon.ByonNodeDeletedResponse;
+import org.cloudiator.messages.General.Error;
 import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ByonNodeDeleteRequestListener  implements Runnable {
+public class ByonNodeDeleteRequestListener implements Runnable {
+
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ByonNodeDeleteRequestListener.class);
   private static final NodePropertiesMessageToNodePropertiesConverter
@@ -67,16 +67,10 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
         (requestId, request) -> {
           try {
             String userId = request.getUserId();
-            NodeProperties props = NODE_PROPERTIES_CONVERTER.apply(request.getProperties());
-            String id = ByonIdCreator.createId(props);
-            final boolean isAllocated = request.getAllocated();
-            //nodeStateMachine already set the equivalent node to deleted
-            checkState(
-                !isAllocated,
-                String.format(
-                    "setting %s node's state to unallocated"
-                        + " is not possible due to the requesting node state being allocated",
-                    props.toString()));
+            String id = request.getByonId();
+
+            domainRepository.findByTenantAndId(userId, id);
+
             LOGGER.debug(String.format("%s retrieved request to delete "
                 + "byon node with id %s and userId %s, Node can now "
                 + "again get allocated", this, id, userId));
@@ -86,13 +80,16 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
                 ByonNodeDeletedResponse.newBuilder()
                     .setNode(ByonToByonMessageConverter.INSTANCE.apply(deleteNode)).build());
             LOGGER.info("response sent.");
-            publisher.publishEvent(userId, ByonToByonMessageConverter.INSTANCE.apply(deleteNode).getNodeData(), ByonIO.UPDATE);
+            publisher.publishEvent(userId, deleteNode.id(),
+                ByonToByonMessageConverter.INSTANCE.apply(deleteNode).getNodeData(), ByonIO.UPDATE);
           } catch (UsageException ex) {
             LOGGER.error("Usage Exception occurred.", ex);
-            sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
+            sendErrorResponse(requestId, "Usage Exception occurred: " + ex.getMessage(),
+                Constants.SERVER_ERROR);
           } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
-            sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(), Constants.SERVER_ERROR);
+            sendErrorResponse(requestId, "Exception occurred: " + ex.getMessage(),
+                Constants.SERVER_ERROR);
           }
         });
   }
@@ -120,8 +117,9 @@ public class ByonNodeDeleteRequestListener  implements Runnable {
   ByonNode buildDeletedNode(String id, String userId) throws UsageException {
     ByonNode foundNode = domainRepository.findByTenantAndId(userId, id);
 
-    if(foundNode == null) {
-      throw new UsageException(String.format("Cannot find node with id: %s and userId: %s", id, userId));
+    if (foundNode == null) {
+      throw new UsageException(
+          String.format("Cannot find node with id: %s and userId: %s", id, userId));
     }
 
     ByonOperations.isDeletable(foundNode);
