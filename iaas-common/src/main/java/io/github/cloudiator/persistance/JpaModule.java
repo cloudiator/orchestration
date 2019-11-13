@@ -73,6 +73,11 @@ public class JpaModule extends AbstractModule {
     }).to(new TypeLiteral<BaseResourceRepositoryJpa<ImageModel>>() {
     });
 
+    bind(new TypeLiteral<ModelRepository<PricingModel>>() {
+    }).to(new TypeLiteral<BaseModelRepositoryJpa<PricingModel>>() {
+    });
+    bind(PricingModelRepository.class).to(PricingModelRepositoryJpa.class);
+
     bind(LocationModelRepository.class).to(LocationModelRepositoryJpa.class);
 
     bind(new TypeLiteral<ModelRepository<OperatingSystemModel>>() {

@@ -21,6 +21,7 @@ package io.github.cloudiator.persistance;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+
 import de.uniulm.omi.cloudiator.domain.ImageFormat;
 import de.uniulm.omi.cloudiator.domain.OperatingSystem;
 import de.uniulm.omi.cloudiator.domain.OperatingSystemArchitecture;
@@ -140,4 +141,5 @@ class OperatingSystemModel extends Model
   public int remotePort() {
     return toDomain().remotePort();
   }
+
 }

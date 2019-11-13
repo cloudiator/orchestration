@@ -23,6 +23,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.Api;
 
+import java.util.List;
+
 class ApiDomainRepository {
 
   private static final ApiConverter API_CONVERTER = new ApiConverter();
@@ -36,6 +38,11 @@ class ApiDomainRepository {
   public Api findByProviderName(String providerName) {
     checkNotNull(providerName, "providerName is null");
     return API_CONVERTER.apply(apiModelRepository.findByProviderName(providerName));
+  }
+
+  public ApiModel findModelByProviderName(String providerName) {
+    checkNotNull(providerName, "providerName is null");
+    return apiModelRepository.findByProviderName(providerName);
   }
 
   public void save(Api domain) {
@@ -55,5 +62,9 @@ class ApiDomainRepository {
 
   private ApiModel createModel(Api domain) {
     return new ApiModel(domain.providerName());
+  }
+
+  public List<ApiModel> findAll() {
+    return apiModelRepository.findAll();
   }
 }
