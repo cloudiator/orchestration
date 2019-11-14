@@ -29,7 +29,7 @@ public class IdempotencyValidator {
   }
 
   public static boolean checkIsInstalledDocker(RemoteConnection remoteConnection) throws RemoteException {
-    //check for installed Visor
+    //check for installed Docker
     final boolean isInstalled = checkIsInstalledViaProcess(remoteConnection, "\"[d]ockerd\"");
 
     LOGGER.debug(String.format("Exit code of dockerd process-search is %s", isInstalled ? "0" : "!=0"));
@@ -38,7 +38,7 @@ public class IdempotencyValidator {
   }
 
   public static boolean checkIsInstalledLance(RemoteConnection remoteConnection) throws RemoteException {
-    //check for installed Visor
+    //check for installed Lance
     final boolean isInstalled = checkIsInstalledViaProcess(remoteConnection, "\"[l]ance.jar\"");
 
     LOGGER.debug(String.format("Exit code of lance process-search is %s", isInstalled ? "0" : "!=0"));
@@ -60,6 +60,15 @@ public class IdempotencyValidator {
     final boolean isInstalled = checkIsInstalledViaFolder(remoteConnection,"/opt/baguette-client/");
 
     LOGGER.debug(String.format("Exit code of ems-folder-search is %s", isInstalled ? "0" : "!=0"));
+
+    return isInstalled;
+  }
+
+  public static boolean checkIsInstalledJava(RemoteConnection remoteConnection) throws RemoteException {
+    //check for installed Java
+    final boolean isInstalled = checkIsInstalledViaFolder(remoteConnection,"/opt/cloudiator/");
+
+    LOGGER.debug(String.format("Exit code of java-folder-search is %s", isInstalled ? "0" : "!=0"));
 
     return isInstalled;
   }

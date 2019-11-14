@@ -51,6 +51,14 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void bootstrap() throws RemoteException {
 
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledJava(remoteConnection);
+
+    if (isInstalled) {
+      LOGGER.debug("Skipping bootstrap as Java is already present.");
+      return;
+    }
+
     //create Cloudiator directory
     LOGGER.debug(String.format(
         "Creating Cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
@@ -86,7 +94,6 @@ public class UnixInstaller extends AbstractInstaller {
     fixHostname.call();
 
     LOGGER.debug(String.format("Hostname successfully set on node %s", node.id()));
-
   }
 
 
