@@ -82,10 +82,10 @@ public class IdempotencyValidator {
     return isInstalled;
   }
 
-  public static boolean checkIsInstalledJava(RemoteConnection remoteConnection)
+  public static boolean checkIsInstalledJava(RemoteConnection remoteConnection, String javabinary)
       throws RemoteException {
     //check for installed Java
-    final int isInstalled = checkIsInstalledViaCommand(remoteConnection, "java -version");
+    final int isInstalled = checkIsInstalledViaCommand(remoteConnection, javabinary + " -version");
 
     LOGGER.debug(String.format("Exit code of java -version is %s", isInstalled));
 
