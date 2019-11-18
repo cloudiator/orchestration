@@ -51,13 +51,6 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void bootstrap() throws RemoteException {
 
-    // is it already installed
-    final boolean isInstalled = IdempotencyValidator.checkIsInstalledJava(remoteConnection);
-
-    if (isInstalled) {
-      LOGGER.debug("Skipping bootstrap as Java is already present.");
-      return;
-    }
 
     //create Cloudiator directory
     LOGGER.debug(String.format(
@@ -67,6 +60,14 @@ public class UnixInstaller extends AbstractInstaller {
     CommandTask bootstrap = new CommandTask(this.remoteConnection,
         "sudo mkdir -p " + UnixInstaller.TOOL_PATH);
     bootstrap.call();
+
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator.checkIsInstalledJava(remoteConnection);
+
+    if (isInstalled) {
+      LOGGER.debug("Skipping bootstrap as Java is already present.");
+      return;
+    }
 
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "
