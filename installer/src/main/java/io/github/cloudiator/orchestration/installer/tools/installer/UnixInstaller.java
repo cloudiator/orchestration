@@ -19,7 +19,6 @@
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteConnectionResponse;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
@@ -357,6 +356,10 @@ public class UnixInstaller extends AbstractInstaller {
             .getString("installer.spark.jmsip")
             + " -e JMS_PORT=" + Configuration.conf()
             .getString("installer.spark.jmsport")
+            + " -e JMS_USER=" + Configuration.conf()
+            .getString("installer.spark.jmsuser")
+            + " -e JMS_PASSWORD=" + Configuration.conf()
+            .getString("installer.spark.jmspassword")
             + " -e APP_NAME=" + Configuration.conf()
             .getString("installer.spark.appname")
             + " -e METRIC_REPORTING_INTERVAL=" + Configuration.conf()
@@ -368,7 +371,7 @@ public class UnixInstaller extends AbstractInstaller {
             + Configuration.conf().getString("installer.spark.worker.ui")
             + " --network host "
             + " --name " + CONTAINER_NAME
-            + " cloudiator/spark-worker:latest ");
+            + Configuration.conf().getString("installer.spark.container.version"));
 
     startSparkWorkerContainer.call();
     LOGGER
