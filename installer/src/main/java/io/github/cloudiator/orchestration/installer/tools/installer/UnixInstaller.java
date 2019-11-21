@@ -371,8 +371,7 @@ public class UnixInstaller extends AbstractInstaller {
             + Configuration.conf().getString("installer.spark.worker.ui")
             + " --network host "
             + " --name " + CONTAINER_NAME
-            + " cloudiator/spark-worker:" + Configuration.conf()
-            .getString("installer.spark.container.version"));
+            + Configuration.conf().getString("installer.spark.container.version"));
 
     startSparkWorkerContainer.call();
     LOGGER
