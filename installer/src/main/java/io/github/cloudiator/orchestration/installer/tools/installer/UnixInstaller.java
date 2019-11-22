@@ -370,7 +370,7 @@ public class UnixInstaller extends AbstractInstaller {
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")
             + " --network host "
-            + " --name " + CONTAINER_NAME
+            + " --name " + CONTAINER_NAME + " "
             + Configuration.conf().getString("installer.spark.container.version"));
 
     startSparkWorkerContainer.call();
