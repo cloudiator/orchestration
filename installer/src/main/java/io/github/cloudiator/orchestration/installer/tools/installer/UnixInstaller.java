@@ -133,7 +133,7 @@ public class UnixInstaller extends AbstractInstaller {
               + UnixInstaller.TOOL_PATH
               + JAVA_DIR
               + " --strip-components=1");
-      javaextract.call();
+      result=javaextract.call();
       LOGGER.debug("Exctration finished, result:"+result);
       return result;
     }catch (RemoteException e){
