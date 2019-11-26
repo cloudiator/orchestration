@@ -52,7 +52,7 @@ public class CommandTask implements Callable<Integer> {
     Integer exitCode = this.remoteConnection.executeCommand(this.command).getExitStatus();
 
     if (exitCode.intValue() != 0) {
-      throw new RemoteException("Execution of command: " + command + " failed!");
+      throw new RemoteException("Execution of command: " + command + " failed! Exitcode: "+ exitCode);
     }
 
     return exitCode;
