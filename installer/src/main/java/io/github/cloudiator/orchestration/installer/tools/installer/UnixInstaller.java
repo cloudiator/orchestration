@@ -22,6 +22,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,11 +70,21 @@ public class UnixInstaller extends AbstractInstaller {
     }
 
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
+    /*
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.java.download") + "  -O "
         + UnixInstaller.TOOL_PATH
         + UnixInstaller.JAVA_ARCHIVE);
     bootstrap.call();
+    */
+    //Download with retry
+    CommandTask download = new CommandTask(this.remoteConnection, "sudo wget "
+        + Configuration.conf().getString("installer.java.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
+        + UnixInstaller.JAVA_ARCHIVE);
+    TransactionRetryer.retry(()->download.call());
+
+
     //create directory
     bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir -p " + TOOL_PATH + JAVA_DIR);
     bootstrap.call();
@@ -84,6 +95,7 @@ public class UnixInstaller extends AbstractInstaller {
             + JAVA_DIR
             + " --strip-components=1");
     bootstrap.call();
+
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
 
