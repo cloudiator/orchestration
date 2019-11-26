@@ -74,7 +74,8 @@ public class VirtualMachineStatistics {
           .format("Writing statistics for virtual machine %s of user %s.", virtualMachine, user));
 
       final MetricBuilder metricBuilder = MetricBuilder.create().name("vm-start-time").value(time)
-          .now().addTag("cloud", cloud.id())
+          .now().addTag("id", virtualMachine.id()).addTag("providerId", virtualMachine.providerId())
+          .addTag("cloud", cloud.id())
           .addTag("api", cloud.api().providerName())
           .addTag("user", user);
 
