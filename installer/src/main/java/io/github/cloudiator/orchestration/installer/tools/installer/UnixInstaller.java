@@ -71,7 +71,7 @@ public class UnixInstaller extends AbstractInstaller {
     bootstrap.call();
 
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
-    TransactionRetryer.retry(()->installJava());
+    InstallRetryer.retry(5,5,()->installJava());
 
     /*
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "

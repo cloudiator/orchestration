@@ -1,5 +1,6 @@
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
+
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
@@ -17,14 +18,13 @@ public class InstallRetryer {
   }
 
   public static <T> T retry(int maxSecondsWait, int attempts, Callable<T> callable) {
-    Retryer retryer = RetryerBuilder.newBuilder()
+    Retryer<T> retryer = RetryerBuilder.<T>newBuilder()
         .retryIfRuntimeException()
         .retryIfExceptionOfType(RemoteException.class)
         .withWaitStrategy(WaitStrategies.randomWait(maxSecondsWait, TimeUnit.SECONDS))
         .withStopStrategy(StopStrategies.stopAfterAttempt(attempts)).build();
-
     try {
-      return (T) retryer.call(callable);
+      return retryer.call(callable);
     } catch (ExecutionException var3) {
       throw new IllegalStateException("Execution failed with cause : " + var3.getCause().getMessage(), var3.getCause());
     } catch (RetryException var4) {
