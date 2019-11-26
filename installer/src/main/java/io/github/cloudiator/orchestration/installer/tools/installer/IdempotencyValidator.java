@@ -31,12 +31,11 @@ public class IdempotencyValidator {
     return checkResult.getExitStatus() == 0 ? true : false;
   }
 
-  public static boolean checkIsInstalledViaCommand(RemoteConnection remoteConnection,
+  public static int checkIsInstalledViaCommand(RemoteConnection remoteConnection,
       String command) throws RemoteException {
     RemoteConnectionResponse checkResult = remoteConnection
         .executeCommand("" + command);
-
-    return checkResult.getExitStatus() == 0 ? true : false;
+    return checkResult.getExitStatus();
   }
 
   public static boolean checkIsInstalledDocker(RemoteConnection remoteConnection)
@@ -83,13 +82,13 @@ public class IdempotencyValidator {
     return isInstalled;
   }
 
-  public static boolean checkIsInstalledJava(RemoteConnection remoteConnection)
+  public static boolean checkIsInstalledJava(RemoteConnection remoteConnection, String javabinary)
       throws RemoteException {
     //check for installed Java
-    final boolean isInstalled = checkIsInstalledViaCommand(remoteConnection, "java -version");
+    final int isInstalled = checkIsInstalledViaCommand(remoteConnection, javabinary + " -version");
 
-    LOGGER.debug(String.format("Exit code of java -version is %s", isInstalled ? "0" : "!=0"));
+    LOGGER.debug(String.format("Exit code of java -version is %s", isInstalled));
 
-    return isInstalled;
+    return (isInstalled == 0);
   }
 }

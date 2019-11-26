@@ -19,10 +19,10 @@
 package io.github.cloudiator.orchestration.installer.tools.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
-import de.uniulm.omi.cloudiator.sword.remote.RemoteConnectionResponse;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
+import io.github.cloudiator.persistance.TransactionRetryer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,14 +51,6 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void bootstrap() throws RemoteException {
 
-    // is it already installed
-    final boolean isInstalled = IdempotencyValidator.checkIsInstalledJava(remoteConnection);
-
-    if (isInstalled) {
-      LOGGER.debug("Skipping bootstrap as Java is already present.");
-      return;
-    }
-
     //create Cloudiator directory
     LOGGER.debug(String.format(
         "Creating Cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
@@ -68,12 +60,31 @@ public class UnixInstaller extends AbstractInstaller {
         "sudo mkdir -p " + UnixInstaller.TOOL_PATH);
     bootstrap.call();
 
+    // is it already installed
+    final boolean isInstalled = IdempotencyValidator
+        .checkIsInstalledJava(remoteConnection, JAVA_BINARY);
+
+    if (isInstalled) {
+      LOGGER.debug("Skipping bootstrap as Java is already running.");
+      return;
+    }
+
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
+    /*
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.java.download") + "  -O "
         + UnixInstaller.TOOL_PATH
         + UnixInstaller.JAVA_ARCHIVE);
     bootstrap.call();
+    */
+    //Download with retry
+    CommandTask download = new CommandTask(this.remoteConnection, "sudo wget "
+        + Configuration.conf().getString("installer.java.download") + "  -O "
+        + UnixInstaller.TOOL_PATH
+        + UnixInstaller.JAVA_ARCHIVE);
+    TransactionRetryer.retry(()->download.call());
+
+
     //create directory
     bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir -p " + TOOL_PATH + JAVA_DIR);
     bootstrap.call();
@@ -84,6 +95,7 @@ public class UnixInstaller extends AbstractInstaller {
             + JAVA_DIR
             + " --strip-components=1");
     bootstrap.call();
+
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
 
@@ -220,7 +232,6 @@ public class UnixInstaller extends AbstractInstaller {
         + UnixInstaller.DOCKER_RETRY_INSTALL);
     installDocker.call();
 
-
     LOGGER.debug(
         String.format("Installing and starting Lance: Docker on node %s", node.id()));
 
@@ -234,18 +245,18 @@ public class UnixInstaller extends AbstractInstaller {
             + " > docker_retry_install.out 2>&1");
     installDocker.call();
 
-
     LOGGER.debug(String.format("Installed Docker on node %s", node.id()));
 
   }
 
 
-    @Override
-    public void installAlluxio() throws RemoteException {
+  @Override
+  public void installAlluxio() throws RemoteException {
     LOGGER.debug(String.format("Configuring alluxio on node %s", node.id()));
 
     //download alluxio
-    CommandTask installAlluxio = new CommandTask(this.remoteConnection, "sudo wget " + ALLUXIO_DOWNLOAD);
+    CommandTask installAlluxio = new CommandTask(this.remoteConnection,
+        "sudo wget " + ALLUXIO_DOWNLOAD);
 
     installAlluxio.call();
 
@@ -265,8 +276,9 @@ public class UnixInstaller extends AbstractInstaller {
     cmd = new CommandTask(this.remoteConnection, cmdStr);
     cmd.call();
 
-    cmdStr = "sudo echo -e \"alluxio.master.hostname=" + Configuration.conf().getString("installer.alluxio.master.host") +
-            "\\nalluxio.underfs.address=$PWD/underFSStorage\\nalluxio.security.login.username=root\\nalluxio.security.login.impersonation.username=root\\n\" | sudo tee -a alluxio/conf/alluxio-site.properties > /dev/null";
+    cmdStr = "sudo echo -e \"alluxio.master.hostname=" + Configuration.conf()
+        .getString("installer.alluxio.master.host") +
+        "\\nalluxio.underfs.address=$PWD/underFSStorage\\nalluxio.security.login.username=root\\nalluxio.security.login.impersonation.username=root\\n\" | sudo tee -a alluxio/conf/alluxio-site.properties > /dev/null";
 
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
@@ -278,7 +290,8 @@ public class UnixInstaller extends AbstractInstaller {
     cmd.call();
 
     cmdStr = "sudo echo \"" +
-            Configuration.conf().getString("installer.alluxio.master.host") + "\" | sudo tee alluxio/conf/masters > /dev/null";
+        Configuration.conf().getString("installer.alluxio.master.host")
+        + "\" | sudo tee alluxio/conf/masters > /dev/null";
 
     LOGGER.debug("Alluxio setup, running command: " + cmdStr);
     cmd = new CommandTask(this.remoteConnection, cmdStr);
@@ -289,7 +302,6 @@ public class UnixInstaller extends AbstractInstaller {
     cmd = new CommandTask(this.remoteConnection, cmdStr);
     cmd.call();
   }
-
 
 
   @Override
@@ -308,14 +320,21 @@ public class UnixInstaller extends AbstractInstaller {
         .getString("installer.dlmsagent.metrics.range");
     String dlms_agent_port = Configuration.conf().getString("installer.dlmsagent.port");
     String publicIpAddress = node.connectTo().ip();
-    String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo()).ip();
-    String dlms_agent_webservice_url = "http://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":" + Configuration.conf().getString("installer.dlmsagent.webserviceport");
+    String privateIpAddress = node.privateIpAddresses().stream().findAny().orElse(node.connectTo())
+        .ip();
+    String dlms_agent_webservice_url =
+        "http://" + Configuration.conf().getString("installer.dlmsagent.webserviceip") + ":"
+            + Configuration.conf().getString("installer.dlmsagent.webserviceport");
     // start DLMSagent
 
-    String startCommand = "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
-            + " -DjmsUrl=" + dlms_agent_jms_url + " -DmetricsRange=" + dlms_agent_metrics_range + " -Dserver-port="
-            + dlms_agent_port + " -Dip.public=" + publicIpAddress + " -Dip.private=" + privateIpAddress	+ " -Dvm.id="
-            + this.node.id() + " -Dtenant.id=" + this.userId + " -DwebServiceUrl=" + dlms_agent_webservice_url + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
+    String startCommand =
+        "sudo nohup bash -c '" + this.JAVA_BINARY + " " + " -Dmode=" + alluxio_metrics_url
+            + " -DjmsUrl=" + dlms_agent_jms_url + " -DmetricsRange=" + dlms_agent_metrics_range
+            + " -Dserver-port="
+            + dlms_agent_port + " -Dip.public=" + publicIpAddress + " -Dip.private="
+            + privateIpAddress + " -Dvm.id="
+            + this.node.id() + " -Dtenant.id=" + this.userId + " -DwebServiceUrl="
+            + dlms_agent_webservice_url + " -jar " + TOOL_PATH + DLMS_AGENT_JAR
             + " > dlmsagent.out 2>&1 &' > dlmsagent.out 2>&1";
     LOGGER.debug("Dlms agent start command: " + startCommand);
 
@@ -349,6 +368,10 @@ public class UnixInstaller extends AbstractInstaller {
             .getString("installer.spark.jmsip")
             + " -e JMS_PORT=" + Configuration.conf()
             .getString("installer.spark.jmsport")
+            + " -e JMS_USER=" + Configuration.conf()
+            .getString("installer.spark.jmsuser")
+            + " -e JMS_PASSWORD=" + Configuration.conf()
+            .getString("installer.spark.jmspassword")
             + " -e APP_NAME=" + Configuration.conf()
             .getString("installer.spark.appname")
             + " -e METRIC_REPORTING_INTERVAL=" + Configuration.conf()
@@ -359,8 +382,8 @@ public class UnixInstaller extends AbstractInstaller {
             + " -p " + Configuration.conf().getString("installer.spark.worker.ui") + ":"
             + Configuration.conf().getString("installer.spark.worker.ui")
             + " --network host "
-            + " --name " + CONTAINER_NAME
-            + " cloudiator/spark-worker:latest ");
+            + " --name " + CONTAINER_NAME + " "
+            + Configuration.conf().getString("installer.spark.container.version"));
 
     startSparkWorkerContainer.call();
     LOGGER
@@ -379,9 +402,11 @@ public class UnixInstaller extends AbstractInstaller {
     CommandTask startHdfsDataNodeContainer = new CommandTask(this.remoteConnection,
         "sudo docker top " + CONTAINER_NAME + " || "
             + " sudo docker run -d "
-            + " -e HDFS_NAMENODE_IPADDRESS=" + Configuration.conf().getString("installer.hdfs.namenode.ip")
-            + " -e HDFS_NAMENODE_PORT=" + Configuration.conf().getString("installer.hdfs.namenode.port")          
-            + " -p 8020:8020 -p 50070:50070 -p 9000:9000 "            
+            + " -e HDFS_NAMENODE_IPADDRESS=" + Configuration.conf()
+            .getString("installer.hdfs.namenode.ip")
+            + " -e HDFS_NAMENODE_PORT=" + Configuration.conf()
+            .getString("installer.hdfs.namenode.port")
+            + " -p 8020:8020 -p 50070:50070 -p 9000:9000 "
             + " --rm "
             + " --network host "
             + " --name " + CONTAINER_NAME
@@ -389,10 +414,11 @@ public class UnixInstaller extends AbstractInstaller {
 
     startHdfsDataNodeContainer.call();
     LOGGER
-        .debug(String.format("Successfully started HDFS data node container on node %s", node.id()));
+        .debug(
+            String.format("Successfully started HDFS data node container on node %s", node.id()));
 
   }
-  
+
   @Override
   public void installEMS() throws RemoteException {
 
@@ -424,16 +450,16 @@ public class UnixInstaller extends AbstractInstaller {
 
         // Contact EMS to get EMS Client installation instructions for this node
         LOGGER.debug(String.format(
-                "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
-                node.id(), emsUrl));
+            "Contacting EMS Server to retrieve EMS Client installation info for node %s: url=%s",
+            node.id(), emsUrl));
         InstallerHelper.InstallationInstructions installationInstructions = InstallerHelper
-                .getInstallationInstructionsFromServer(node, emsUrl);
+            .getInstallationInstructionsFromServer(node, emsUrl);
         LOGGER.debug(String.format("Installation instructions for node %s: %s", node.id(),
-                installationInstructions));
+            installationInstructions));
 
         // Execute installation instructions
         LOGGER.debug(
-                String.format("Executing EMS Client installation instructions on node %s", node.id()));
+            String.format("Executing EMS Client installation instructions on node %s", node.id()));
         InstallerHelper.executeInstructions(node, remoteConnection, installationInstructions);
 
         LOGGER.debug(String.format("EMS Client installation completed on node %s", node.id()));
