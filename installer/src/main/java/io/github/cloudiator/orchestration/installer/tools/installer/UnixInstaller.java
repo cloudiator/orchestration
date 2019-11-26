@@ -23,6 +23,7 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.persistance.TransactionRetryer;
+import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,15 +52,6 @@ public class UnixInstaller extends AbstractInstaller {
   @Override
   public void bootstrap() throws RemoteException {
 
-    //create Cloudiator directory
-    LOGGER.debug(String.format(
-        "Creating Cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
-        node.id()));
-
-    CommandTask bootstrap = new CommandTask(this.remoteConnection,
-        "sudo mkdir -p " + UnixInstaller.TOOL_PATH);
-    bootstrap.call();
-
     // is it already installed
     final boolean isInstalled = IdempotencyValidator
         .checkIsInstalledJava(remoteConnection, JAVA_BINARY);
@@ -69,22 +61,31 @@ public class UnixInstaller extends AbstractInstaller {
       return;
     }
 
+    //create Cloudiator directory
+    LOGGER.debug(String.format(
+        "Creating Cloudiator tool directory in " + UnixInstaller.TOOL_PATH + " for node %s",
+        node.id()));
+
+    CommandTask bootstrap = new CommandTask(this.remoteConnection,
+        "sudo mkdir -p " + UnixInstaller.TOOL_PATH);
+    bootstrap.call();
+
     LOGGER.debug(String.format("Starting Java installation on node %s", node.id()));
+    TransactionRetryer.retry(()->installJava());
+
     /*
     bootstrap = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.java.download") + "  -O "
         + UnixInstaller.TOOL_PATH
         + UnixInstaller.JAVA_ARCHIVE);
     bootstrap.call();
-    */
+
     //Download with retry
     CommandTask download = new CommandTask(this.remoteConnection, "sudo wget "
         + Configuration.conf().getString("installer.java.download") + "  -O "
         + UnixInstaller.TOOL_PATH
         + UnixInstaller.JAVA_ARCHIVE);
     TransactionRetryer.retry(()->download.call());
-
-
     //create directory
     bootstrap = new CommandTask(this.remoteConnection, "sudo mkdir -p " + TOOL_PATH + JAVA_DIR);
     bootstrap.call();
@@ -95,7 +96,7 @@ public class UnixInstaller extends AbstractInstaller {
             + JAVA_DIR
             + " --strip-components=1");
     bootstrap.call();
-
+    */
 
     LOGGER.debug(String.format("Java was successfully installed on node %s", node.id()));
 
@@ -106,6 +107,39 @@ public class UnixInstaller extends AbstractInstaller {
     fixHostname.call();
 
     LOGGER.debug(String.format("Hostname successfully set on node %s", node.id()));
+  }
+
+  public int installJava() throws RemoteException{
+    int result = 5;
+    try {
+      //Download with retry
+      CommandTask download = new CommandTask(this.remoteConnection, "sudo wget "
+          + Configuration.conf().getString("installer.java.download") + "  -O "
+          + UnixInstaller.TOOL_PATH
+          + UnixInstaller.JAVA_ARCHIVE);
+      result = download.call();
+      LOGGER.debug("Download finished, result: "+result);
+
+      //create directory
+      CommandTask javadirectory = new CommandTask(this.remoteConnection,
+          "sudo mkdir -p " + TOOL_PATH + JAVA_DIR);
+      result=javadirectory.call();
+      LOGGER.debug("directory creation finished, result:"+result);
+
+      //extract java
+      // do not set symbolic link or PATH as there might be other Java versions on the VM
+      CommandTask javaextract = new CommandTask(this.remoteConnection,
+          "sudo tar zxvf " + TOOL_PATH + UnixInstaller.JAVA_ARCHIVE + " -C "
+              + UnixInstaller.TOOL_PATH
+              + JAVA_DIR
+              + " --strip-components=1");
+      javaextract.call();
+      LOGGER.debug("Exctration finished, result:"+result);
+      return result;
+    }catch (RemoteException e){
+      LOGGER.debug("Exception by "+e.getMessage()+ " "+e.getCause());
+      throw new RemoteException(e.getMessage());
+    }
   }
 
 
