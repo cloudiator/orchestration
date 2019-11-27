@@ -63,13 +63,17 @@ public class OperatingSystemConverter implements
       return null;
     }
 
+    OperatingSystemFamily operatingSystemFamily = osFamilyConverter
+        .apply(operatingSystem.getOperatingSystemFamily());
+
     final OperatingSystemBuilder builder = OperatingSystemBuilder.newBuilder().architecture(
         osArchConverter.apply(operatingSystem.getOperatingSystemArchitecture()))
-        .family(osFamilyConverter.apply(operatingSystem.getOperatingSystemFamily()));
+        .family(operatingSystemFamily);
 
     if (operatingSystem.hasOperatingSystemVersion()) {
       builder.version(OperatingSystemVersions
-          .of(operatingSystem.getOperatingSystemVersion().getVersion(), null));
+          .of(operatingSystem.getOperatingSystemVersion().getVersion(),
+              operatingSystemFamily.operatingSystemVersionFormat()));
     } else {
       builder.version(OperatingSystemVersions.unknown());
     }
