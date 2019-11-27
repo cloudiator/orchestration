@@ -85,7 +85,9 @@ public class HardwareDiscoveryListener implements DiscoveryListener {
       hardwareStateMachine.apply(discoveredHardware, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
       LOGGER
-          .info("Skipping discovery of hardware %s as assigned location seems to be missing.", e);
+          .info(String
+              .format("Skipping discovery of hardware %s as assigned location seems to be missing.",
+                  discoveredHardware), e);
     }
 
   }
