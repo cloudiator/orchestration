@@ -72,7 +72,7 @@ public class OperatingSystemConverter implements
 
     if (operatingSystem.hasOperatingSystemVersion()) {
       builder.version(OperatingSystemVersions
-          .of(operatingSystem.getOperatingSystemVersion().getVersion(),
+          .ofVersionAndFormat(operatingSystem.getOperatingSystemVersion().getVersion(),
               operatingSystemFamily.operatingSystemVersionFormat()));
     } else {
       builder.version(OperatingSystemVersions.unknown());
