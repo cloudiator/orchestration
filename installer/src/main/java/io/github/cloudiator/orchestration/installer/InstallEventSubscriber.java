@@ -20,12 +20,14 @@ package io.github.cloudiator.orchestration.installer;
 
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
+import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.orchestration.installer.tools.installer.Installers;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import javax.inject.Inject;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Installation.InstallationRequest;
@@ -46,6 +48,8 @@ public class InstallEventSubscriber implements Runnable {
   private static final int SERVER_ERROR = 500;
   private final MessageInterface messagingService;
   private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
+  private static final Semaphore SEMAPHORE = new Semaphore(
+      Configuration.conf().getInt("installer.parallelism"), true);
 
 
   @Inject
@@ -60,6 +64,7 @@ public class InstallEventSubscriber implements Runnable {
         InstallationRequest.parser(), (requestId, InstallationRequest) -> {
 
           try {
+            SEMAPHORE.acquire();
             List<Tool> installedTools = handleRequest(requestId,
                 InstallationRequest);
             sendInstallResponse(requestId, installedTools);
@@ -67,6 +72,8 @@ public class InstallEventSubscriber implements Runnable {
             LOGGER.error("exception occurred.", ex);
             sendErrorResponse(requestId,
                 "exception occurred: " + ex.getMessage(), SERVER_ERROR);
+          } finally {
+            SEMAPHORE.release();
           }
         });
 
