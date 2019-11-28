@@ -83,11 +83,11 @@ public class InstallEventSubscriber implements Runnable {
 
     List<Tool> installedTools;
 
-    RemoteConnection remoteConnection = node.connect();
-
-    installedTools = installTools(installationRequest.getInstallation().getToolList(),
-        remoteConnection, node,
-        installationRequest.getUserId());
+    try (RemoteConnection remoteConnection = node.connect()) {
+      installedTools = installTools(installationRequest.getInstallation().getToolList(),
+          remoteConnection, node,
+          installationRequest.getUserId());
+    }
 
     return installedTools;
 
