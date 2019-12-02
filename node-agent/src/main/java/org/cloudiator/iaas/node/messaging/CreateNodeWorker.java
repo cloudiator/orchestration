@@ -43,12 +43,12 @@ import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NodeWorker implements Runnable {
+public class CreateNodeWorker implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(NodeWorker.class);
+      .getLogger(CreateNodeWorker.class);
 
-  private final NodeRequest nodeRequest;
+  private final CreateNodeRequest createNodeRequest;
 
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
@@ -57,12 +57,12 @@ public class NodeWorker implements Runnable {
   private final NodeCandidateMessageRepository nodeCandidateMessageRepository;
 
   @Inject
-  public NodeWorker(@Assisted NodeRequest nodeRequest,
+  public CreateNodeWorker(@Assisted CreateNodeRequest createNodeRequest,
       MessageInterface messageInterface,
       NodeDomainRepository nodeDomainRepository,
       NodeStateMachine nodeStateMachine,
       NodeCandidateMessageRepository nodeCandidateMessageRepository) {
-    this.nodeRequest = nodeRequest;
+    this.createNodeRequest = createNodeRequest;
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
     this.nodeStateMachine = nodeStateMachine;
@@ -93,14 +93,15 @@ public class NodeWorker implements Runnable {
 
     try {
 
-      final String userId = nodeRequest.getNodeRequestMessage().getUserId();
-      final String groupName = nodeRequest.getNodeRequestMessage().getGroupName();
-      final NodeCandidate nodeCandidate = retrieveCandidate(userId,nodeRequest.getNodeRequestMessage().getNodeCandidate());
+      final String userId = createNodeRequest.getNodeRequestMessage().getUserId();
+      final String groupName = createNodeRequest.getNodeRequestMessage().getGroupName();
+      final NodeCandidate nodeCandidate = retrieveCandidate(userId,
+          createNodeRequest.getNodeRequestMessage().getNodeCandidate());
 
       LOGGER.debug(
           String.format(
               "%s is starting nodes to fulfill node request %s.",
-              this, nodeRequest.getNodeRequestMessage()));
+              this, createNodeRequest.getNodeRequestMessage()));
 
       //generate the pending node
       final Node pending = NodeBuilder.newBuilder().generateId().generateName(groupName)
@@ -112,7 +113,7 @@ public class NodeWorker implements Runnable {
                   .build()).state(NodeState.PENDING).nodeCandidate(nodeCandidate.id())
           .userId(userId).build();
 
-      synchronized (NodeWorker.class) {
+      synchronized (CreateNodeWorker.class) {
         TransactionRetryer.retry(() -> persistNode(pending));
       }
 
@@ -121,33 +122,33 @@ public class NodeWorker implements Runnable {
 
       LOGGER.debug(
           String.format("%s is replying success for request %s with node %s.", this,
-              nodeRequest.getNodeRequestMessage(), running));
-      messageInterface.reply(nodeRequest.getId(),
+              createNodeRequest.getNodeRequestMessage(), running));
+      messageInterface.reply(createNodeRequest.getId(),
           NodeRequestResponse.newBuilder()
               .setNode(NODE_CONVERTER.apply(running)).build());
     } catch (Exception e) {
       LOGGER.error(String
           .format("Unexpected error %s occurred while working on request %s.", e.getMessage(),
-              nodeRequest.getNodeRequestMessage()), e);
-      messageInterface.reply(NodeRequestResponse.class, nodeRequest.getId(),
+              createNodeRequest.getNodeRequestMessage()), e);
+      messageInterface.reply(NodeRequestResponse.class, createNodeRequest.getId(),
           Error.newBuilder().setCode(500).setMessage(e.getMessage()).build());
     }
 
   }
 
-  public static class NodeRequest {
+  public static class CreateNodeRequest {
 
     private final String id;
     private final NodeRequestMessage nodeRequestMessage;
 
-    private NodeRequest(String id,
+    private CreateNodeRequest(String id,
         NodeRequestMessage nodeRequestMessage) {
       this.id = id;
       this.nodeRequestMessage = nodeRequestMessage;
     }
 
-    public static NodeRequest of(String id, NodeRequestMessage nodeRequestMessage) {
-      return new NodeRequest(id, nodeRequestMessage);
+    public static CreateNodeRequest of(String id, NodeRequestMessage nodeRequestMessage) {
+      return new CreateNodeRequest(id, nodeRequestMessage);
     }
 
     public String getId() {
