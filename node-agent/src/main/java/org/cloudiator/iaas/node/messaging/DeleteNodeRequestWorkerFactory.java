@@ -18,10 +18,10 @@
 
 package org.cloudiator.iaas.node.messaging;
 
-import org.cloudiator.iaas.node.messaging.NodeWorker.NodeRequest;
+import org.cloudiator.iaas.node.messaging.DeleteNodeWorker.DeleteNodeRequest;
 
-public interface NodeRequestWorkerFactory {
+public interface DeleteNodeRequestWorkerFactory {
 
-  NodeWorker create(NodeRequest nodeRequest);
+  DeleteNodeWorker create(DeleteNodeRequest deleteNodeRequest);
 
 }

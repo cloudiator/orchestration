@@ -29,7 +29,6 @@ import io.github.cloudiator.iaas.discovery.state.ImageStateMachine;
 import io.github.cloudiator.persistance.CloudDomainRepository;
 import io.github.cloudiator.persistance.ImageDomainRepository;
 import io.github.cloudiator.persistance.MissingLocationException;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +85,9 @@ public class ImageDiscoveryListener implements DiscoveryListener {
       imageDomainRepository.save(discoveredImage);
       imageStateMachine.apply(discoveredImage, DiscoveryItemState.OK, new Object[0]);
     } catch (MissingLocationException e) {
-      LOGGER.info("Skipping discovery of image %s as assigned location seems to be missing.", e);
+      LOGGER.info(String
+          .format("Skipping discovery of image %s as assigned location seems to be missing.",
+              discoveredImage), e);
     }
   }
 }

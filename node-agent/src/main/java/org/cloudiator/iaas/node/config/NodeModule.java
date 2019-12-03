@@ -41,7 +41,8 @@ import org.cloudiator.iaas.node.NodeDeletionStrategy;
 import org.cloudiator.iaas.node.NodeSchedulingStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeDeletionStrategy;
 import org.cloudiator.iaas.node.VirtualMachineNodeSchedulingStrategy;
-import org.cloudiator.iaas.node.messaging.NodeRequestWorkerFactory;
+import org.cloudiator.iaas.node.messaging.CreateNodeRequestWorkerFactory;
+import org.cloudiator.iaas.node.messaging.DeleteNodeRequestWorkerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,9 @@ public class NodeModule extends AbstractModule {
 
     bind(Init.class).asEagerSingleton();
 
-    install(new FactoryModuleBuilder().build(NodeRequestWorkerFactory.class));
+    install(new FactoryModuleBuilder().build(CreateNodeRequestWorkerFactory.class));
+    install(new FactoryModuleBuilder().build(DeleteNodeRequestWorkerFactory.class));
+
     final int parallelNodes = nodeAgentContext.parallelNodes();
 
     final LoggingThreadPoolExecutor nodeExecutor = new LoggingThreadPoolExecutor(

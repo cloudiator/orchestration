@@ -31,17 +31,19 @@ import java.util.function.Predicate;
 public class HardwareDiscoveryWorker extends AbstractDiscoveryWorker<HardwareFlavor> {
 
   private final HardwareDomainRepository hardwareDomainRepository;
+  private final DiscoveryService discoveryService;
 
   @Inject
   public HardwareDiscoveryWorker(DiscoveryQueue discoveryQueue,
       DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
       HardwareDomainRepository hardwareDomainRepository) {
-    super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    super(discoveryQueue, discoveryErrorHandler);
+    this.discoveryService = discoveryService;
     this.hardwareDomainRepository = hardwareDomainRepository;
   }
 
   @Override
-  protected Iterable<HardwareFlavor> resources(DiscoveryService discoveryService) {
+  protected Iterable<HardwareFlavor> resources() {
     return discoveryService.listHardwareFlavors();
   }
 

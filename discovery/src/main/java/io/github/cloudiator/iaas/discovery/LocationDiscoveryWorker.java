@@ -31,17 +31,19 @@ import java.util.function.Predicate;
 public class LocationDiscoveryWorker extends AbstractDiscoveryWorker<Location> {
 
   private final LocationDomainRepository locationDomainRepository;
+  private final DiscoveryService discoveryService;
 
   @Inject
   public LocationDiscoveryWorker(DiscoveryQueue discoveryQueue,
       DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
       LocationDomainRepository locationDomainRepository) {
-    super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    super(discoveryQueue, discoveryErrorHandler);
+    this.discoveryService = discoveryService;
     this.locationDomainRepository = locationDomainRepository;
   }
 
   @Override
-  protected Iterable<Location> resources(DiscoveryService discoveryService) {
+  protected Iterable<Location> resources() {
     return discoveryService.listLocations();
   }
 

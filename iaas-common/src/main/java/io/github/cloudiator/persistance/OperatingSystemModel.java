@@ -96,7 +96,7 @@ class OperatingSystemModel extends Model
       return OperatingSystemVersions.unknown();
     }
     return OperatingSystemVersions
-        .of(version, null);
+        .ofVersionAndFormat(version, operatingSystemFamily.operatingSystemVersionFormat());
   }
 
   public OperatingSystem toDomain() {
@@ -140,4 +140,5 @@ class OperatingSystemModel extends Model
   public int remotePort() {
     return toDomain().remotePort();
   }
+
 }

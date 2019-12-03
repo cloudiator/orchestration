@@ -31,17 +31,19 @@ import java.util.function.Predicate;
 public class ImageDiscoveryWorker extends AbstractDiscoveryWorker<Image> {
 
   private final ImageDomainRepository imageDomainRepository;
+  private final DiscoveryService discoveryService;
 
   @Inject
   public ImageDiscoveryWorker(DiscoveryQueue discoveryQueue,
       DiscoveryService discoveryService, DiscoveryErrorHandler discoveryErrorHandler,
       ImageDomainRepository imageDomainRepository) {
-    super(discoveryQueue, discoveryService, discoveryErrorHandler);
+    super(discoveryQueue, discoveryErrorHandler);
+    this.discoveryService = discoveryService;
     this.imageDomainRepository = imageDomainRepository;
   }
 
   @Override
-  protected Iterable<Image> resources(DiscoveryService discoveryService) {
+  protected Iterable<Image> resources() {
     return discoveryService.listImages();
   }
 

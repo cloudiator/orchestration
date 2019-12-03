@@ -54,7 +54,7 @@ public class VirtualMachineDeleteRequestSubscriber implements Runnable {
 
   @SuppressWarnings("WeakerAccess")
   @Transactional
-  void deleteVm(String vmId, String userId) {
+  synchronized void deleteVm(String vmId, String userId) {
     virtualMachineDomainRepository.delete(vmId, userId);
   }
 

@@ -24,7 +24,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Named;
-import org.cloudiator.iaas.node.messaging.NodeWorker.NodeRequest;
+import org.cloudiator.iaas.node.messaging.CreateNodeWorker.CreateNodeRequest;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
@@ -37,17 +37,17 @@ public class NodeRequestListener implements Runnable {
       .getLogger(NodeRequestListener.class);
   private final MessageInterface messageInterface;
   private final ExecutorService nodeExecutorService;
-  private final NodeRequestWorkerFactory nodeRequestWorkerFactory;
+  private final CreateNodeRequestWorkerFactory createNodeRequestWorkerFactory;
 
 
   @Inject
   public NodeRequestListener(MessageInterface messageInterface,
       @Named(NODE_EXECUTION_SERVICE_NAME)
           ExecutorService nodeExecutorService,
-      NodeRequestWorkerFactory nodeRequestWorkerFactory) {
+      CreateNodeRequestWorkerFactory createNodeRequestWorkerFactory) {
     this.messageInterface = messageInterface;
     this.nodeExecutorService = nodeExecutorService;
-    this.nodeRequestWorkerFactory = nodeRequestWorkerFactory;
+    this.createNodeRequestWorkerFactory = createNodeRequestWorkerFactory;
   }
 
 
@@ -57,7 +57,8 @@ public class NodeRequestListener implements Runnable {
         (id, content) -> {
           LOGGER.info(String.format("Receiving new node request %s. ", content));
 
-          nodeExecutorService.submit(nodeRequestWorkerFactory.create(NodeRequest.of(id, content)));
+          nodeExecutorService.submit(createNodeRequestWorkerFactory.create(
+              CreateNodeRequest.of(id, content)));
         });
   }
 }

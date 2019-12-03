@@ -73,7 +73,7 @@ public class ByonNodeDeletionStrategy implements NodeDeletionStrategy {
   }
 
   private static boolean consistencyCheck(Node deletedNode, ByonNode deletedNodeResponded) {
-    if (deletedNode == deletedNodeResponded) {
+    if (deletedNode.equals(deletedNodeResponded)) {
       return true;
     }
 

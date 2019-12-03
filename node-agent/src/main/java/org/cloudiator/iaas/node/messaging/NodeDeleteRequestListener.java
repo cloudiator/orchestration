@@ -18,14 +18,15 @@
 
 package org.cloudiator.iaas.node.messaging;
 
+import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+
 import com.google.common.base.MoreObjects;
-import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.domain.NodeState;
 import io.github.cloudiator.persistance.NodeDomainRepository;
+import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
-import org.cloudiator.iaas.node.NodeDeletionStrategy;
-import org.cloudiator.iaas.node.NodeStateMachine;
+import javax.inject.Named;
+import org.cloudiator.iaas.node.messaging.DeleteNodeWorker.DeleteNodeRequest;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Node.NodeDeleteMessage;
 import org.cloudiator.messages.Node.NodeDeleteResponseMessage;
@@ -40,15 +41,18 @@ public class NodeDeleteRequestListener implements Runnable {
       .getLogger(NodeDeleteRequestListener.class);
   private final MessageInterface messageInterface;
   private final NodeDomainRepository nodeDomainRepository;
-  private final NodeStateMachine nodeStateMachine;
+  private final DeleteNodeRequestWorkerFactory deleteNodeRequestWorkerFactory;
+  private final ExecutorService nodeExecutorService;
 
   @Inject
   public NodeDeleteRequestListener(MessageInterface messageInterface,
       NodeDomainRepository nodeDomainRepository,
-      NodeStateMachine nodeStateMachine) {
+      DeleteNodeRequestWorkerFactory deleteNodeRequestWorkerFactory,
+      @Named(NODE_EXECUTION_SERVICE_NAME) ExecutorService nodeExecutorService) {
     this.messageInterface = messageInterface;
     this.nodeDomainRepository = nodeDomainRepository;
-    this.nodeStateMachine = nodeStateMachine;
+    this.deleteNodeRequestWorkerFactory = deleteNodeRequestWorkerFactory;
+    this.nodeExecutorService = nodeExecutorService;
   }
 
   @Override
@@ -83,10 +87,10 @@ public class NodeDeleteRequestListener implements Runnable {
 
               LOGGER.info(String.format("%s is requests deletion of node %s.", this, node));
 
-              final Node apply = nodeStateMachine.apply(node, NodeState.DELETED, null);
+              final DeleteNodeWorker deleteNodeWorker = deleteNodeRequestWorkerFactory
+                  .create(DeleteNodeRequest.of(id, node));
 
-              LOGGER.info(String.format("%s has successfully deleted node %s.", this, node));
-              messageInterface.reply(id, NodeDeleteResponseMessage.newBuilder().build());
+              nodeExecutorService.submit(deleteNodeWorker);
 
             } catch (Exception e) {
               LOGGER.error("Unexpected error while deleting node:" + e.getMessage(), e);
