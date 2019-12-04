@@ -18,12 +18,13 @@
 
 package io.github.cloudiator.iaas.vm;
 
-public class Constants {
+public class VMAgentConstants {
 
   public static final String VM_PARALLEL_STARTS = "vm.parallelVMStarts";
   public static final String VM_CLEANUP_ENABLED = "vm.enableCleanup";
+  public static final String VM_WATCHDOG_ENABLED = "vm.enableWatchdog";
 
-  private Constants() {
+  private VMAgentConstants() {
     throw new AssertionError("Do not instantiate");
   }
 

@@ -18,8 +18,9 @@
 
 package io.github.cloudiator.iaas.vm;
 
-import static io.github.cloudiator.iaas.vm.Constants.VM_CLEANUP_ENABLED;
-import static io.github.cloudiator.iaas.vm.Constants.VM_PARALLEL_STARTS;
+import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_CLEANUP_ENABLED;
+import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_PARALLEL_STARTS;
+import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_WATCHDOG_ENABLED;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -44,6 +45,10 @@ public class VmAgentContext {
 
   public boolean cleanupEnabled() {
     return config.getBoolean(VM_CLEANUP_ENABLED);
+  }
+
+  public boolean vmWatchdogEnabled() {
+    return config.getBoolean(VM_WATCHDOG_ENABLED);
   }
 
 }

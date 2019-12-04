@@ -85,7 +85,9 @@ public class VmAgentModule extends AbstractModule {
               + " delete virtual machines that are no longer managed by Cloudiator.");
       schedulablesBinder.addBinding().to(VirtualMachineCleanupWatchdog.class);
     }
-    schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
+    if (vmAgentContext.vmWatchdogEnabled()) {
+      schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
+    }
 
     bind(ExecutionService.class).annotatedWith(Names.named("SCHEDULE_EXECUTION")).toInstance(
         new ScheduledThreadPoolExecutorExecutionService(
