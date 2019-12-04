@@ -20,6 +20,7 @@ package io.github.cloudiator.iaas.vm.watchdog;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
@@ -55,6 +56,11 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
     this.computeService = computeService;
   }
 
+  @Transactional
+  protected List<ExtendedVirtualMachine> localVms() {
+    return virtualMachineDomainRepository.findAll();
+  }
+
   @Override
   public long period() {
     return 4;
@@ -78,7 +84,7 @@ public class VirtualMachineCleanupWatchdog implements Schedulable {
     final Iterable<VirtualMachine> remoteVMs = computeService.discoveryService()
         .listVirtualMachines();
 
-    final List<ExtendedVirtualMachine> localVMs = virtualMachineDomainRepository.findAll();
+    final List<ExtendedVirtualMachine> localVMs = localVms();
 
     Set<VirtualMachine> remoteOnly = new HashSet<>();
     //compare
