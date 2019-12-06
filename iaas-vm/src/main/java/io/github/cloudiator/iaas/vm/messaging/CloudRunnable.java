@@ -16,15 +16,12 @@
  * under the License.
  */
 
-package org.cloudiator.iaas.node.config;
+package io.github.cloudiator.iaas.vm.messaging;
 
-public class Constants {
+import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 
-  public static final String NODE_PARALLEL_STARTS = "node.parallelStarts";
-  public static final String NODE_EXECUTION_SERVICE_NAME = "NODE_WORKERS";
+public interface CloudRunnable extends Runnable {
 
-  private Constants() {
-    throw new AssertionError("Do not instantiate");
-  }
+  String cloudId();
 
 }

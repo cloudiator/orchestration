@@ -18,27 +18,13 @@
 
 package org.cloudiator.iaas.node.config;
 
-import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_PARALLEL_STARTS;
+public class NodeAgentConstants {
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import de.uniulm.omi.cloudiator.util.configuration.Configuration;
+  public static final String NODE_PARALLEL_STARTS = "node.parallelStarts";
+  public static final String NODE_EXECUTION_SERVICE_NAME = "NODE_WORKERS";
 
-public class NodeAgentContext {
-
-  private final Config config;
-
-  public NodeAgentContext() {
-    this(Configuration.conf());
-  }
-
-  public NodeAgentContext(Config config) {
-    this.config = config;
-    config.checkValid(ConfigFactory.defaultReference(), "node");
-  }
-
-  public int parallelNodes() {
-    return config.getInt(NODE_PARALLEL_STARTS);
+  private NodeAgentConstants() {
+    throw new AssertionError("Do not instantiate");
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 University of Ulm
+ * Copyright (c) 2014-2019 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package io.github.cloudiator.iaas.vm;
+package io.github.cloudiator.iaas.vm.config;
 
-import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_CLEANUP_ENABLED;
-import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_PARALLEL_STARTS;
-import static io.github.cloudiator.iaas.vm.VMAgentConstants.VM_WATCHDOG_ENABLED;
+import static io.github.cloudiator.iaas.vm.config.VMAgentConstants.VM_CLEANUP_ENABLED;
+import static io.github.cloudiator.iaas.vm.config.VMAgentConstants.VM_PARALLEL_STARTS_PER_CLOUD;
+import static io.github.cloudiator.iaas.vm.config.VMAgentConstants.VM_WATCHDOG_ENABLED;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -40,7 +40,7 @@ public class VmAgentContext {
   }
 
   public int parallelVMStarts() {
-    return config.getInt(VM_PARALLEL_STARTS);
+    return config.getInt(VM_PARALLEL_STARTS_PER_CLOUD);
   }
 
   public boolean cleanupEnabled() {

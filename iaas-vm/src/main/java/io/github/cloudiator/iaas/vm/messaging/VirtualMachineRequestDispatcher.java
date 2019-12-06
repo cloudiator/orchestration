@@ -18,6 +18,7 @@
 
 package io.github.cloudiator.iaas.vm.messaging;
 
+import de.uniulm.omi.cloudiator.util.execution.ExecutionService;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,16 +30,16 @@ public class VirtualMachineRequestDispatcher implements Runnable {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestDispatcher.class);
   private final VirtualMachineRequestQueue virtualMachineRequestQueue;
-  private final ExecutorService executorService;
+  private final ExecutionService executionService;
   private final VirtualMachineRequestWorkerFactory virtualMachineRequestWorkerFactory;
 
   @Inject
   public VirtualMachineRequestDispatcher(
       VirtualMachineRequestQueue virtualMachineRequestQueue,
-      @Named("VM_WORKERS") ExecutorService executorService,
+      @Named("VM_WORKERS") ExecutionService executionService,
       VirtualMachineRequestWorkerFactory virtualMachineRequestWorkerFactory) {
     this.virtualMachineRequestQueue = virtualMachineRequestQueue;
-    this.executorService = executorService;
+    this.executionService = executionService;
     this.virtualMachineRequestWorkerFactory = virtualMachineRequestWorkerFactory;
   }
 
@@ -50,7 +51,7 @@ public class VirtualMachineRequestDispatcher implements Runnable {
       try {
         VirtualMachineRequest virtualMachineRequest = virtualMachineRequestQueue
             .take();
-        executorService.submit(virtualMachineRequestWorkerFactory.create(virtualMachineRequest));
+        executionService.execute(virtualMachineRequestWorkerFactory.create(virtualMachineRequest));
 
       } catch (InterruptedException e) {
         LOGGER.warn(String.format("%s got interrupted. Stopping.", this));

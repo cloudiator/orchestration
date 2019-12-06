@@ -26,6 +26,7 @@ import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.statistics.StatisticsContext;
 import de.uniulm.omi.cloudiator.util.statistics.StatisticsModule;
+import io.github.cloudiator.iaas.vm.config.VmAgentContext;
 import io.github.cloudiator.iaas.vm.config.VmAgentModule;
 import io.github.cloudiator.iaas.vm.messaging.CloudEventSubscriber;
 import io.github.cloudiator.iaas.vm.messaging.CreateVirtualMachineSubscriber;

@@ -18,7 +18,7 @@
 
 package org.cloudiator.iaas.node.messaging;
 
-import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_EXECUTION_SERVICE_NAME;
 
 import com.google.common.base.MoreObjects;
 import io.github.cloudiator.domain.Node;

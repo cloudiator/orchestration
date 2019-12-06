@@ -26,6 +26,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineTemplate;
+import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
 import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import io.github.cloudiator.domain.LocalVirtualMachineState;
@@ -44,7 +45,7 @@ import org.cloudiator.messaging.MessageInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VirtualMachineRequestWorker implements Runnable {
+public class VirtualMachineRequestWorker implements CloudRunnable {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(VirtualMachineRequestWorker.class);
@@ -154,5 +155,12 @@ public class VirtualMachineRequestWorker implements Runnable {
   @Override
   public void run() {
     doWork(virtualMachineRequest);
+  }
+
+  @Override
+  public String cloudId() {
+    return IdScopedByClouds.from(
+        virtualMachineRequest.getCreateVirtualMachineRequestMessage().getVirtualMachineRequest()
+            .getLocation()).cloudId();
   }
 }
