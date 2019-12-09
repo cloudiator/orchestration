@@ -103,6 +103,10 @@ public class VirtualMachineAgent {
         VirtualMachineDeleteRequestSubscriber.class.getName()));
     injector.getInstance(VirtualMachineDeleteRequestSubscriber.class).run();
 
+    LOGGER.info(String.format("%s is starting %s.", VirtualMachineAgent.class.getName(),
+        VirtualMachineQuerySubscriber.class.getName()));
+    injector.getInstance(VirtualMachineQuerySubscriber.class).run();
+
     LOGGER.info(String.format("%s started.", VirtualMachineAgent.class.getName()));
   }
 
