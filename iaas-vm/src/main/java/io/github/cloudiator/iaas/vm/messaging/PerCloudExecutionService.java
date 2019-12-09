@@ -56,8 +56,9 @@ public class PerCloudExecutionService implements ExecutionService {
         workersPerCloud);
     MoreExecutors.addDelayedShutdownHook(loggingScheduledThreadPoolExecutor, 1, TimeUnit.MINUTES);
     return Objects.requireNonNull(
-        executionServices.putIfAbsent(cloudId, new ScheduledThreadPoolExecutorExecutionService(
-            loggingScheduledThreadPoolExecutor)));
+        executionServices
+            .computeIfAbsent(cloudId, s -> new ScheduledThreadPoolExecutorExecutionService(
+                loggingScheduledThreadPoolExecutor)));
   }
 
   @Override
