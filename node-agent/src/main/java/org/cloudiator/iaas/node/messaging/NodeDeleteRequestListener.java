@@ -21,6 +21,7 @@ package org.cloudiator.iaas.node.messaging;
 import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_EXECUTION_SERVICE_NAME;
 
 import com.google.common.base.MoreObjects;
+import com.google.inject.persist.Transactional;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.persistance.NodeDomainRepository;
 import java.util.concurrent.ExecutorService;
@@ -55,6 +56,11 @@ public class NodeDeleteRequestListener implements Runnable {
     this.nodeExecutorService = nodeExecutorService;
   }
 
+  @Transactional
+  Node getNode(String userId, String nodeId) {
+    return nodeDomainRepository.findByTenantAndId(userId, nodeId);
+  }
+
   @Override
   public void run() {
     messageInterface.subscribe(NodeDeleteMessage.class, NodeDeleteMessage.parser(),
@@ -71,7 +77,7 @@ public class NodeDeleteRequestListener implements Runnable {
                   .format("%s is receiving request to delete node %s from user %s.", this, nodeId,
                       userId));
 
-              Node node = nodeDomainRepository.findByTenantAndId(userId, nodeId);
+              Node node = getNode(userId, nodeId);
 
               if (node == null) {
                 LOGGER
