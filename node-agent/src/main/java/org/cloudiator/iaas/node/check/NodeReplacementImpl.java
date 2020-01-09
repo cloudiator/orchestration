@@ -22,9 +22,8 @@ import com.google.inject.Inject;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import java.util.concurrent.ExecutionException;
+import org.cloudiator.iaas.node.NodeDeletionStrategy;
 import org.cloudiator.iaas.node.NodeSchedulingException;
-import org.cloudiator.messages.Node.NodeDeleteMessage;
-import org.cloudiator.messages.Node.NodeDeleteResponseMessage;
 import org.cloudiator.messages.Node.NodeRequestMessage;
 import org.cloudiator.messages.Node.NodeRequestResponse;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
@@ -37,42 +36,39 @@ public class NodeReplacementImpl implements NodeReplacement {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(NodeReplacementImpl.class);
   private final NodeService nodeService;
+  private final NodeDeletionStrategy nodeDeletionStrategy;
 
   @Inject
-  public NodeReplacementImpl(NodeService nodeService) {
+  public NodeReplacementImpl(NodeService nodeService,
+      NodeDeletionStrategy nodeDeletionStrategy) {
     this.nodeService = nodeService;
+    this.nodeDeletionStrategy = nodeDeletionStrategy;
   }
 
   @Override
   public ForNodeReplacement forNode(Node node) {
-    return new ForNodeReplacementImpl(node, nodeService);
+    return new ForNodeReplacementImpl(node, nodeService, nodeDeletionStrategy);
   }
 
   public static class ForNodeReplacementImpl implements ForNodeReplacement {
 
     private final Node toBeReplaced;
     private final NodeService nodeService;
+    private final NodeDeletionStrategy nodeDeletionStrategy;
     private static final NodeToNodeMessageConverter NODE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
 
     public ForNodeReplacementImpl(Node toBeReplaced,
-        NodeService nodeService) {
+        NodeService nodeService, NodeDeletionStrategy nodeDeletionStrategy) {
       this.toBeReplaced = toBeReplaced;
       this.nodeService = nodeService;
+      this.nodeDeletionStrategy = nodeDeletionStrategy;
     }
 
     private boolean deleteOriginalNode() {
 
-      final NodeDeleteMessage nodeDeleteMessage = NodeDeleteMessage.newBuilder()
-          .setUserId(toBeReplaced.userId()).setNodeId(toBeReplaced.id()).build();
-
-      final SettableFutureResponseCallback<NodeDeleteResponseMessage, NodeDeleteResponseMessage> nodeDeleteCallback = SettableFutureResponseCallback
-          .create();
-
-      nodeService.deleteNodeAsync(nodeDeleteMessage, nodeDeleteCallback);
-
       try {
-        nodeDeleteCallback.get();
-      } catch (InterruptedException | ExecutionException e) {
+        nodeDeletionStrategy.deleteNode(toBeReplaced);
+      } catch (Exception e) {
         LOGGER.warn("Deletion of replaced node " + toBeReplaced
             + " failed. This may lead to an orphaned resource");
         return false;
