@@ -22,7 +22,6 @@ import com.google.common.base.MoreObjects;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.Node;
 import java.util.Set;
 import java.util.TreeSet;
 import org.slf4j.Logger;
@@ -35,6 +34,7 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(CompositeRemoteConnectionStrategy.class);
+  private static final RemoteLock REMOTE_LOCK = new RemoteLock(10);
 
   private static final Set<RemoteConnectionStrategy> STRATEGIES = new TreeSet<RemoteConnectionStrategy>() {{
     add(new PasswordRemoteConnectionStrategy());
@@ -59,24 +59,35 @@ public class CompositeRemoteConnectionStrategy implements RemoteConnectionStrate
   public RemoteConnection connect(BaseNode node)
       throws RemoteException {
 
-    Exception lastException = null;
-    for (RemoteConnectionStrategy remoteConnectionStrategy : STRATEGIES) {
-      try {
-        LOGGER.info(String
-            .format("%s is using strategy %s to connect to node %s", this,
-                remoteConnectionStrategy, node));
-        return remoteConnectionStrategy.connect(node);
-      } catch (Exception e) {
-        LOGGER.info(String
-            .format("%s failed connecting to node %s using strategy %s", this,
-                node, remoteConnectionStrategy), e);
-        lastException = e;
-      }
+    try {
+      REMOTE_LOCK.aquire();
+    } catch (InterruptedException e) {
+      throw new RemoteException("Interrupted while waiting for remote lock");
     }
 
-    throw new RemoteException(
-        "Tried all available remote connection strategies, but still could not connect to node.",
-        lastException);
+    try {
+      Exception lastException = null;
+      for (RemoteConnectionStrategy remoteConnectionStrategy : STRATEGIES) {
+        try {
+          LOGGER.info(String
+              .format("%s is using strategy %s to connect to node %s", this,
+                  remoteConnectionStrategy, node));
+          return remoteConnectionStrategy.connect(node);
+        } catch (Exception e) {
+          LOGGER.info(String
+              .format("%s failed connecting to node %s using strategy %s", this,
+                  node, remoteConnectionStrategy), e);
+          lastException = e;
+        }
+      }
+
+      throw new RemoteException(
+          "Tried all available remote connection strategies, but still could not connect to node.",
+          lastException);
+    } finally {
+      REMOTE_LOCK.release();
+    }
+
   }
 
   @Override

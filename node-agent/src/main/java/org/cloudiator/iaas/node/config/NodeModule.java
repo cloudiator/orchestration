@@ -19,7 +19,7 @@
 package org.cloudiator.iaas.node.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudiator.iaas.node.config.Constants.NODE_EXECUTION_SERVICE_NAME;
+import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_EXECUTION_SERVICE_NAME;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.AbstractModule;

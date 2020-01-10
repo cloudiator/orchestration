@@ -35,12 +35,11 @@ import de.uniulm.omi.cloudiator.util.execution.LoggingThreadPoolExecutor;
 import de.uniulm.omi.cloudiator.util.execution.Schedulable;
 import de.uniulm.omi.cloudiator.util.execution.ScheduledThreadPoolExecutorExecutionService;
 import io.github.cloudiator.iaas.vm.VirtualMachineAgent;
-import io.github.cloudiator.iaas.vm.VmAgentContext;
+import io.github.cloudiator.iaas.vm.messaging.PerCloudExecutionService;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestQueue;
 import io.github.cloudiator.iaas.vm.messaging.VirtualMachineRequestWorkerFactory;
 import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineCleanupWatchdog;
 import io.github.cloudiator.iaas.vm.watchdog.VirtualMachineErrorWatchdog;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -69,13 +68,14 @@ public class VmAgentModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(VirtualMachineRequestWorkerFactory.class));
 
     final int parallelVMStarts = vmAgentContext.parallelVMStarts();
+    bindConstant().annotatedWith(Names.named(VMAgentConstants.VM_PARALLEL_STARTS_PER_CLOUD))
+        .to(parallelVMStarts);
 
     final LoggingThreadPoolExecutor vmExecutor = new LoggingThreadPoolExecutor(
         parallelVMStarts, parallelVMStarts, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
 
-    bind(ExecutorService.class).annotatedWith(Names.named("VM_WORKERS")).toInstance(
-        vmExecutor
-    );
+    bind(ExecutionService.class).annotatedWith(Names.named("VM_WORKERS")).to(
+        PerCloudExecutionService.class);
 
     Multibinder<Schedulable> schedulablesBinder = Multibinder
         .newSetBinder(binder(), Schedulable.class);
@@ -85,7 +85,9 @@ public class VmAgentModule extends AbstractModule {
               + " delete virtual machines that are no longer managed by Cloudiator.");
       schedulablesBinder.addBinding().to(VirtualMachineCleanupWatchdog.class);
     }
-    schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
+    if (vmAgentContext.vmWatchdogEnabled()) {
+      schedulablesBinder.addBinding().to(VirtualMachineErrorWatchdog.class);
+    }
 
     bind(ExecutionService.class).annotatedWith(Names.named("SCHEDULE_EXECUTION")).toInstance(
         new ScheduledThreadPoolExecutorExecutionService(

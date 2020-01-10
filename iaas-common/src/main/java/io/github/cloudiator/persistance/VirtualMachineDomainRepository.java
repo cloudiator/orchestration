@@ -25,6 +25,7 @@ import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
 import io.github.cloudiator.domain.ExtendedVirtualMachine;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -65,6 +66,15 @@ public class VirtualMachineDomainRepository {
         .map(virtualMachineConverter::apply)
         .collect(Collectors
             .toList());
+  }
+
+  public List<ExtendedVirtualMachine> findByCloud(String userId, String cloudId) {
+    return findAll(userId).stream().filter(new Predicate<ExtendedVirtualMachine>() {
+      @Override
+      public boolean test(ExtendedVirtualMachine extendedVirtualMachine) {
+        return IdScopedByClouds.from(extendedVirtualMachine.id()).cloudId().equals(cloudId);
+      }
+    }).collect(Collectors.toList());
   }
 
   public List<ExtendedVirtualMachine> findAll() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 University of Ulm
+ * Copyright (c) 2014-2020 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,29 +16,13 @@
  * under the License.
  */
 
-package org.cloudiator.iaas.node.config;
+package org.cloudiator.iaas.node.check;
 
-import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_PARALLEL_STARTS;
+import io.github.cloudiator.domain.Node;
+import org.cloudiator.iaas.node.NodeSchedulingException;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import de.uniulm.omi.cloudiator.util.configuration.Configuration;
+public interface ForNodeReplacement {
 
-public class NodeAgentContext {
-
-  private final Config config;
-
-  public NodeAgentContext() {
-    this(Configuration.conf());
-  }
-
-  public NodeAgentContext(Config config) {
-    this.config = config;
-    config.checkValid(ConfigFactory.defaultReference(), "node");
-  }
-
-  public int parallelNodes() {
-    return config.getInt(NODE_PARALLEL_STARTS);
-  }
+  public Node execute() throws NodeSchedulingException;
 
 }

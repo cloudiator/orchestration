@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 University of Ulm
+ * Copyright (c) 2014-2020 University of Ulm
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.  Licensed under the Apache License, Version 2.0 (the
@@ -16,29 +16,25 @@
  * under the License.
  */
 
-package org.cloudiator.iaas.node.config;
+package io.github.cloudiator.remote;
 
-import static org.cloudiator.iaas.node.config.NodeAgentConstants.NODE_PARALLEL_STARTS;
+import java.util.concurrent.Semaphore;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import de.uniulm.omi.cloudiator.util.configuration.Configuration;
+public class RemoteLock {
 
-public class NodeAgentContext {
+  private final Semaphore semaphore;
 
-  private final Config config;
-
-  public NodeAgentContext() {
-    this(Configuration.conf());
+  public RemoteLock(int parallelRemoteConnections) {
+    semaphore = new Semaphore(
+        parallelRemoteConnections, true);
   }
 
-  public NodeAgentContext(Config config) {
-    this.config = config;
-    config.checkValid(ConfigFactory.defaultReference(), "node");
+  public void aquire() throws InterruptedException {
+    semaphore.acquire();
   }
 
-  public int parallelNodes() {
-    return config.getInt(NODE_PARALLEL_STARTS);
+  public void release() {
+    semaphore.release();
   }
 
 }
