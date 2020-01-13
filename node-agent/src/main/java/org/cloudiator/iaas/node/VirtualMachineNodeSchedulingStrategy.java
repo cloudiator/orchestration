@@ -23,24 +23,19 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import io.github.cloudiator.domain.ByonNode;
-import io.github.cloudiator.domain.ByonNodeToNodeConverter;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.domain.NodeBuilder;
 import io.github.cloudiator.domain.NodeCandidate;
 import io.github.cloudiator.domain.NodeCandidateType;
 import io.github.cloudiator.domain.NodeState;
-import io.github.cloudiator.messaging.ByonToByonMessageConverter;
+import io.github.cloudiator.domain.NodeType;
 import io.github.cloudiator.messaging.NodeCandidateMessageRepository;
 import io.github.cloudiator.messaging.VirtualMachineMessageToVirtualMachine;
 import java.util.concurrent.ExecutionException;
-import org.cloudiator.messages.Byon.ByonNodeAllocateRequestMessage;
-import org.cloudiator.messages.Byon.ByonNodeAllocatedResponse;
 import org.cloudiator.messages.Vm.CreateVirtualMachineRequestMessage;
 import org.cloudiator.messages.Vm.VirtualMachineCreatedResponse;
 import org.cloudiator.messages.entities.IaasEntities.VirtualMachineRequest;
 import org.cloudiator.messaging.SettableFutureResponseCallback;
-import org.cloudiator.messaging.services.ByonService;
 import org.cloudiator.messaging.services.VirtualMachineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,11 +103,24 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
           .format("%s incarnated nodeCandidate %s as virtual machine %s.", this, nodeCandidate,
               virtualMachine));
 
-      final boolean isExternal = nodeCandidate.type().equals(NodeCandidateType.BYON);
-      Node schedNode = NodeBuilder.of(virtualMachine, isExternal).state(NodeState.RUNNING).userId(pending.userId())
-          .nodeCandidate(nodeCandidate.id()).id(pending.id()).name(pending.name()).build();
+      NodeType nodeType;
+      switch (nodeCandidate.type()) {
+        case BYON:
+          nodeType = NodeType.BYON;
+          break;
+        case IAAS:
+          nodeType = NodeType.VM;
+          break;
+        case SIMULATION:
+          nodeType = NodeType.SIMULATION;
+          break;
+        default:
+          throw new AssertionError("Illegal node type " + nodeCandidate.type());
+      }
 
-      return schedNode;
+      return NodeBuilder.of(virtualMachine, nodeType).state(NodeState.RUNNING)
+          .userId(pending.userId())
+          .nodeCandidate(nodeCandidate.id()).id(pending.id()).name(pending.name()).build();
 
     } catch (InterruptedException e) {
       throw new IllegalStateException("Got interrupted while waiting for virtual machine to start",

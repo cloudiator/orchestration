@@ -4,5 +4,6 @@ public enum NodeCandidateType {
   IAAS,
   PAAS,
   FAAS,
-  BYON
+  BYON,
+  SIMULATION
 }
