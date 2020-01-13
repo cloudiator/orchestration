@@ -43,6 +43,7 @@ public class NodeCandidateConverter implements
   public NodeCandidate apply(MatchmakingEntities.NodeCandidate nodeCandidate) {
     switch (nodeCandidate.getType()) {
       case NC_IAAS:
+      case NC_SIMULATION:
         return applyIaas(nodeCandidate);
       case NC_FAAS:
         return applyFaas(nodeCandidate);
