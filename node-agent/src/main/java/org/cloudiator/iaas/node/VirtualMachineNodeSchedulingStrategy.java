@@ -72,7 +72,7 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
   @Override
   public boolean canSchedule(Node pending) {
     NodeCandidateType type = retrieveCandidate(pending).type();
-    return type.equals(NodeCandidateType.IAAS);
+    return type.equals(NodeCandidateType.IAAS) || type.equals(NodeCandidateType.SIMULATION);
   }
 
   public Node schedule(Node pending) throws NodeSchedulingException {
@@ -105,9 +105,6 @@ public class VirtualMachineNodeSchedulingStrategy implements NodeSchedulingStrat
 
       NodeType nodeType;
       switch (nodeCandidate.type()) {
-        case BYON:
-          nodeType = NodeType.BYON;
-          break;
         case IAAS:
           nodeType = NodeType.VM;
           break;
