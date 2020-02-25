@@ -24,6 +24,7 @@ public enum NodeType {
   VM,
   BYON,
   CONTAINER,
-  FAAS
+  FAAS,
+  SIMULATION
 
 }

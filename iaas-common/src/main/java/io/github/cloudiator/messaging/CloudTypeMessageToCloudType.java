@@ -40,6 +40,8 @@ public class CloudTypeMessageToCloudType implements
         return IaasEntities.CloudType.PUBLIC_CLOUD;
       case PRIVATE:
         return IaasEntities.CloudType.PRIVATE_CLOUD;
+      case SIMULATION:
+        return IaasEntities.CloudType.SIMULATION_CLOUD;
       default:
         throw new AssertionError(String.format("Unrecognized cloudType %s.", cloudType));
     }
@@ -52,6 +54,8 @@ public class CloudTypeMessageToCloudType implements
         return CloudType.PRIVATE;
       case PUBLIC_CLOUD:
         return CloudType.PUBLIC;
+      case SIMULATION_CLOUD:
+        return CloudType.SIMULATION;
       case UNRECOGNIZED:
       default:
         throw new AssertionError(String.format("Unrecognized cloudType %s", cloudType));

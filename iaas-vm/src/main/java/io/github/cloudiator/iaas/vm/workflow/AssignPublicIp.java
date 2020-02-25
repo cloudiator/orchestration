@@ -21,6 +21,7 @@ package io.github.cloudiator.iaas.vm.workflow;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachineBuilder;
 import de.uniulm.omi.cloudiator.sword.service.ComputeService;
@@ -51,9 +52,9 @@ public class AssignPublicIp implements Activity {
     checkState(computeService.publicIpExtension().isPresent(),
         String.format(NO_PUBLIC_IP, virtualMachine, computeService));
 
-    final String publicIp = computeService.publicIpExtension().get()
+    final IpAddress ipAddress = computeService.publicIpExtension().get()
         .addPublicIp(virtualMachine.id());
 
-    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addIpString(publicIp).build());
+    return Exchange.of(VirtualMachineBuilder.of(virtualMachine).addIpAddress(ipAddress).build());
   }
 }

@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
+
   private static final NameGenerator NAME_GENERATOR = NameGenerator.INSTANCE;
   protected String id;
   protected String userId;
@@ -60,7 +61,7 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
     nodeCandidate = node.nodeCandidate().orElse(null);
   }
 
-  protected AbstractNodeBuilder(VirtualMachine virtualMachine, boolean isExternal) {
+  protected AbstractNodeBuilder(VirtualMachine virtualMachine, NodeType nodeType) {
 
     final String providerId = IdScopedByClouds.from(virtualMachine.id()).cloudId();
 
@@ -87,11 +88,7 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
       }
     }
 
-    if (isExternal) {
-      nodeType = NodeType.BYON;
-    } else {
-      nodeType = NodeType.VM;
-    }
+    this.nodeType = nodeType;
     ipAddresses = virtualMachine.ipAddresses();
     this.loginCredential = loginCredential;
     this.nodeProperties = nodeProperties;
@@ -156,6 +153,8 @@ public abstract class AbstractNodeBuilder<T extends AbstractNodeBuilder<T>> {
   }
 
   protected abstract T self();
+
   public abstract T nodeType(NodeType nodeType);
+
   public abstract BaseNode build();
 }

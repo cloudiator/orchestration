@@ -46,7 +46,7 @@ public class VirtualMachineNodeDeletionStrategy implements NodeDeletionStrategy 
 
   @Override
   public boolean supportsNode(Node node) {
-    return node.type().equals(NodeType.VM);
+    return node.type().equals(NodeType.VM) || node.type().equals(NodeType.SIMULATION);
   }
 
   @Override

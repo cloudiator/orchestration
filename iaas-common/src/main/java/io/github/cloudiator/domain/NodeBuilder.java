@@ -20,17 +20,7 @@ package io.github.cloudiator.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.uniulm.omi.cloudiator.domain.LoginNameSupplier.UnknownLoginNameException;
-import de.uniulm.omi.cloudiator.domain.OperatingSystem;
-import de.uniulm.omi.cloudiator.sword.domain.IpAddress;
-import de.uniulm.omi.cloudiator.sword.domain.LoginCredential;
-import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
 import de.uniulm.omi.cloudiator.sword.domain.VirtualMachine;
-import de.uniulm.omi.cloudiator.sword.multicloud.service.IdScopedByClouds;
-import io.github.cloudiator.util.NameGenerator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
 
@@ -47,13 +37,13 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     originId = node.originId().orElse(null);
   }
 
-  private NodeBuilder(VirtualMachine virtualMachine, boolean isExternal) {
-    super(virtualMachine, isExternal);
+  private NodeBuilder(VirtualMachine virtualMachine, NodeType nodeType) {
+    super(virtualMachine, nodeType);
     originId = virtualMachine.id();
   }
 
   private NodeBuilder(VirtualMachine virtualMachine) {
-    this(virtualMachine, false);
+    this(virtualMachine, NodeType.VM);
   }
 
   public static NodeBuilder newBuilder() {
@@ -65,8 +55,8 @@ public class NodeBuilder extends AbstractNodeBuilder<NodeBuilder> {
     return new NodeBuilder(node);
   }
 
-  public static NodeBuilder of(VirtualMachine virtualMachine, boolean isExternal) {
-    return new NodeBuilder(virtualMachine, isExternal);
+  public static NodeBuilder of(VirtualMachine virtualMachine, NodeType nodeType) {
+    return new NodeBuilder(virtualMachine, nodeType);
   }
 
   public static NodeBuilder of(VirtualMachine virtualMachine) {

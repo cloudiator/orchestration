@@ -18,6 +18,8 @@ public class NodeTypeToNodeTypeMessage implements
         return NodeType.CONTAINER;
       case FAAS:
         return NodeType.FAAS;
+      case SIMULATION:
+        return NodeType.SIMULATION;
       case UNKNOWN_TYPE:
         return NodeType.UNKOWN;
       case UNRECOGNIZED:
@@ -39,6 +41,8 @@ public class NodeTypeToNodeTypeMessage implements
         return NodeEntities.NodeType.CONTAINER;
       case FAAS:
         return NodeEntities.NodeType.FAAS;
+      case SIMULATION:
+        return NodeEntities.NodeType.SIMULATION;
       default:
         throw new AssertionError(String.format("The nodeType %s is not known.", nodeType));
     }

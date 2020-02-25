@@ -35,7 +35,7 @@ public class ByonNodeBuilder extends AbstractNodeBuilder<ByonNodeBuilder> {
   }
 
   private ByonNodeBuilder(VirtualMachine virtualMachine) {
-    super(virtualMachine, true);
+    super(virtualMachine, NodeType.BYON);
   }
 
   public static ByonNodeBuilder newBuilder() {

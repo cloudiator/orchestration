@@ -22,6 +22,8 @@ public class NodeCandidateTypeConverter implements
         return NodeCandidateType.PAAS;
       case NC_BYON:
         return NodeCandidateType.BYON;
+      case NC_SIMULATION:
+        return NodeCandidateType.SIMULATION;
       case UNRECOGNIZED:
       default:
         throw new AssertionError("Unsupported node candidate type " + nodeCandidateType);
@@ -39,6 +41,8 @@ public class NodeCandidateTypeConverter implements
         return MatchmakingEntities.NodeCandidateType.NC_IAAS;
       case PAAS:
         return MatchmakingEntities.NodeCandidateType.NC_PAAS;
+      case SIMULATION:
+        return MatchmakingEntities.NodeCandidateType.NC_SIMULATION;
       default:
         throw new AssertionError("Illegal node candidate type " + nodeCandidateType);
     }
