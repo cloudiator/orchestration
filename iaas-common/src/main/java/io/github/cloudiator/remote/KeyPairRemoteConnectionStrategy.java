@@ -18,9 +18,6 @@
 
 package io.github.cloudiator.remote;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.net.HostAndPort;
 import de.uniulm.omi.cloudiator.domain.RemoteType;
 import de.uniulm.omi.cloudiator.sword.domain.LoginCredentialBuilder;
@@ -31,9 +28,11 @@ import de.uniulm.omi.cloudiator.sword.remote.internal.RemoteBuilder;
 import de.uniulm.omi.cloudiator.sword.remote.overthere.OverthereModule;
 import de.uniulm.omi.cloudiator.util.execution.Prioritized;
 import io.github.cloudiator.domain.BaseNode;
-import io.github.cloudiator.domain.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by daniel on 31.08.15.
@@ -67,17 +66,21 @@ public class KeyPairRemoteConnectionStrategy implements RemoteConnectionStrategy
     int remotePort = node.nodeProperties().operatingSystem().get().operatingSystemFamily()
         .remotePort();
 
+      LOGGER.info("Setting port for connection: " + remotePort);
+
     RemoteType remoteType = node.nodeProperties().operatingSystem().get().operatingSystemFamily()
         .operatingSystemType().remoteType();
 
     //get username from credential or OS
     String userName;
-    if (!node.loginCredential().get().username().isPresent()) {
+      if (node.loginCredential().get().username().isPresent()) {
       userName = node.loginCredential().get().username().get();
     } else {
 
       userName = node.nodeProperties().operatingSystem().get().operatingSystemFamily().loginName();
     }
+
+      LOGGER.info("Key Pair connection with username: {}", userName);
 
     return RemoteBuilder.newBuilder()
         .remoteModule(new OverthereModule())

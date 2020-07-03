@@ -80,6 +80,10 @@ public interface InstallApi extends AutoCloseable {
    */
   void installEMS() throws RemoteException;
 
+  /**
+   * Disable firewall - dedicated for Oktawave provider
+   */
+  void disableFirewall() throws RemoteException;
 
   @Override
   void close() throws RemoteException;

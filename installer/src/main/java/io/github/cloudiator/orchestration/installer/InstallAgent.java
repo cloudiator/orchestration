@@ -21,6 +21,8 @@ package io.github.cloudiator.orchestration.installer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
+import io.github.cloudiator.persistance.JpaModule;
+import io.github.cloudiator.util.JpaContext;
 import org.cloudiator.messaging.kafka.KafkaContext;
 import org.cloudiator.messaging.kafka.KafkaMessagingModule;
 import org.cloudiator.messaging.services.MessageServiceModule;
@@ -38,7 +40,9 @@ public class InstallAgent {
       Guice.createInjector(
           new KafkaMessagingModule(new KafkaContext(Configuration.conf())),
           new MessageServiceModule(),
-          new InstallAgentModule());
+              new InstallAgentModule(),
+              new JpaModule("defaultPersistenceUnit", new JpaContext(Configuration.conf()))
+      );
 
   /**
    * starts the virtual machine agent.

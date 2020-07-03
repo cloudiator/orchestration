@@ -21,14 +21,12 @@ package io.github.cloudiator.orchestration.installer;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
+import io.github.cloudiator.domain.ExtendedCloud;
 import io.github.cloudiator.domain.Node;
 import io.github.cloudiator.messaging.NodeToNodeMessageConverter;
 import io.github.cloudiator.orchestration.installer.tools.installer.Installers;
 import io.github.cloudiator.orchestration.installer.tools.installer.api.InstallApi;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import javax.inject.Inject;
+import io.github.cloudiator.persistance.CloudDomainRepository;
 import org.cloudiator.messages.General.Error;
 import org.cloudiator.messages.Installation.InstallationRequest;
 import org.cloudiator.messages.Installation.InstallationResponse;
@@ -37,6 +35,11 @@ import org.cloudiator.messaging.MessageInterface;
 import org.cloudiator.messaging.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Daniel Seybold on 12.09.2017.
@@ -50,11 +53,13 @@ public class InstallEventSubscriber implements Runnable {
   private static final NodeToNodeMessageConverter NODE_MESSAGE_CONVERTER = NodeToNodeMessageConverter.INSTANCE;
   private static final Semaphore SEMAPHORE = new Semaphore(
       Configuration.conf().getInt("installer.parallelism"), true);
+  private final CloudDomainRepository cloudDomainRepository;
 
 
   @Inject
-  public InstallEventSubscriber(MessageInterface messageInterface) {
+  public InstallEventSubscriber(MessageInterface messageInterface, CloudDomainRepository cloudDomainRepository) {
     this.messagingService = messageInterface;
+    this.cloudDomainRepository = cloudDomainRepository;
   }
 
   @Override
@@ -76,7 +81,6 @@ public class InstallEventSubscriber implements Runnable {
             SEMAPHORE.release();
           }
         });
-
   }
 
   private final List<Tool> handleRequest(String requestId, InstallationRequest installationRequest)
@@ -88,12 +92,23 @@ public class InstallEventSubscriber implements Runnable {
     Node node = NODE_MESSAGE_CONVERTER
         .applyBack(installationRequest.getInstallation().getNode());
 
+    LOGGER.debug("Install tools on node with user: {}", node.loginCredential().isPresent() ? node.loginCredential().get().username() : "empty username");
+
     List<Tool> installedTools;
 
     try (RemoteConnection remoteConnection = node.connect()) {
       installedTools = installTools(installationRequest.getInstallation().getToolList(),
           remoteConnection, node,
           installationRequest.getUserId());
+
+      // disable firewall for Oktawave
+      final ExtendedCloud cloud = cloudDomainRepository
+              .findById(node.nodeProperties().providerId());
+      if (cloud != null && "oktawave".equals(cloud.api().providerName())) {
+        LOGGER.debug("Found cloud: %s for node with id=%s", cloud.api().providerName(), node.id());
+        disableFirewall(remoteConnection, node, installationRequest.getUserId());
+      }
+
     }
 
     return installedTools;
@@ -148,6 +163,13 @@ public class InstallEventSubscriber implements Runnable {
 
     return installedTools;
 
+  }
+
+  public void disableFirewall(RemoteConnection remoteConnection, Node node,
+                              String userId) throws RemoteException {
+    InstallApi installApi = Installers.of(remoteConnection, node, userId);
+    installApi.bootstrap();
+    installApi.disableFirewall();
   }
 
 

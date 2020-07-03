@@ -22,8 +22,6 @@ import de.uniulm.omi.cloudiator.sword.remote.RemoteConnection;
 import de.uniulm.omi.cloudiator.sword.remote.RemoteException;
 import de.uniulm.omi.cloudiator.util.configuration.Configuration;
 import io.github.cloudiator.domain.Node;
-import io.github.cloudiator.persistance.TransactionRetryer;
-import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -505,5 +503,23 @@ public class UnixInstaller extends AbstractInstaller {
     }
   }
 
+  // disable firewall - dedicated for Oktawave provider
+  @Override
+  public void disableFirewall() throws RemoteException {
+    // Print node information
+    LOGGER.debug(String
+            .format("Node information: id=%s, name=%s, type=%s, public address=%s", node.id(), node.name(), node.type(), node.publicIpAddresses()));
+    LOGGER.debug(String.format("Node 'connectTo' addresses: %s", node.connectTo()));
+
+    String command = "systemctl stop firewalld";
+    CommandTask disableFirewallCommand = new CommandTask(this.remoteConnection, command);
+    disableFirewallCommand.call();
+
+    command = "systemctl disable firewalld";
+    disableFirewallCommand = new CommandTask(this.remoteConnection, command);
+    disableFirewallCommand.call();
+
+    LOGGER.debug("Firewall successfully stopped on node with id=%s", node.id());
+  }
 }
 

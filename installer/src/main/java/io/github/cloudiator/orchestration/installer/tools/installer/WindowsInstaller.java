@@ -356,5 +356,9 @@ public void installDlmsAgent() throws RemoteException {
 	
 }
 
+    @Override
+    public void disableFirewall() throws RemoteException {
+        throw new UnsupportedOperationException("Unsupported method - disable firewall for Windows");
+    }
 
 }
